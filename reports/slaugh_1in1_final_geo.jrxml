@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="slaugh_final" language="groovy" pageWidth="289" pageHeight="215" orientation="Landscape" columnWidth="269" leftMargin="10" rightMargin="10" topMargin="10" bottomMargin="10" uuid="b506392e-717e-497a-b110-b7e56e395029">
+	<property name="ireport.zoom" value="1.652892561983471"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[/*2520068*/
+/*"2596866", 604634*/
+select distinct
+	va.animal_id,
+	va.old_animal_id,
+	(date_part('year', now()) - date_part('year', va.birth_date))animal_age,
+	now()::date - va.birth_date::date animal_day_diff,
+	case when va.country_old_id is NULL
+	 then 'GE'
+	 else case when ((now()::date - va.birth_date::date) <= 30)
+	  then concat(country_old_id, ' ', old_animal_id)
+	  else concat(country_old_id, ' ', old_animal_id, ', GE ', animal_id)
+	 end
+	end as ids,
+	naits.translateCodeValue(va.animal_class,'ANIMAL_CLASS','en_US')animal_breed,
+	va.country_old_id,
+	va.country,
+	va.birth_date,
+	va.registration_date,
+	/*vsf.slaughter_date,*/	'__:'||to_char(COALESCE(vsf.manufacture_date,vsf.slaughter_date,va.death_date),'DD')||'/'||to_char(vsf.slaughter_date,'MM') as slaughter_date,
+	'__:'||(extract(day from (COALESCE(vsf.manufacture_date,vsf.slaughter_date,va.death_date)+ interval '2' day)))||'/'||to_char(vsf.slaughter_date,'MM') as shelf_life,
+	vhr.full_name,
+	vh.name,
+	vh.approval_num
+from
+	naits.vanimal va
+	join naits.vpost_slaught_form vsf on vsf.parent_id = va.object_id
+	left join naits.vholding vh on (
+		va.parent_id=vh.object_id
+		and now() between vh.dt_insert and vh.dt_delete)
+	left join (
+		select
+			vsl.link_obj_id_1,
+			vsl.link_obj_id_2
+		from
+			naits.vsvarog_link vsl
+		 	join naits.vsvarog_link_type vlt on (
+				vsl.link_type_id = vlt.object_id
+				and now() between vlt.dt_insert and vlt.dt_delete
+				and vlt.link_type='HOLDING_KEEPER')
+		where
+			now() between vsl.dt_insert and vsl.dt_delete
+		) vvv on vvv.link_obj_id_1=vh.object_id
+
+--	left join naits.vsvarog_link vsl on (
+--		vsl.link_obj_id_1=vh.object_id
+--		and now() between vsl.dt_insert and vsl.dt_delete)
+--	left join naits.vsvarog_link_type vlt on (
+--		vsl.link_type_id = vlt.object_id
+--		and now() between vlt.dt_insert and vlt.dt_delete
+--		and vlt.link_type='HOLDING_KEEPER')
+
+	left join naits.vholding_responsible vhr on (
+		vvv.link_obj_id_2=vhr.object_id
+		and now() between vhr.dt_insert and vhr.dt_delete)
+
+
+where now() between va.dt_insert and va.dt_delete
+		and now() between vsf.dt_insert and vsf.dt_delete
+		and (va.status='POSTMORTEM' OR va.status='SLAUGHTRD')
+		and va.object_id=$P{OBJ_ID}
+limit 1;]]>
+	</queryString>
+	<field name="animal_id" class="java.lang.String"/>
+	<field name="old_animal_id" class="java.lang.String"/>
+	<field name="animal_age" class="java.lang.Double"/>
+	<field name="animal_day_diff" class="java.lang.Integer"/>
+	<field name="ids" class="java.lang.String"/>
+	<field name="animal_breed" class="java.lang.String"/>
+	<field name="country_old_id" class="java.lang.String"/>
+	<field name="country" class="java.lang.String"/>
+	<field name="birth_date" class="java.sql.Date"/>
+	<field name="registration_date" class="java.sql.Date"/>
+	<field name="slaughter_date" class="java.lang.String"/>
+	<field name="shelf_life" class="java.lang.String"/>
+	<field name="full_name" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="approval_num" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="180" splitType="Stretch">
+			<textField>
+				<reportElement mode="Opaque" x="0" y="45" width="269" height="15" backcolor="#FFFFFF" uuid="98ebf10f-8b69-48ed-b428-b4283fe0d959"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["პირუტყვის საყურე #: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="0" y="0" width="269" height="15" backcolor="#FFFFFF" uuid="b98b5303-a80e-4144-959c-337da7b8d47c"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სურსათის დასახელება: " + (($F{animal_breed}) == "Sheep" ? "ცხვარის ხორრცი" : ($F{animal_breed}) == "Pig" ? "ღორის ხორცი" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"საქონლის ხორცი": "ხბოს ხორცი") : "N/A")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="60" width="81" height="15" backcolor="#FFFFFF" uuid="c3a5640b-3181-46e4-b1b1-f7e13f758aef"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[დაბადების ადგილი: ]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="81" y="60" width="188" height="15" backcolor="#FFFFFF" uuid="3791db01-49dd-4512-8052-ba25a3936e22"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="75" width="269" height="15" backcolor="#FFFFFF" uuid="d2c6e760-e4ac-47c4-8105-d52eafe2a002"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გაზრდის ადგილი: " + $F{ids}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="90" width="269" height="15" backcolor="#FFFFFF" uuid="74470be2-25b0-4344-adc1-28e490d3847e"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დაკვლის ადგილი: GE"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="120" width="269" height="15" backcolor="#FFFFFF" uuid="859e4499-d710-4795-a3b2-87635c20dacb"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ფორმა #2: __________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="135" width="269" height="15" backcolor="#FFFFFF" uuid="c6f049e3-fe87-496b-9298-5417aa40ee2f"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სუფთა წონა: _________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="15" width="269" height="15" backcolor="#FFFFFF" uuid="493fbc61-edff-4a1c-a89c-6934c526f07e"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორის დასახელება: " + (($F{full_name}) != null ? $F{full_name} : $F{name})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="30" width="269" height="15" backcolor="#FFFFFF" uuid="285c1063-0da7-4c70-bbf3-eed6baeda18d"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორი აღიარების კოდით #: " + $F{approval_num}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="150" width="269" height="15" backcolor="#FFFFFF" uuid="3ca06063-3e4b-400c-b413-7c21e88a292e"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[შენახვის პირობები: მაქს. ტემპერატურა +6 C° ]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="165" width="249" height="15" backcolor="#FFFFFF" uuid="4f7e281e-8401-4611-b00b-02507ba0ee27"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გამოიყენება: " + $F{shelf_life} + "-მდე"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="105" width="269" height="15" backcolor="#FFFFFF" uuid="23aa1b36-5c62-4774-930c-173e356da484"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დამზადების თარიღი.: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="249" y="165" width="20" height="15" forecolor="#999999" uuid="74746b6e-5120-49eb-8a7a-42960b651d29"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<text><![CDATA[v.14]]></text>
+			</staticText>
+		</band>
+	</detail>
+</jasperReport>

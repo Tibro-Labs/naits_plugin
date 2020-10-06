@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="quarantine_main" language="groovy" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" whenResourceMissingType="Empty" uuid="ed92c0a6-fa4a-4b3a-abeb-649a8a809fd7">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/daut/Desktop/iReports 22/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select naits.translateCodeValue(vq.quarantine_type,'QUARANTINE_TYPE','en_US')q_type, vq.date_from, vq.date_to,
+vq.quarantine_type, vq.reason
+from naits.vquarantine vq
+where now() between vq.dt_insert and vq.dt_delete
+and vq.object_id=$P{OBJ_ID}]]>
+	</queryString>
+	<field name="q_type" class="java.lang.String"/>
+	<field name="date_from" class="java.sql.Date"/>
+	<field name="date_to" class="java.sql.Date"/>
+	<field name="quarantine_type" class="java.lang.String"/>
+	<field name="reason" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="68" splitType="Stretch">
+			<rectangle>
+				<reportElement uuid="4139ef8c-a1d0-4d89-9de0-05ab93c029f7" x="5" y="18" width="585" height="50" backcolor="#CED1E0"/>
+			</rectangle>
+			<staticText>
+				<reportElement uuid="9fafc789-9d91-4141-9ff3-beb6e25c7d24" x="203" y="0" width="156" height="20"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Quarantine report]]></text>
+			</staticText>
+			<elementGroup>
+				<textField pattern="d/M/yyyy">
+					<reportElement uuid="7c7123f9-9fc4-476e-b144-cefc76524578" x="5" y="37" width="203" height="15"/>
+					<box leftPadding="2"/>
+					<textElement/>
+					<textFieldExpression><![CDATA["Quarantine end date: " + $F{date_to}]]></textFieldExpression>
+				</textField>
+				<textField pattern="d/M/yyyy">
+					<reportElement uuid="e85d0137-9f7a-42d7-88b9-1cf82432e340" x="5" y="22" width="203" height="15"/>
+					<box leftPadding="2"/>
+					<textElement/>
+					<textFieldExpression><![CDATA["Quarantine start date: " + $F{date_from}]]></textFieldExpression>
+				</textField>
+			</elementGroup>
+			<textField>
+				<reportElement uuid="0193ee4f-23e0-4efd-9af6-166672bc4ee1" x="5" y="52" width="203" height="16"/>
+				<box leftPadding="2"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Quarantine status: " + ($F{date_to}.after(new Date()) ? "Active" : "Inactive")]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="27ac1a2d-edc3-456b-9034-aa80d1cc8d1c" x="368" y="22" width="222" height="30"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Reason: " + (($F{reason}) != null ? $F{reason} : "N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="e2f4c128-fb7c-414d-8899-2ef7b6cd69f0" x="368" y="52" width="222" height="16"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Quarantine type: " + $F{q_type}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<subreport>
+				<reportElement uuid="488c7e91-ec50-44bc-9b13-192fee53ad60" x="5" y="0" width="585" height="10">
+					<printWhenExpression><![CDATA[$F{quarantine_type}.equals("0")]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "quarantine_export.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement uuid="3c6d7f25-8ba9-469c-aa72-a4bafa9fc75b" x="5" y="10" width="585" height="10">
+					<printWhenExpression><![CDATA[$F{quarantine_type}.equals("1")]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "quarantine_blacklist.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="20">
+			<textField>
+				<reportElement uuid="6f3b8b9f-5b39-4680-a513-a6442ecd5d11" mode="Opaque" x="561" y="3" width="34" height="15" backcolor="#CED1E0"/>
+				<box topPadding="2" leftPadding="2"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnFooter>
+</jasperReport>

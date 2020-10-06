@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="vaccEventSummary" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="152e0d6d-965f-4c3a-85d4-ef6eaabf868a">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String"/>
+	<parameter name="terr_code" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="month_param" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+vve.campaign_name, vve.note,vve.event_start,vve.event_end,
+naits.get_label_text_per_value($P{terr_code}, 'MUNICIPALITIES', 'en_US') as munics
+from naits.vvaccination_event vve
+where
+vve.dt_delete > now() and
+vve.object_id = $P{OBJ_ID}]]>
+	</queryString>
+	<field name="campaign_name" class="java.lang.String"/>
+	<field name="note" class="java.lang.String"/>
+	<field name="event_start" class="java.sql.Date"/>
+	<field name="event_end" class="java.sql.Date"/>
+	<field name="munics" class="java.lang.String"/>
+	<variable name="counter" class="java.lang.Integer" resetType="None" calculation="Count">
+		<initialValueExpression><![CDATA[0]]></initialValueExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="104" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="2869018b-74f1-4aef-a900-ddd04b4edf5e" x="279" y="0" width="220" height="20"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="15" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Information for campaign]]></text>
+			</staticText>
+			<rectangle>
+				<reportElement uuid="c13b9191-fe9d-4020-ac81-409ceab2747b" x="54" y="43" width="686" height="3" backcolor="#E8E8FF"/>
+				<graphicElement>
+					<pen lineWidth="0.0"/>
+				</graphicElement>
+			</rectangle>
+			<subreport>
+				<reportElement uuid="7447ec69-d82b-4879-aa20-a4b47053332b" x="54" y="50" width="686" height="51"/>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "basic_campaign_info.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement uuid="2c2c1b62-5ed2-47b2-80fe-25966b8e9e41" x="540" y="20" width="200" height="20"/>
+				<subreportParameter name="munic_code">
+					<subreportParameterExpression><![CDATA[$P{terr_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "vaccination_munic.jasper"]]></subreportExpression>
+			</subreport>
+			<textField>
+				<reportElement uuid="5f75b47b-b594-41fd-87b5-2f38a0b96da6" x="54" y="20" width="193" height="20" forecolor="#000000"/>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="html">
+					<font size="11" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<b>Month: </b>" + ($P{month_param} == "01" ? "January": $P{month_param} == "02" ? "February": $P{month_param} == "03" ? "March": $P{month_param} == "04" ? "April": $P{month_param} == "05" ? "May": $P{month_param} == "06" ? "June": $P{month_param} == "07" ? "July": $P{month_param} == "08" ? "August": $P{month_param} == "09" ? "September": $P{month_param} == "10" ? "October": $P{month_param} == "11" ? "November": $P{month_param} == "12" ? "December" : "N/A")]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="40" splitType="Stretch">
+			<subreport>
+				<reportElement uuid="34e3ee3c-065e-46f6-a7e4-70dc94aaf536" x="0" y="0" width="802" height="20"/>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="terr_code">
+					<subreportParameterExpression><![CDATA[$P{terr_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="month_param">
+					<subreportParameterExpression><![CDATA[$P{month_param}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{terr_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "animalVaccEventSummary.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement uuid="22cb6137-a5bb-44ae-ba99-b9e156f5ec0e" x="0" y="20" width="802" height="20"/>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="terr_code">
+					<subreportParameterExpression><![CDATA[$P{terr_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="month_param">
+					<subreportParameterExpression><![CDATA[$P{month_param}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "petVaccEventSummary.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="45" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="ca8a9bcf-789d-4358-b309-70a00a4f2ad1" stretchType="RelativeToTallestObject" x="691" y="11" width="56" height="15"/>
+				<box topPadding="2" rightPadding="10"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement uuid="ec0111b4-e841-432e-a7c0-83fb7aae66e0" positionType="Float" mode="Transparent" x="54" y="12" width="686" height="20" forecolor="#E8E8FF" backcolor="#E8E8FF"/>
+				<graphicElement>
+					<pen lineWidth="2.5"/>
+				</graphicElement>
+			</rectangle>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="57" splitType="Stretch"/>
+	</summary>
+</jasperReport>

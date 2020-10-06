@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="statusUpdateFormPerHolding_subreport3" language="groovy" pageWidth="752" pageHeight="572" orientation="Landscape" columnWidth="752" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="bbfe83ff-5b91-4ed4-aca9-50e2137c6d6b">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="path" class="java.lang.String">
+		<defaultValueExpression><![CDATA["/home/meagain/Desktop/NAITS/StatusUpdatePrintout/"]]></defaultValueExpression>
+	</parameter>
+	<queryString language="SQL">
+		<![CDATA[select 1;]]>
+	</queryString>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="101">
+			<staticText>
+				<reportElement uuid="dfcda709-7609-43ca-9b80-4dce26c92c99" x="1" y="10" width="142" height="26"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Other Animals #]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="a14c01f4-dc65-4796-b68d-585e6abf75d0" x="143" y="0" width="103" height="10"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[# of animals with]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="94ad4b8e-c377-45db-b08e-0e8c2665f890" x="204" y="10" width="42" height="26"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Missing tags]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="f5765bfd-0137-4acb-ad5e-f8243afbf817" x="174" y="10" width="30" height="26"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[No tags]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="cfd76616-b0d4-4169-bc8d-3a18b588692b" x="143" y="36" width="31" height="21"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ Bovine ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="56c2da32-5bd3-4d59-967b-856828ce61c2" x="246" y="0" width="101" height="10"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Animal Register]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="81166a7f-8d97-4052-900a-14fe084f033b" x="246" y="10" width="51" height="26"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Available]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="61dd5474-6cbf-4a57-b6c7-03b40d4d9ada" x="296" y="10" width="51" height="26"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Completed]]></text>
+			</staticText>
+			<frame>
+				<reportElement uuid="a56d595d-3a42-40b6-8389-51a34b931bc2" x="174" y="37" width="30" height="20"/>
+				<box>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+			</frame>
+			<frame>
+				<reportElement uuid="4e3bab5d-c4d6-485e-a3c1-7544669bd4a1" x="204" y="37" width="42" height="20"/>
+				<box>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+			</frame>
+			<frame>
+				<reportElement uuid="90f42921-a307-4e6a-b6c9-94e20d1c27e7" x="246" y="36" width="51" height="63"/>
+				<box>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<frame>
+					<reportElement uuid="a308cc5a-4644-408d-82a1-c32a02131fc8" x="20" y="23" width="13" height="13"/>
+					<box>
+						<pen lineColor="#666666"/>
+						<topPen lineWidth="0.75" lineColor="#666666"/>
+						<leftPen lineWidth="0.75" lineColor="#666666"/>
+						<bottomPen lineWidth="0.75" lineColor="#666666"/>
+						<rightPen lineWidth="0.75" lineColor="#666666"/>
+					</box>
+				</frame>
+			</frame>
+			<frame>
+				<reportElement uuid="6c3fc5d5-973b-4661-80d8-d694ef08f653" x="297" y="36" width="50" height="63"/>
+				<box>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<frame>
+					<reportElement uuid="36fffa4e-c312-4d8d-a66a-3556e0378aa4" x="20" y="23" width="13" height="13"/>
+					<box>
+						<pen lineColor="#666666"/>
+						<topPen lineWidth="0.75" lineColor="#666666"/>
+						<leftPen lineWidth="0.75" lineColor="#666666"/>
+						<bottomPen lineWidth="0.75" lineColor="#666666"/>
+						<rightPen lineWidth="0.75" lineColor="#666666"/>
+					</box>
+				</frame>
+			</frame>
+			<staticText>
+				<reportElement uuid="2c2b8d5c-9973-46b2-8141-4d6787342f82" x="1" y="37" width="48" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Dogs]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b8149445-d63b-4995-98d5-7f71379fe7ef" x="49" y="35" width="34" height="22"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="570c84a3-ec35-48e8-9c94-8e645406d083" x="83" y="37" width="30" height="20"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Cats]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d8475d2c-b4ff-4a5e-a0e5-f7c7e704cde7" x="113" y="35" width="30" height="21"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="878640d2-1911-4df6-ab35-9de3d56fa754" x="143" y="57" width="31" height="21"/>
+				<box>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[CRB]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5c4790fc-b369-4078-922c-6fa49cdf441f" x="143" y="78" width="31" height="21"/>
+				<box>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Pigs]]></text>
+			</staticText>
+			<frame>
+				<reportElement uuid="560a40b7-309d-4614-8b14-faa72d4efdbd" x="174" y="57" width="30" height="21"/>
+				<box>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+			</frame>
+			<frame>
+				<reportElement uuid="df7ed0b3-d090-4d18-8ded-35598c8a76a7" x="174" y="78" width="30" height="21"/>
+				<box>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+			</frame>
+			<frame>
+				<reportElement uuid="3a414aee-b614-44e3-812a-5ecc1f77c6ac" x="204" y="78" width="42" height="21"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+			</frame>
+			<frame>
+				<reportElement uuid="bb85e66f-73e9-4a3f-977e-d06283f2422e" x="204" y="57" width="42" height="21"/>
+				<box>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+			</frame>
+			<staticText>
+				<reportElement uuid="ecd5dd87-0c21-46c2-b5c0-ef99a7457456" x="1" y="57" width="48" height="21"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Equids]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b575aeac-b08a-4ff4-90af-bd28d23cb470" x="1" y="78" width="48" height="21"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Beehives]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="1ff83acc-f706-4823-83bb-a4435c8c2d3d" x="49" y="57" width="34" height="21"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5236778b-1b92-4128-93d7-4f0e1a99e750" x="49" y="78" width="34" height="21"/>
+				<box>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<frame>
+				<reportElement uuid="8254b2a8-c00a-43fa-a988-68d0a55af52b" x="83" y="78" width="60" height="21"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+			</frame>
+			<staticText>
+				<reportElement uuid="1b8c4c4a-9a96-4cec-a2c0-666ff0307074" x="1" y="0" width="142" height="10"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+</jasperReport>

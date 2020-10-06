@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="animal_moveon" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="6096e4bf-7c3b-46b7-8d6d-c4f7dfbce2c2">
+	<property name="ireport.zoom" value="1.4641000000000013"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="date_from" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="date_to" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="village_code" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select va.animal_id,naits.translateCodeValue(va.gender,'GENDER','en_US')gender,va.birth_date,
+naits.translateCodeValue(color,'COLOR','en_US')color,
+naits.translateCodeValue(va.animal_class,'ANIMAL_CLASS','en_US')animal_class,
+naits.translateCodeValue(va.animal_race,'ANIMAL_RACE','en_US')animal_race,
+vam.source_holding_id,vam.destination_holding_id,
+vam.departure_date,vh.village_code,vam.arrival_date,
+naits.translateCodeValue(vh.village_code, 'VILLAGES', 'en_US') village_name
+from
+naits.vanimal va join naits.vholding vh on va.parent_id=vh.object_id
+join naits.vanimal_movement vam on vam.parent_id=va.object_id
+where
+now() between va.dt_insert and va.dt_delete
+and now() between vh.dt_insert and vh.dt_delete
+and now() between vam.dt_insert and vam.dt_delete
+and vh.village_code=$P{village_code}
+and cast(vam.departure_date as date) between $P{date_from} and $P{date_to}]]>
+	</queryString>
+	<field name="animal_id" class="java.lang.String"/>
+	<field name="gender" class="java.lang.String"/>
+	<field name="birth_date" class="java.sql.Date"/>
+	<field name="color" class="java.lang.String"/>
+	<field name="animal_class" class="java.lang.String"/>
+	<field name="animal_race" class="java.lang.String"/>
+	<field name="source_holding_id" class="java.lang.String"/>
+	<field name="destination_holding_id" class="java.lang.String"/>
+	<field name="departure_date" class="java.sql.Date"/>
+	<field name="village_code" class="java.lang.String"/>
+	<field name="arrival_date" class="java.sql.Date"/>
+	<field name="village_name" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="40" splitType="Stretch">
+			<textField>
+				<reportElement uuid="272fa4b6-4283-46ef-b2c9-c79f568355f2" x="0" y="0" width="801" height="27"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="13" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Animals move on between " + (new SimpleDateFormat("dd/MM/yy").format($P{date_from})) + " to "+(new SimpleDateFormat("dd/MM/yy").format($P{date_to}))]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="50" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="b1f9ea81-c15c-4570-9f1e-d51e4f2fda92" stretchType="RelativeToBandHeight" x="43" y="0" width="236" height="24"/>
+				<textElement>
+					<font size="13"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Village name: "+$F{village_name}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="21" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="b5afd48d-9c05-4372-b34c-4c6cdcb7ab51" positionType="Float" stretchType="RelativeToTallestObject" x="43" y="1" width="75" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Ear tag]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d7b5f99b-d722-473b-9427-9bac5720c2d3" positionType="Float" stretchType="RelativeToTallestObject" x="118" y="1" width="51" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Gender]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="aaa3b7a6-6609-4fea-804c-937d22e7c3b3" positionType="Float" stretchType="RelativeToTallestObject" x="169" y="1" width="77" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Birth date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d8c07beb-0efa-43a2-8308-9efb50ef0dd0" positionType="Float" stretchType="RelativeToTallestObject" x="246" y="1" width="62" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Color]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d426343c-e464-4e7f-986f-469edbc8ab59" positionType="Float" stretchType="RelativeToTallestObject" x="308" y="1" width="77" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Class]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b2dac50a-1398-405f-a95d-c13e24c76ec5" positionType="Float" stretchType="RelativeToTallestObject" x="385" y="1" width="77" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Breed]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="fb59b12c-2170-4a95-ba1f-7ff686a9500d" positionType="Float" stretchType="RelativeToTallestObject" x="462" y="1" width="87" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Source holding]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c18068f8-bf5d-4bf1-9fbb-793a127b629c" positionType="Float" stretchType="RelativeToTallestObject" x="549" y="1" width="88" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Destination holding]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="39bc3078-a151-4b1a-85f9-f7423394f744" positionType="Float" stretchType="RelativeToTallestObject" x="637" y="1" width="70" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Departure date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="482e5a88-a998-48a3-a91e-e02f875f0b07" positionType="Float" stretchType="RelativeToTallestObject" x="707" y="1" width="54" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Arrival date]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="0d87fb3f-952b-4bd4-a3de-ae01a0d34675" stretchType="RelativeToTallestObject" x="43" y="0" width="75" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="a0f65bed-553f-4810-8dcd-7ca43561161d" stretchType="RelativeToTallestObject" x="118" y="0" width="51" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{gender}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yy" isBlankWhenNull="true">
+				<reportElement uuid="126180c1-2257-4a7b-86ed-5c52a1e6b38a" stretchType="RelativeToTallestObject" x="169" y="0" width="77" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{birth_date}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="a5d2d298-938d-46c8-9452-fa202945524f" stretchType="RelativeToTallestObject" x="246" y="0" width="62" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{color}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="4c11a5f4-5004-4b12-8316-6dc007e55af0" stretchType="RelativeToTallestObject" x="308" y="0" width="77" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{animal_class}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="003573a9-a38c-489d-bd1a-6f2be55c7ca8" stretchType="RelativeToTallestObject" x="385" y="0" width="77" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{animal_race}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="2ddefd45-b5ce-48eb-8a43-c861cde5c39c" positionType="Float" stretchType="RelativeToTallestObject" x="462" y="0" width="87" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{source_holding_id}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="df4b84b4-9e44-442d-8e1d-2d058cd462cc" stretchType="RelativeToTallestObject" x="549" y="0" width="88" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{destination_holding_id}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yy" isBlankWhenNull="true">
+				<reportElement uuid="b70cb7cf-8c39-4052-909f-cfb44e94e47c" stretchType="RelativeToTallestObject" x="637" y="0" width="70" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{departure_date}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yy" isBlankWhenNull="true">
+				<reportElement uuid="57b19bde-3aa2-4720-8dc7-ced706243dd8" stretchType="RelativeToTallestObject" x="707" y="0" width="54" height="20"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$F{arrival_date}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="ca8a9bcf-789d-4358-b309-70a00a4f2ad1" stretchType="RelativeToTallestObject" x="705" y="34" width="56" height="20"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

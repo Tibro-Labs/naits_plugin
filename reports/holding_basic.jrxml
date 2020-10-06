@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="holding_basic" language="groovy" pageWidth="680" pageHeight="595" orientation="Landscape" columnWidth="650" leftMargin="15" rightMargin="15" topMargin="15" bottomMargin="15" uuid="982e784b-f427-4617-b8cc-9f5b7ae64c83">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="path" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select name,
+naits.get_label_text_per_value(type,'HOLDING_TYPE','en_US')holding_type,
+pic,
+status,
+date_of_reg,
+naits.get_label_text_per_value(village_code,'VILLAGES','en_US')villages,
+naits.get_label_text_per_value(commun_code,'COMMUNITIES','en_US')communities,
+naits.get_label_text_per_value(munic_code,'MUNICIPALITIES','en_US')munics,
+naits.get_label_text_per_value(region_code,'REGIONS','en_US')regions
+from naits.vholding where
+now() between dt_insert and dt_delete
+and status='NO-KEEPER';
+]]>
+	</queryString>
+	<field name="name" class="java.lang.String"/>
+	<field name="holding_type" class="java.lang.String"/>
+	<field name="pic" class="java.lang.String"/>
+	<field name="status" class="java.lang.String"/>
+	<field name="date_of_reg" class="java.sql.Date"/>
+	<field name="villages" class="java.lang.String"/>
+	<field name="communities" class="java.lang.String"/>
+	<field name="munics" class="java.lang.String"/>
+	<field name="regions" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="113" splitType="Stretch">
+			<textField>
+				<reportElement uuid="ecd9e0f0-7bc1-49bb-a1f4-105d22e8428e" x="121" y="0" width="399" height="43" forecolor="#336600"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="16" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Holdings with/without Keepers persons"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="4029bb4e-2d0e-4b05-aaa4-8eed4dd2c346" x="0" y="81" width="366" height="20" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="14" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["1. Holdings without keepers"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="1f1a9878-e441-4b85-9eed-515dc870cd13" x="553" y="0" width="97" height="43"/>
+				<box topPadding="4" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left">
+					<font fontName="DejaVu Sans" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date of print: " + new SimpleDateFormat("yyyy-dd-MM").format(new Date())]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="20">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="3f8415a3-f31b-4de2-a641-ecd6cdc07ae6" positionType="Float" stretchType="RelativeToTallestObject" x="330" y="0" width="60" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date of registration"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="6d6fd6a3-37d7-4193-9041-6f45bc579396" positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="85" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Holding name"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="9ef57e83-63bd-4b79-a81f-fc381e1c1600" positionType="Float" stretchType="RelativeToTallestObject" x="85" y="0" width="80" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Holding type"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="866ead83-7234-495f-9b4c-a776182d7140" positionType="Float" stretchType="RelativeToTallestObject" x="165" y="0" width="90" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["PIC"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="60f561b3-d594-4385-9166-e59bd2426567" positionType="Float" stretchType="RelativeToTallestObject" x="255" y="0" width="75" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Status"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="94994b4c-6b86-49ed-afbd-92696d393721" positionType="Float" stretchType="RelativeToTallestObject" x="390" y="0" width="65" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Region"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="7ac75164-11b8-4fe7-a210-6cc45d9d2b66" positionType="Float" stretchType="RelativeToTallestObject" x="455" y="0" width="65" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Community"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="f72d4514-2b47-431f-8629-cabb191bf27f" positionType="Float" stretchType="RelativeToTallestObject" x="520" y="0" width="65" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Municipality"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="260273b2-7405-43f5-8cc7-2497eb474a8c" positionType="Float" stretchType="RelativeToTallestObject" x="585" y="0" width="65" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Village"]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="27">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="b91db990-5129-4b9d-97a1-fa4130094a86" positionType="Float" stretchType="RelativeToBandHeight" x="0" y="0" width="85" height="27"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{name} == null ? "N/A" : $F{name})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="55c9374e-568e-4c34-83fd-96d3d91ec9e1" positionType="Float" stretchType="RelativeToBandHeight" x="165" y="0" width="90" height="27"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pic}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="f6a6475c-d54d-42a2-a92e-edc62fc67b8e" positionType="Float" stretchType="RelativeToBandHeight" x="255" y="0" width="75" height="27"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="MM/dd/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="33b05842-5e36-43c7-8858-4585fe3ccbfc" positionType="Float" stretchType="RelativeToBandHeight" x="330" y="0" width="60" height="27"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{date_of_reg} == null ? "N/A" : $F{date_of_reg})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="ce458fe1-e26f-4a41-b146-c0c36809f31e" positionType="Float" stretchType="RelativeToBandHeight" x="390" y="0" width="65" height="27"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{regions}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="8ba89bf7-2fdb-4f9d-8938-278e8d450a2f" positionType="Float" stretchType="RelativeToBandHeight" x="85" y="0" width="80" height="27"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{holding_type} == null ? "N/A" : $F{holding_type})]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="d49752a5-87ce-4dc5-8873-f05e715a5c02" positionType="Float" stretchType="RelativeToBandHeight" x="455" y="0" width="65" height="27"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{munics}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="5ef83149-6c96-4271-834e-a28e7e6fe2e0" positionType="Float" stretchType="RelativeToBandHeight" x="520" y="0" width="65" height="27"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{communities}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="b7d50287-5092-498d-9ac2-980200fa00da" positionType="Float" stretchType="RelativeToBandHeight" x="585" y="0" width="65" height="27"/>
+				<box topPadding="3" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{villages}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20">
+			<textField>
+				<reportElement uuid="f94a94d6-7ce4-4764-8acc-583451013a04" x="585" y="0" width="65" height="20"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="51">
+			<subreport>
+				<reportElement uuid="900eab98-1120-46ed-9cad-e5155f1acfa9" x="0" y="10" width="650" height="32"/>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "keepers_no_associated.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</summary>
+</jasperReport>

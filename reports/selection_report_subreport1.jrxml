@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="selection_report_subreport1" language="groovy" pageWidth="555" pageHeight="802" columnWidth="555" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="f5d8602f-f5dc-47a5-989e-9fbd4713439c">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select vct.column_name, vct.compare_operand, vc.value
+from naits.vcriteria vc join naits.vcriteria_type vct on vct.object_id=vc.criteria_type_id
+where now() between vc.dt_insert and vc.dt_delete
+and now() between vct.dt_insert and vct.dt_delete
+and vc.parent_id=$P{OBJ_ID}]]>
+	</queryString>
+	<field name="column_name" class="java.lang.String"/>
+	<field name="compare_operand" class="java.lang.String"/>
+	<field name="value" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="91c998d0-d8ae-42a8-bd88-a76e7633257c" x="200" y="0" width="100" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Dotted" lineColor="#009900"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted" lineColor="#009900"/>
+					<leftPen lineWidth="0.0" lineStyle="Dotted" lineColor="#009900"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dotted" lineColor="#009900"/>
+					<rightPen lineWidth="0.5" lineStyle="Dotted" lineColor="#009900"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[VALUE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="0ad46ab4-dbd1-4875-bd10-2bda722f40e6" x="0" y="0" width="100" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Dotted" lineColor="#009900"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted" lineColor="#009900"/>
+					<leftPen lineWidth="0.5" lineStyle="Dotted" lineColor="#009900"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dotted" lineColor="#009900"/>
+					<rightPen lineWidth="0.0" lineStyle="Dotted" lineColor="#009900"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FILTER]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="66144621-f3d5-4535-b21d-93eb56065074" x="100" y="0" width="100" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Dotted" lineColor="#009900"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted" lineColor="#009900"/>
+					<leftPen lineWidth="0.0" lineStyle="Dotted" lineColor="#009900"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dotted" lineColor="#009900"/>
+					<rightPen lineWidth="0.0" lineStyle="Dotted" lineColor="#009900"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement uuid="1961e36e-b6a8-42f8-a62f-5f1dcbcdfe39" x="200" y="0" width="100" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#009900"/>
+					<topPen lineWidth="0.0" lineStyle="Dotted" lineColor="#009900"/>
+					<leftPen lineWidth="0.0" lineStyle="Dotted" lineColor="#009900"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#009900"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#009900"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{column_name}) == "GENDER" ? (($F{value}) == "1" ? "Male" : "Female" ) : $F{value}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="def5f84f-2a92-4730-a3e5-d50d8770dfa9" x="0" y="0" width="100" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#009900"/>
+					<topPen lineWidth="0.0" lineStyle="Dotted" lineColor="#009900"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#009900"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#009900"/>
+					<rightPen lineWidth="0.0" lineStyle="Dotted" lineColor="#009900"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{column_name}) == "BIRTH_DATE" ? "Months: " : "Gender: "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="433975e9-002a-4ce4-9551-ee97043753e5" x="100" y="0" width="100" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#009900"/>
+					<topPen lineWidth="0.0" lineStyle="Dotted" lineColor="#009900"/>
+					<leftPen lineWidth="0.0" lineStyle="Dotted" lineColor="#009900"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#009900"/>
+					<rightPen lineWidth="0.0" lineStyle="Dotted" lineColor="#009900"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{column_name}) == "GENDER" ? " " : ($F{compare_operand}) == "LESS_EQUAL" ? "younger than" : ($F{compare_operand}) == "GREATER_EQUAL" ? " older than " : ($F{compare_operand}) == "EQUAL" ? " is " : "undefined"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

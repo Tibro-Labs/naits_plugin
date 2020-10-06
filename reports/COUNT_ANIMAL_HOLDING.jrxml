@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="COUNT_ANIMAL_HOLDING" language="groovy" pageWidth="200" pageHeight="500" columnWidth="200" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="ca64c65e-1533-4c68-acfb-11538e7f3eb0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select count(distinct va.animal_id) as numAnim, count (distinct vh.pic)
+from
+naits.vsvarog_link vsl1 join naits.vholding vh on vsl1.link_obj_id_1=vh.object_id
+join naits.vanimal va on va.parent_id=vh.object_id
+where  now() between vsl1.dt_insert and vsl1.dt_delete
+and now() between vh.dt_insert and vh.dt_delete
+and now() between va.dt_insert and va.dt_delete
+and vsl1.link_obj_id_2=$P{OBJ_ID}]]>
+	</queryString>
+	<field name="numanim" class="java.lang.Long"/>
+	<field name="count" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="40" splitType="Stretch">
+			<textField>
+				<reportElement uuid="2872d977-896c-4d3b-85d5-1fa6143a75e5" x="0" y="0" width="158" height="20"/>
+				<box topPadding="2" leftPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Number of targeted animals:  "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="21d6d379-64bc-4657-ac85-6a5fb32eebc0" x="0" y="20" width="158" height="20"/>
+				<box topPadding="2" leftPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Number of targeted holdings: "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="469d338a-e8b8-408b-a174-d1a0d5b556c8" x="158" y="0" width="42" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{numanim}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="54bdc7da-9a73-4f5d-975b-66b04ac5d8a4" x="158" y="20" width="42" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{count}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+</jasperReport>

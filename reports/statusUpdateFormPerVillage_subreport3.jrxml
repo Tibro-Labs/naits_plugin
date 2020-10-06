@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="statusUpdateFormPerVillage_subreport3" language="groovy" pageWidth="752" pageHeight="572" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="752" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="bbfe83ff-5b91-4ed4-aca9-50e2137c6d6b">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="664"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="path" class="java.lang.String">
+		<defaultValueExpression><![CDATA["/home/meagain/Desktop/NAITS/StatusUpdatePrintout/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OBJ_ID" class="java.lang.Long"/>
+	<queryString>
+		<![CDATA[select
+dogs,
+cats,
+equids,
+beehives,
+dt_insert
+from naits.vother_animals as oa
+where parent_id = $P{OBJ_ID}
+and now() between dt_insert and dt_delete]]>
+	</queryString>
+	<field name="dogs" class="java.math.BigDecimal"/>
+	<field name="cats" class="java.math.BigDecimal"/>
+	<field name="equids" class="java.math.BigDecimal"/>
+	<field name="beehives" class="java.math.BigDecimal"/>
+	<field name="dt_insert" class="java.sql.Timestamp"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="45">
+			<staticText>
+				<reportElement x="452" y="0" width="300" height="25" uuid="dfcda709-7609-43ca-9b80-4dce26c92c99"/>
+				<box>
+					<pen lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სხვა ცხოველების რაოდენობა]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="452" y="25" width="60" height="20" uuid="2c2b8d5c-9973-46b2-8141-4d6787342f82"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ცხენი/ვირი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="667" y="25" width="55" height="20" uuid="570c84a3-ec35-48e8-9c94-8e645406d083"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ფუტკ. ოჯახი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="542" y="25" width="36" height="20" uuid="ecd5dd87-0c21-46c2-b5c0-ef99a7457456"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ძაღლი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement positionType="FixRelativeToBottom" x="608" y="25" width="29" height="20" uuid="b575aeac-b08a-4ff4-90af-bd28d23cb470"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[კატა]]></text>
+			</staticText>
+			<frame>
+				<reportElement x="31" y="25" width="35" height="20" uuid="0022c446-383a-4d01-b6e6-eee456776f2f"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+			</frame>
+			<staticText>
+				<reportElement x="142" y="10" width="31" height="15" uuid="b0364ad4-c0e8-45d4-b013-4d6036b8d7d0"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[---]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="31" y="10" width="35" height="15" uuid="1a5453c9-39a2-4c97-8410-a6b4deae9f1b"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[უნომრო]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="350" y="25" width="43" height="20" uuid="de3fa2f8-4b29-4dd1-b5af-38e473754eda"/>
+				<box>
+					<pen lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="false"/>
+				</textElement>
+				<text><![CDATA[☐]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="25" width="31" height="20" uuid="19b3f205-0203-4677-af49-97387ad8db27"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[მ.რ.პ.]]></text>
+			</staticText>
+			<frame>
+				<reportElement x="66" y="25" width="76" height="20" uuid="c8ce5be5-4ee9-4ad2-a21a-484b610fb284"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+			</frame>
+			<staticText>
+				<reportElement x="350" y="10" width="43" height="15" uuid="f1d6c5fe-b1e0-409d-a8e4-4f71688915de"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[აქვს]]></text>
+			</staticText>
+			<frame>
+				<reportElement x="315" y="25" width="35" height="20" uuid="2a1d7824-d16d-49ab-acd6-3e28754a1980"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+			</frame>
+			<staticText>
+				<reportElement x="284" y="10" width="31" height="15" uuid="1c3500dd-01e1-4ae0-8c0b-edb1d54ca8d3"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[---]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="173" y="10" width="35" height="15" uuid="56f4efb8-0149-4bb0-ac6f-9b9928a0209a"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[უნომრო]]></text>
+			</staticText>
+			<frame>
+				<reportElement x="173" y="25" width="35" height="20" uuid="819e994b-4981-4637-98d4-b963567b7b3e"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+			</frame>
+			<staticText>
+				<reportElement x="0" y="0" width="350" height="10" uuid="b5d48bc7-7718-433b-87a6-18e6d3a4de8c"/>
+				<box>
+					<pen lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ცხოველების რაოდენობა]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="10" width="31" height="15" forecolor="#000000" backcolor="#CCCCCC" uuid="4d281925-3e78-434a-b566-aa676cb71220"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[---]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="350" y="0" width="102" height="10" uuid="507a42be-d52b-4997-b742-e91e55732388"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[რეგისტრაცია]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="315" y="10" width="35" height="15" uuid="60b3b155-6994-4229-b0b0-8c41db88f346"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[უნომრო]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="393" y="25" width="59" height="20" uuid="647f8684-1939-44d6-9915-630609228723"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="false"/>
+				</textElement>
+				<text><![CDATA[☐]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="393" y="10" width="59" height="15" uuid="6d813b65-876e-4b30-9fc2-afbbe1745bdd"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[განახლებულია]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="208" y="10" width="76" height="15" uuid="fe20e31a-6ed4-4f23-800f-38a53cca6e88"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[დაკარგული საყურე]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="66" y="10" width="76" height="15" uuid="277a1500-053a-4e3a-8c0c-e4faa22206c1"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[დაკარგული საყურე]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="284" y="25" width="31" height="20" uuid="293e2ca2-9a93-4f70-93b7-7f9525c0a616"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ღორი]]></text>
+			</staticText>
+			<frame>
+				<reportElement x="208" y="25" width="76" height="20" uuid="cfbb2492-754b-47b7-bb1d-7dc16b2a0a2f"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+			</frame>
+			<staticText>
+				<reportElement x="142" y="25" width="31" height="20" uuid="f7531a74-e616-4c93-a90b-6e45e9e4a838"/>
+				<box>
+					<pen lineStyle="Dotted"/>
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[წ.რ.პ.]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="512" y="25" width="30" height="20" forecolor="#000000" uuid="c879024f-86a0-4797-b493-4b33b0113afa"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{equids}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="637" y="25" width="30" height="20" forecolor="#000000" uuid="8c88191e-e9a9-4673-846f-dd85734cca6d"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cats}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="578" y="25" width="30" height="20" forecolor="#000000" uuid="992e1621-dce6-481b-8edf-3d30d89fb974"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dogs}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="722" y="25" width="30" height="20" forecolor="#000000" uuid="888350c3-f5d5-46c8-a7c2-7ae5e4ed49c6"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{beehives}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+</jasperReport>

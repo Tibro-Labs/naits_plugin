@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="animal_death" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="5c852c7b-2553-4ad4-8860-fa8d3d529750">
+	<property name="ireport.zoom" value="1.3310000000000006"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="date_from" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="date_to" class="java.util.Date">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="village_code" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select va.animal_id, va.death_date, va.status, naits.translateCodeValue(va.animal_class, 'ANIMAL_CLASS', 'en_US') spec,
+naits.translateCodeValue(va.animal_race, 'ANIMAL_RACE', 'en_US') breed,
+naits.translateCodeValue(vh.village_code, 'VILLAGES', 'en_US') village_name,
+vh.name, vh.pic
+from naits.vanimal va join naits.vholding vh on va.parent_id=vh.object_id
+where  now() between va.dt_insert and va.dt_delete
+and now() between vh.dt_insert and vh.dt_delete
+and vh.village_code = $P{village_code}
+and cast(va.death_date as date) between $P{date_from} and $P{date_to}]]>
+	</queryString>
+	<field name="village_name" class="java.lang.String"/>
+	<field name="animal_id" class="java.lang.String"/>
+	<field name="death_date" class="java.sql.Date"/>
+	<field name="status" class="java.lang.String"/>
+	<field name="spec" class="java.lang.String"/>
+	<field name="breed" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="pic" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="46" splitType="Stretch">
+			<textField pattern="dd/MM/yy" isBlankWhenNull="true">
+				<reportElement uuid="3a854e13-802f-4a24-8406-98f7b41ac4c9" x="0" y="0" width="555" height="22"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="13" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Animals born between " + (new SimpleDateFormat("dd/MM/yy").format($P{date_from})) + " to "+(new SimpleDateFormat("dd/MM/yy").format($P{date_to}))]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="29" splitType="Stretch">
+			<textField>
+				<reportElement uuid="92793404-5f7c-4b23-8ab7-35662dc856c4" x="154" y="0" width="122" height="20"/>
+				<box topPadding="1" leftPadding="2" rightPadding="2"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="13"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{village_name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="c1784eff-e159-4d63-9506-6c05371ece92" x="11" y="0" width="143" height="20"/>
+				<box topPadding="1" leftPadding="2" rightPadding="2"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="13"/>
+				</textElement>
+				<text><![CDATA[Name of the village:]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="21" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="4b0587df-24a7-4dac-a1c7-43c037232ae0" x="1" y="0" width="62" height="21"/>
+				<box topPadding="6" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Ear tag]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c812d8fb-11e5-4f23-b951-ede52be3ef1f" x="63" y="0" width="84" height="21"/>
+				<box topPadding="6" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Date of death]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="fb647113-6f6b-43c1-a2a4-0362d590daef" x="147" y="0" width="85" height="21"/>
+				<box topPadding="6" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Status]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="f1558eb6-ad7a-4fdf-bc9f-5c34533b6e5c" x="232" y="0" width="58" height="21"/>
+				<box topPadding="6" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Class]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d79231f5-d8b3-4d2b-ad71-8d47096e1115" positionType="Float" x="378" y="0" width="87" height="21"/>
+				<box topPadding="6" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Holding name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ecd92927-8b03-4369-b23b-45aba8e1d753" x="290" y="0" width="88" height="21"/>
+				<box topPadding="6" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Breed]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="a5530e5c-3401-4761-b09a-ad468c901de5" x="465" y="0" width="90" height="21"/>
+				<box topPadding="6" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[PIC]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="25" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="84d7165b-2ba6-445b-a780-7516d4808956" stretchType="RelativeToTallestObject" x="1" y="0" width="62" height="25"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75" lineStyle="Solid"/>
+					<topPen lineWidth="0.75" lineStyle="Solid"/>
+					<leftPen lineWidth="0.75" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.75" lineStyle="Solid"/>
+					<rightPen lineWidth="0.75" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="8150d812-18f1-47f7-801b-82876517b707" stretchType="RelativeToTallestObject" x="147" y="0" width="85" height="25"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75" lineStyle="Solid"/>
+					<topPen lineWidth="0.75" lineStyle="Solid"/>
+					<leftPen lineWidth="0.75" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.75" lineStyle="Solid"/>
+					<rightPen lineWidth="0.75" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="765144f2-8c34-4f37-ab55-3a95b8e05395" stretchType="RelativeToTallestObject" x="378" y="0" width="87" height="25"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="0" rightPadding="2">
+					<pen lineWidth="0.75" lineStyle="Solid"/>
+					<topPen lineWidth="0.75" lineStyle="Solid"/>
+					<leftPen lineWidth="0.75" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.75" lineStyle="Solid"/>
+					<rightPen lineWidth="0.75" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="78301324-c28e-4196-8b84-a3dfaeb5b96a" stretchType="RelativeToTallestObject" x="232" y="0" width="58" height="25"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75" lineStyle="Solid"/>
+					<topPen lineWidth="0.75" lineStyle="Solid"/>
+					<leftPen lineWidth="0.75" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.75" lineStyle="Solid"/>
+					<rightPen lineWidth="0.75" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{spec}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="2bd02f67-6983-474c-b250-8706a0135a4b" stretchType="RelativeToTallestObject" x="290" y="0" width="88" height="25"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="0" rightPadding="2">
+					<pen lineWidth="0.75" lineStyle="Solid"/>
+					<topPen lineWidth="0.75" lineStyle="Solid"/>
+					<leftPen lineWidth="0.75" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.75" lineStyle="Solid"/>
+					<rightPen lineWidth="0.75" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{breed}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="f2001e0f-9003-404e-90ed-ad6823da060c" stretchType="RelativeToTallestObject" x="465" y="0" width="90" height="25"/>
+				<box topPadding="6" leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{pic}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yy">
+				<reportElement uuid="7ef4f2d3-53b0-489e-bbb6-494e93921e3c" stretchType="RelativeToTallestObject" x="63" y="0" width="84" height="25"/>
+				<box topPadding="6" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement/>
+				<textFieldExpression><![CDATA[$F{death_date}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="40" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch">
+			<textField>
+				<reportElement uuid="d62cafbe-ca5e-43ac-9d4f-0be688a94978" x="488" y="34" width="67" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

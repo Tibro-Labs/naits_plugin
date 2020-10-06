@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="selection_report" language="groovy" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="d785e0ca-aea3-4a66-95db-4f69018224ce">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<subDataset name="New Dataset 1" uuid="172c1c14-a16b-4e35-b570-0b155db7d27e">
+		<queryString language="SQL">
+			<![CDATA[select
+vct.column_name, vct.compare_operand, vc.value
+from naits.vcriteria vc join naits.vcriteria_type vct on vct.object_id=vc.criteria_type_id
+where now() between vc.dt_insert and vc.dt_delete
+and now() between vct.dt_insert and vct.dt_delete
+and vct.parent_id=1300760]]>
+		</queryString>
+		<field name="column_name" class="java.lang.String"/>
+		<field name="compare_operand" class="java.lang.String"/>
+		<field name="value" class="java.lang.String"/>
+	</subDataset>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select vp.object_id, naits.translateCodeValue(vp.population_type,'POPULATION_TYPE','en_US')population_type,
+vp.extracted_type
+from naits.vpopulation vp
+where now() between vp.dt_insert and vp.dt_delete
+and vp.object_id=$P{OBJ_ID}]]>
+	</queryString>
+	<field name="object_id" class="java.math.BigDecimal"/>
+	<field name="population_type" class="java.lang.String"/>
+	<field name="extracted_type" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="84" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="8b6deeff-7f5e-49b8-a42b-abe89806b858" x="186" y="0" width="201" height="20"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Population selected item]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="395cd68f-ada9-4ba0-b6ad-81b4377da96c" x="19" y="50" width="182" height="15" backcolor="#009999"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Population type: " + $F{population_type}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="6189455e-6a4d-4d52-8ef8-218a00719c71" x="19" y="65" width="182" height="15" backcolor="#009999"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Extracted type: " + $F{extracted_type}]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement uuid="d65cf79e-8874-4a90-a13f-17b6cc05d277" x="247" y="30" width="169" height="20"/>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "selection_report_subreport1.jasper"]]></subreportExpression>
+			</subreport>
+			<textField>
+				<reportElement uuid="1183fe99-f185-4f91-9a24-cd10868afaa8" x="19" y="30" width="213" height="20"/>
+				<box topPadding="3" leftPadding="1"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date of print: " + (new SimpleDateFormat("dd/MM/yy").format(new Date()))]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="10" splitType="Stretch">
+			<subreport>
+				<reportElement uuid="228f93e7-e3e6-4166-84f7-93fb3d107bd7" x="0" y="0" width="555" height="5">
+					<printWhenExpression><![CDATA[$F{extracted_type}.equals( "ANIMAL" )]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "selection_subanimal.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement uuid="78135bb6-f10d-4903-aa3d-b614906b6d51" x="0" y="5" width="555" height="5">
+					<printWhenExpression><![CDATA[$F{extracted_type}.equals( "HOLDING" )]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "selection_subholding.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="31" splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="26" splitType="Stretch">
+			<textField>
+				<reportElement uuid="58146f7e-33c8-46a2-939b-a74614323d71" x="532" y="6" width="23" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="27" splitType="Stretch"/>
+	</summary>
+</jasperReport>

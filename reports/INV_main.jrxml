@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AS_main" language="groovy" pageWidth="792" pageHeight="612" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryWithPageHeaderAndFooter="true" uuid="242dcb76-a031-467a-a173-dad46531f42c">
+	<property name="ireport.zoom" value="3.0"/>
+	<property name="ireport.x" value="1188"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="path" class="java.lang.String">
+		<property name="/Users/DmitrijsRassohins/Documents/_FAO/ireports" value=""/>
+		<defaultValueExpression><![CDATA["/home/ristepejov/projects/NAITS2018/Release1/AFR05/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="user_name" class="java.lang.String"/>
+	<parameter name="fromdate" class="java.lang.String"/>
+	<parameter name="todate" class="java.lang.String"/>
+	<parameter name="terr_code" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+  (select concat(last_name, ' ', first_name) spname
+   from naits.vsvarog_users vu
+   where vu.user_name = $P{user_name}
+  	and now() between vu.dt_insert and vu.dt_delete) as spname,
+  to_date($P{fromdate}, 'DD.MM.YYYY') as fromdate,
+  to_date($P{todate}, 'DD.MM.YYYY') as todate,
+	case
+		when length($P{terr_code}) between 2 and 8
+		then naits.translateCodeValue(left($P{terr_code},2), 'REGIONS', 'ka_GE') else null
+	end as region,
+	case
+		when length($P{terr_code}) between 4 and 8
+		then naits.translateCodeValue(left($P{terr_code},4), 'MUNICIPALITIES', 'ka_GE') else null
+	end as munic,
+	case
+		when length($P{terr_code}) between 6 and 8
+		then naits.translateCodeValue(left($P{terr_code},6), 'COMMUNITIES', 'ka_GE') else null
+	end as comm,
+	case
+		when length($P{terr_code}) = 8
+		then naits.translateCodeValue(left($P{terr_code},8), 'VILLAGES', 'ka_GE') else null
+	end as vill
+where
+	1=1;]]>
+	</queryString>
+	<field name="spname" class="java.lang.String"/>
+	<field name="fromdate" class="java.sql.Date"/>
+	<field name="todate" class="java.sql.Date"/>
+	<field name="region" class="java.lang.String"/>
+	<field name="munic" class="java.lang.String"/>
+	<field name="comm" class="java.lang.String"/>
+	<field name="vill" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="60" splitType="Stretch">
+			<staticText>
+				<reportElement x="180" y="0" width="409" height="20" uuid="05ead065-1608-4280-973f-80ad662e712f"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ACTIVITY REPORT and INVOICE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="21" width="77" height="15" forecolor="#0099CC" uuid="2e1cf9a9-e84b-443a-a1b5-56707aa11ad8"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Name of SP]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="77" y="21" width="169" height="15" forecolor="#000000" uuid="4b7cb097-d709-49ac-9cfc-1393add49b48"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{spname}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="703" y="0" width="49" height="10" forecolor="#CCCCCC" uuid="32cbd704-6ac6-441f-8c80-132b749da598"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<text><![CDATA[v.1.02]]></text>
+			</staticText>
+			<textField pattern="dd MMMMM yyyy" isBlankWhenNull="true">
+				<reportElement x="77" y="36" width="103" height="15" forecolor="#000000" uuid="9e3afdb6-25c9-43aa-a7d0-dea1b9bbb7dc"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fromdate}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="36" width="77" height="15" forecolor="#0099CC" uuid="0e33caea-f554-4831-b13a-1dd1921ffb3d"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Period of report]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="180" y="36" width="21" height="15" forecolor="#0099CC" uuid="1fa11b80-ee51-4861-9593-e73e6ed2460e"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[to]]></text>
+			</staticText>
+			<textField pattern="dd MMMMM yyyy" isBlankWhenNull="true">
+				<reportElement x="201" y="36" width="103" height="15" forecolor="#000000" uuid="f29702de-7f24-4948-9b32-a08d1190b1de"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{todate}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="295" y="20" width="146" height="15" forecolor="#000000" uuid="ea3da329-b3e9-430c-bec9-57800965faf9"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{user_name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="246" y="20" width="49" height="15" forecolor="#0099CC" uuid="3e19ad21-13f9-48be-847a-1f700f88eb2e"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[# of SP]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="565" y="20" width="187" height="15" forecolor="#000000" uuid="be204e5a-914a-41c0-831b-7509b54c9724"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+			</textField>
+			<staticText>
+				<reportElement x="441" y="20" width="124" height="15" forecolor="#0099CC" uuid="83685033-bb65-4e7d-b0d4-293a5e7e5395"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Address of SP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="441" y="36" width="124" height="15" forecolor="#0099CC" uuid="bdc787dc-121e-46ff-b82c-c8af4bfc1b75"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[      Territory for service provision]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="565" y="36" width="187" height="15" forecolor="#000000" uuid="40e2bc1a-f2e3-4db3-9311-be8c1a6ea27d"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{region} + ", " + ($F{munic} == null ? '*' : $F{munic}) + ", " + ($F{comm} == null ? '*' : $F{comm}) + ", " + ($F{vill} == null ? '*' : $F{vill})]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="5"/>
+	</pageHeader>
+	<detail>
+		<band height="22" splitType="Stretch">
+			<subreport>
+				<reportElement x="0" y="0" width="752" height="22" uuid="df63550e-c3bd-4dae-b29a-bd77ea8fbf08"/>
+				<subreportParameter name="user_name">
+					<subreportParameterExpression><![CDATA[$P{user_name}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="fromdate">
+					<subreportParameterExpression><![CDATA[$P{fromdate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="todate">
+					<subreportParameterExpression><![CDATA[$P{todate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="terr_code">
+					<subreportParameterExpression><![CDATA[$P{terr_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "INV_subreport1.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band/>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="10"/>
+	</lastPageFooter>
+</jasperReport>

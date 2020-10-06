@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="keepers_no_associated" language="groovy" pageWidth="660" pageHeight="595" orientation="Landscape" columnWidth="654" leftMargin="1" rightMargin="5" topMargin="5" bottomMargin="5" uuid="8d3b17a6-c253-4091-8ae1-019d24939bfc">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<queryString>
+		<![CDATA[select vh.name,
+naits.translateCodeValue(vh.type,'HOLDING_TYPE','en_US')holding_type,
+vh.pic,
+vh.status,
+vh.date_of_reg,
+vh.region_code,
+vh.commun_code,
+vh.munic_code,
+vh.village_code,
+vhr.nat_reg_number,
+vhr.full_name
+from naits.vholding vh
+join naits.vsvarog_link vsl on vh.object_id=vsl.link_obj_id_1
+join naits.vholding_responsible vhr on vsl.link_obj_id_2=vhr.object_id
+join naits.vsvarog_link_type vslt on vslt.object_id=vsl.link_type_id
+where vslt.link_type='HOLDING_KEEPER'
+and now() between vsl.dt_insert and vsl.dt_delete
+and now() between vh.dt_insert and vh.dt_delete
+and now() between vhr.dt_insert and vhr.dt_delete
+and now() between vslt.dt_insert and vslt.dt_delete
+and vhr.holder_type='2'
+and vh.object_id not in
+	(select vsl.link_obj_id_1
+	from
+	naits.vsvarog_link vsl
+	join naits.vholding_responsible vhr on vsl.link_obj_id_2=vhr.object_id and vh.object_id=vsl.link_obj_id_1
+	join naits.vsvarog_link_type vslt on vslt.object_id=vsl.link_type_id
+	where vslt.link_type='HOLDING_ASSOCIATED'
+	and now() between vsl.dt_insert and vsl.dt_delete
+	and now() between vhr.dt_insert and vhr.dt_delete
+	and now() between vslt.dt_insert and vslt.dt_delete)]]>
+	</queryString>
+	<field name="name" class="java.lang.String"/>
+	<field name="holding_type" class="java.lang.String"/>
+	<field name="pic" class="java.lang.String"/>
+	<field name="status" class="java.lang.String"/>
+	<field name="date_of_reg" class="java.sql.Date"/>
+	<field name="region_code" class="java.lang.String"/>
+	<field name="commun_code" class="java.lang.String"/>
+	<field name="munic_code" class="java.lang.String"/>
+	<field name="village_code" class="java.lang.String"/>
+	<field name="nat_reg_number" class="java.lang.String"/>
+	<field name="full_name" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="30" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="de39a5c8-92ce-4d76-93e5-962298229be8" x="0" y="5" width="580" height="20" isPrintWhenDetailOverflows="true"/>
+				<textElement>
+					<font size="14" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["2. Holdings with keepers but without associated persons"]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="20">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="3f8415a3-f31b-4de2-a641-ecd6cdc07ae6" positionType="Float" stretchType="RelativeToTallestObject" x="340" y="0" width="75" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date of registration"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="6d6fd6a3-37d7-4193-9041-6f45bc579396" positionType="Float" stretchType="RelativeToTallestObject" x="0" y="0" width="90" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Holding name"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="9ef57e83-63bd-4b79-a81f-fc381e1c1600" positionType="Float" stretchType="RelativeToTallestObject" x="90" y="0" width="80" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Holding type"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="866ead83-7234-495f-9b4c-a776182d7140" positionType="Float" stretchType="RelativeToTallestObject" x="170" y="0" width="90" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["PIC"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="60f561b3-d594-4385-9166-e59bd2426567" positionType="Float" stretchType="RelativeToTallestObject" x="260" y="0" width="80" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Status"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="94994b4c-6b86-49ed-afbd-92696d393721" positionType="Float" stretchType="RelativeToTallestObject" x="415" y="0" width="80" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Village code"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="c545c2e1-f70c-412d-9001-8ec33cb0c249" positionType="Float" stretchType="RelativeToTallestObject" x="495" y="0" width="85" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["National Registration Number"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement uuid="b165ef32-3fcd-4b18-b9de-f6790ae3b9c9" positionType="Float" stretchType="RelativeToTallestObject" x="580" y="0" width="74" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Full name"]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="b91db990-5129-4b9d-97a1-fa4130094a86" stretchType="RelativeToBandHeight" x="0" y="0" width="90" height="20"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="55c9374e-568e-4c34-83fd-96d3d91ec9e1" stretchType="RelativeToBandHeight" x="170" y="0" width="90" height="20"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pic}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="f6a6475c-d54d-42a2-a92e-edc62fc67b8e" stretchType="RelativeToBandHeight" x="260" y="0" width="80" height="20"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="33b05842-5e36-43c7-8858-4585fe3ccbfc" stretchType="RelativeToBandHeight" x="340" y="0" width="75" height="20"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{date_of_reg}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="ce458fe1-e26f-4a41-b146-c0c36809f31e" stretchType="RelativeToBandHeight" x="415" y="0" width="80" height="20"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{village_code}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="8ba89bf7-2fdb-4f9d-8938-278e8d450a2f" stretchType="RelativeToBandHeight" x="90" y="0" width="80" height="20"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{holding_type}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="05e60e44-eb7c-4d4f-b3e1-9e9600714dee" stretchType="RelativeToBandHeight" x="495" y="0" width="85" height="20"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nat_reg_number}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="7ec5a66b-fb5d-41d1-ab11-8bab04f6f298" stretchType="RelativeToBandHeight" x="580" y="0" width="74" height="20"/>
+				<box topPadding="3" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="SansSerif" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{full_name}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

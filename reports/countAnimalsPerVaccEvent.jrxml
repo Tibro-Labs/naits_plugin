@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="countAnimalsPerVaccEvent" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="ff617a31-79f0-4ebd-8c9f-d74a6d4eb5b0">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select naits.translateCodeValue(va.animal_class,'ANIMAL_CLASS','en_US')anim_cl, count(distinct va.animal_id)
+from naits.vanimal va
+join naits.vsvarog_link vsl2  on vsl2.link_obj_id_1 = va.object_id
+join naits.vvaccination_book vvb on vvb.object_id = vsl2.link_obj_id_2
+join naits.vsvarog_link vsl1 on vvb.object_id = vsl1.link_obj_id_2
+join naits.vvaccination_event vve on vve.object_id = vsl1.link_obj_id_1
+join naits.vholding vh on va.parent_id = vh.object_id
+where
+vve.dt_delete > now() and
+vsl1.dt_delete > now() and
+vvb.dt_delete > now() and
+vsl2.dt_delete > now() and
+va.dt_delete > now() and
+vh.dt_delete > now()
+and vsl1.link_type_id = (select object_id from naits.vsvarog_link_type where now() between dt_insert and dt_delete and link_type like 'VACC_EVENT_BOOK')
+and vsl2.link_type_id = (select object_id from naits.vsvarog_link_type where now() between dt_insert and dt_delete and link_type like 'ANIMAL_VACC_BOOK')
+and va.animal_class != '3'
+and vve.object_id=$P{OBJ_ID}
+group by anim_cl, va.animal_class]]>
+	</queryString>
+	<field name="anim_cl" class="java.lang.String"/>
+	<field name="count" class="java.lang.Long"/>
+	<columnHeader>
+		<band height="15">
+			<staticText>
+				<reportElement uuid="bf298418-caa2-4427-bab0-ed7b8263c507" x="0" y="0" width="200" height="15"/>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Number of animals targeted]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField>
+				<reportElement uuid="8d949e18-f43e-4949-bb14-5f8a4e2dbc96" x="0" y="0" width="100" height="15"/>
+				<box topPadding="0" leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{anim_cl}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="47e5d30c-743f-4b1d-a04e-43a138a1be27" x="100" y="0" width="100" height="15"/>
+				<box topPadding="0" leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{count}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

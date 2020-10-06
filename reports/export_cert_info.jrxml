@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="export_cert_info" language="groovy" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="01b43dc1-8878-4e7f-aa8d-1584c20051e7">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select vec.exp_certificate_id, vec.imp_country, vec.imp_address, vec.exporter_name, vec.exporter_address,vec.bip_holding_id,
+vec.name_consignee, naits.translateCodeValue(vec.transport_type,'TRANSPORT_TYPE','en_US')transport, vec.object_id
+from naits.vexport_cert vec
+where now() between vec.dt_insert and vec.dt_delete
+and vec.parent_id=$P{OBJ_ID}]]>
+	</queryString>
+	<field name="exp_certificate_id" class="java.lang.String"/>
+	<field name="imp_country" class="java.lang.String"/>
+	<field name="imp_address" class="java.lang.String"/>
+	<field name="exporter_name" class="java.lang.String"/>
+	<field name="exporter_address" class="java.lang.String"/>
+	<field name="bip_holding_id" class="java.math.BigDecimal"/>
+	<field name="name_consignee" class="java.lang.String"/>
+	<field name="transport" class="java.lang.String"/>
+	<field name="object_id" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="40" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="178e8797-7562-4191-8ebb-e05e8d8e03a4" positionType="Float" stretchType="RelativeToBandHeight" x="98" y="20" width="48" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Import address]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="7499f9b4-4252-41d6-a2ba-596f675455e7" positionType="Float" stretchType="RelativeToBandHeight" x="146" y="20" width="62" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Exporter name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8c874c7c-42c0-45af-bf2c-48f7251a8ccd" positionType="Float" stretchType="RelativeToBandHeight" x="208" y="20" width="60" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Exporter address]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="f7c15f3b-bced-4349-9711-35750d6b6d58" positionType="Float" stretchType="RelativeToBandHeight" x="268" y="20" width="45" height="20" isPrintWhenDetailOverflows="true"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Transport method]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="f12c2b54-785e-4dd2-8aff-ec8fe9f7b19f" stretchType="RelativeToBandHeight" x="375" y="20" width="59" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Consignee name]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="68ffa2c5-dd2f-487e-b574-b5ff4d584e5d" x="59" y="20" width="39" height="20"/>
+				<box topPadding="1" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Import country"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="7ec0d9b5-8483-4701-b36b-8341603a84eb" stretchType="RelativeToBandHeight" x="313" y="20" width="62" height="20"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Border cross point"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="bf058892-4752-4a6e-99c1-0a2d4760801f" x="0" y="0" width="219" height="20"/>
+				<box topPadding="2" leftPadding="2"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[1. List of export certificates]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ae351c2b-6bba-4e12-abc2-4f30362af0d1" stretchType="RelativeToBandHeight" x="0" y="20" width="59" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Export Certificate ID]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="07315c6b-418d-4e4d-874f-3475ddc7ed1c" x="59" y="0" width="39" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{imp_country}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="6cf8dace-7e07-4e16-9b6e-10e1f872d121" x="375" y="0" width="59" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{name_consignee}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="ecedfc2d-3cbe-4ab1-9021-38fda7d5f040" x="98" y="0" width="48" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{imp_address}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="766df21b-5b53-4656-86d0-0f58fa571106" x="146" y="0" width="62" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{exporter_name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="e8a5f077-7ce4-4085-a696-86ccbb5fd75e" x="208" y="0" width="60" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{exporter_address}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="30aa207e-80d2-4707-ac61-8775bcdc493f" x="313" y="0" width="62" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bip_holding_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="7370303e-ddbc-4b70-8909-3fe4281c32b8" x="268" y="0" width="45" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{transport}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="5a9391fc-244a-4f09-9fff-82be2da0815d" x="0" y="0" width="59" height="20"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{exp_certificate_id}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="basic_campaign_info" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="842" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="727f8c16-3fc3-4733-9870-6c4d89d751da">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	vve.campaign_name,
+	vve.note,
+	vve.event_start,
+	vve.event_end
+from
+	naits.vvaccination_event vve
+where
+	now() < vve.dt_delete
+	and object_id=$P{OBJ_ID};]]>
+	</queryString>
+	<field name="campaign_name" class="java.lang.String"/>
+	<field name="note" class="java.lang.String"/>
+	<field name="event_start" class="java.sql.Date"/>
+	<field name="event_end" class="java.sql.Date"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="80" splitType="Stretch">
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="5037e4f4-f91b-4aea-8a9f-d25c4624f865" stretchType="RelativeToBandHeight" x="0" y="7" width="686" height="30"/>
+				<textElement markup="html">
+					<font fontName="DejaVu Sans" size="11" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<b>Name of the campaign/note: </b>" + ($F{campaign_name} != null ? $F{campaign_name} : "N/A") + " / " + ($F{note} != null ? $F{note} : "N/A")]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="2608a9f4-7455-4149-a3b9-3af937141fc2" stretchType="RelativeToBandHeight" x="0" y="40" width="686" height="17"/>
+				<textElement markup="html">
+					<font fontName="DejaVu Sans" size="11" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<b>Campaign start date: </b>" + ($F{event_start} != null ? $F{event_start} : "N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="d8fefe9a-9e80-4eb6-9958-6060177c1526" x="0" y="57" width="406" height="17"/>
+				<textElement markup="html">
+					<font fontName="DejaVu Sans" size="11" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["<b>Campaign end date: </b>" + ($F{event_end} != null ? $F{event_end} : "N/A")]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+</jasperReport>

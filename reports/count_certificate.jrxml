@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="count_certificate" language="groovy" pageWidth="215" pageHeight="842" columnWidth="215" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="0eee4a9d-cffd-4af2-a45f-622387c63292">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select count(*) as broj from naits.vexport_cert vec
+where now() between vec.dt_insert and vec.dt_delete
+and vec.parent_id=$P{OBJ_ID}]]>
+	</queryString>
+	<field name="broj" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement uuid="44343fd5-d460-45ec-831b-ae566cdc2c6c" x="0" y="0" width="152" height="15"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Number of export certificates: "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="4e6c1919-5535-4ce5-afdc-6777f20806a5" x="152" y="0" width="45" height="15"/>
+				<box topPadding="2" leftPadding="4">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{broj}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

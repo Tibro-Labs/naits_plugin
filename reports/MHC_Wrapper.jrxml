@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MHC_Wrapper" language="groovy" pageWidth="700" pageHeight="800" orientation="Landscape" columnWidth="700" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="d4607c77-b8c1-4ba2-a291-eec02f21ca45">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="path" class="java.lang.String"/>
+	<parameter name="OBJ_ID" class="java.lang.Long"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/daut/Downloads/MHC_01/MHC01/"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select *
+from naits.vmovement_doc
+where object_id=$P{OBJ_ID}
+and now() between dt_insert and dt_delete;]]>
+	</queryString>
+	<field name="pkid" class="java.math.BigDecimal"/>
+	<field name="meta_pkid" class="java.math.BigDecimal"/>
+	<field name="object_id" class="java.math.BigDecimal"/>
+	<field name="dt_insert" class="java.sql.Timestamp"/>
+	<field name="dt_delete" class="java.sql.Timestamp"/>
+	<field name="parent_id" class="java.math.BigDecimal"/>
+	<field name="object_type" class="java.math.BigDecimal"/>
+	<field name="status" class="java.lang.String"/>
+	<field name="user_id" class="java.math.BigDecimal"/>
+	<field name="dt_registration" class="java.sql.Date"/>
+	<field name="movement_type" class="java.lang.String"/>
+	<field name="movement_doc_id" class="java.lang.String"/>
+	<field name="note" class="java.lang.String"/>
+	<field name="responsible_user" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="30" splitType="Stretch">
+			<subreport>
+				<reportElement uuid="20e4d4c5-0035-4510-8c6a-20a06b9341f7" x="0" y="0" width="700" height="30">
+					<printWhenExpression><![CDATA[$F{movement_type} == "ANIMAL"]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="holding_rownum"/>
+				<subreportParameter name="SUBREPORT_DIR"/>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "MHC_main.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="30">
+			<subreport>
+				<reportElement uuid="bfe33871-849b-42cd-b2c8-bff3e3e6e278" x="0" y="0" width="700" height="30">
+					<printWhenExpression><![CDATA[$F{movement_type} == "FLOCK"]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="holding_rownum"/>
+				<subreportParameter name="SUBREPORT_DIR"/>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "MHC_main_fl.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

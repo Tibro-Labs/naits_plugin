@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="statusUpdateFormTitle" language="groovy" pageWidth="792" pageHeight="612" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="242dcb76-a031-467a-a173-dad46531f42c">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="path" class="java.lang.String">
+		<property name="/Users/DmitrijsRassohins/Documents/_FAO/ireports" value=""/>
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[77882]]></defaultValueExpression>
+	</parameter>
+	<parameter name="village_code" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[/*47313331 khashuri*/
+select
+vhold.pic holdingId,
+naits.translateCodeValue(vhold.munic_code, 'MUNICIPALITIES', 'ka_GE') munic,
+naits.translateCodeValue(vhold.commun_code, 'COMMUNITIES', 'ka_GE') commun,
+naits.translateCodeValue(vhold.village_code, 'VILLAGES', 'ka_GE') vilage,
+vhold.physical_address address, (vhold.gps_north::text ||'N,' || vhold.gps_east::text||'E' ) gps,
+vperson.first_name as k_fname,
+vperson.last_name as k_lname,
+TO_CHAR(vperson.birth_date, 'DD/MM/YYYY') as birthDate,
+vperson.phone_number as phone,
+vperson.nat_reg_number as keeper_id,
+naits.translateCodeValue(vperson.status, 'OBJ_STATUS', 'ka_GE')  as pstatus,
+naits.translateCodeValue(vhold.status, 'OBJ_STATUS', 'ka_GE')  as hstatus
+from naits.vholding vhold join naits.vsvarog_link vsl on vhold.object_id = vsl.link_obj_id_1 join naits.vholding_responsible vperson on vsl.link_obj_id_2 = vperson.object_id
+where
+now() < vhold.dt_delete and
+now() < vsl.dt_delete and
+now() < vperson.dt_delete and
+vhold.village_code = $P{village_code} and
+vhold.status = 'VALID'
+order by vperson.last_name ASC]]>
+	</queryString>
+	<field name="holdingid" class="java.lang.String"/>
+	<field name="munic" class="java.lang.String"/>
+	<field name="commun" class="java.lang.String"/>
+	<field name="vilage" class="java.lang.String"/>
+	<field name="address" class="java.lang.String"/>
+	<field name="gps" class="java.lang.String"/>
+	<field name="k_fname" class="java.lang.String"/>
+	<field name="k_lname" class="java.lang.String"/>
+	<field name="birthdate" class="java.lang.String"/>
+	<field name="phone" class="java.lang.String"/>
+	<field name="keeper_id" class="java.lang.String"/>
+	<field name="pstatus" class="java.lang.String"/>
+	<field name="hstatus" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="21">
+			<staticText>
+				<reportElement x="302" y="1" width="120" height="20" uuid="9bc517cd-3ce3-4840-8b75-3de18d1cee83"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[სადგომის ნომერი#]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="133" y="1" width="99" height="20" uuid="32bf7d5a-1b98-403c-b25b-230f1ed19f26"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[მომვლელის სახელი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="23" y="1" width="110" height="20" uuid="36a0239a-ff84-4235-9b67-6713fa819da2"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[მომვლელის გვარი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="492" y="1" width="80" height="20" uuid="05e0ec17-fb89-4098-b9b3-55c61f88c97a"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[თარიღი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="572" y="1" width="90" height="20" uuid="fc6b6c1a-20cd-4d94-a3c9-f4ed35d06bec"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[პ.ნ.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="662" y="1" width="90" height="20" uuid="656512ad-11b7-4b5a-b570-198d6664883c"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[ტელეფონი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="232" y="1" width="70" height="20" uuid="68205e6a-fce6-433d-997a-0004c8b0a766"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[სტატუსი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="422" y="1" width="70" height="20" uuid="2fba1808-eefe-413b-9343-b8545f1bd232"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[სტატუსი]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="133" y="0" width="99" height="20" forecolor="#000000" uuid="caf7e465-bba3-4b8f-a9fb-ab8a91586420"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{k_fname}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="492" y="0" width="80" height="20" forecolor="#000000" uuid="4ae9e25f-a3b0-4ec0-aaaf-7c5e6a9705c5"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{birthdate}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="662" y="0" width="90" height="20" forecolor="#000000" uuid="a89cee22-c858-4033-a342-fa9e898b61a8"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{phone}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="302" y="0" width="120" height="20" forecolor="#000000" uuid="4b7cb097-d709-49ac-9cfc-1393add49b48"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{holdingid}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="23" height="20" uuid="9ac518dc-a3fc-4338-89cb-a0cb1342f57f"/>
+				<box>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="23" y="0" width="110" height="20" forecolor="#000000" uuid="1ecb049b-31dd-49f4-a48d-9307df850d22"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{k_lname}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="232" y="0" width="70" height="20" forecolor="#000000" uuid="bafd0703-ec49-426a-890b-a2ac09c36802"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pstatus}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="572" y="0" width="90" height="20" forecolor="#000000" uuid="104aa4ea-ac23-490d-a7a5-28e6620c3e09"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keeper_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="422" y="0" width="70" height="20" forecolor="#000000" uuid="15886b19-ea19-40d8-954a-53811be3b2e3"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{hstatus}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="KC_holdings" language="groovy" pageWidth="700" pageHeight="990" whenNoDataType="NoDataSection" columnWidth="700" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="61860756-6baa-40ec-bf17-4a9e0daf7847">
+	<property name="ireport.zoom" value="1.24184264611831"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String">
+		<defaultValueExpression><![CDATA["/home/meagain/Desktop/NAITS/StatusUpdatePrintout/"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+ vhold.pic as holdingid,
+ vhold.type as holdingtypecode,
+ naits.translateCodeValue(vhold.type, 'HOLDING_TYPE', 'ka_GE') holdingtype,
+ naits.translateCodeValue(vperson.holder_type, 'HOLDER_TYPE', 'ka_GE') holderrole
+from
+ naits.vholding as vhold
+ join naits.vsvarog_link as vsl on (vhold.object_id = vsl.link_obj_id_1)
+ join naits.vholding_responsible as vperson on (vsl.link_obj_id_2 = vperson.object_id)
+where
+    now() between vhold.dt_insert and vhold.dt_delete
+and now() between vsl.dt_insert and vsl.dt_delete
+and now() between vperson.dt_insert and vperson.dt_delete
+and vperson.object_id = $P{OBJ_ID}
+and vperson.status = 'VALID'
+order by vhold.object_id]]>
+	</queryString>
+	<field name="holdingid" class="java.lang.String"/>
+	<field name="holdingtypecode" class="java.lang.String"/>
+	<field name="holdingtype" class="java.lang.String"/>
+	<field name="holderrole" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band/>
+	</columnHeader>
+	<detail>
+		<band height="17" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="fa4c17b0-1f58-438b-b504-9f6340adc3ba" x="64" y="0" width="90" height="15" forecolor="#000000"/>
+				<box leftPadding="1" rightPadding="1">
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{holdingid}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="03e70990-368d-4cb9-b10e-53929cee05bd" x="0" y="0" width="64" height="15" forecolor="#0099CC"/>
+				<box leftPadding="1" rightPadding="1"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სადგომის №]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="75f1c243-60c4-4341-9754-99c983b360a2" x="154" y="0" width="64" height="15" forecolor="#0099CC"/>
+				<box leftPadding="1" rightPadding="1"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სადგომის ტიპი]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="3f54abf4-e9b4-48be-8af9-43e5f738f76f" x="218" y="0" width="90" height="15" forecolor="#000000"/>
+				<box leftPadding="1" rightPadding="1">
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{holdingtype}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="bdf2174b-9c13-4f1a-bd74-57b8ae4da5b9" x="308" y="0" width="64" height="15" forecolor="#0099CC"/>
+				<box leftPadding="1" rightPadding="1"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[როლი]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="31a48384-b595-43ea-8d7b-08c749899a04" x="372" y="0" width="90" height="15" forecolor="#000000"/>
+				<box leftPadding="1" rightPadding="1">
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{holderrole}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

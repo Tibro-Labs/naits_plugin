@@ -1,0 +1,31 @@
+﻿<GovTalkMessage xmlns="http://www.govtalk.gov.uk/CM/envelope">
+  <EnvelopeVersion>2.0</EnvelopeVersion>
+  <Header>
+    <MessageDetails>
+      <Class>CRA_Xcrms_ProcessRequest</Class>
+      <Qualifier>request</Qualifier>
+      <Function>submit</Function>
+      <CorrelationID></CorrelationID>
+      <ResponseEndPoint PollInterval="0" />
+      <GatewayTimestamp>2015-05-22 10:36:00 46</GatewayTimestamp>
+    </MessageDetails>
+    <SenderDetails>
+      <IDAuthentication>
+        <SenderID>NFA</SenderID>
+        <Authentication>
+          <Method>clear</Method>
+          <Value>NFAp7756</Value>
+        </Authentication>
+      </IDAuthentication>
+      <EmailAddress>nomail</EmailAddress>
+    </SenderDetails>
+  </Header>
+  <Body>
+    <Message xmlns="urn:g3.ge:cra:call:CRA_Xcrms_ProcessRequest:v1">
+      <Request>
+        <SubcontractId></SubcontractId>
+        <Parameters></Parameters>
+      </Request>
+    </Message>
+  </Body>
+</GovTalkMessage>

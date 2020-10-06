@@ -1,0 +1,236 @@
+<!--
+    Copyright (c) 2013, 2017 Perun Technologii DOOEL Skopje.
+    All rights reserved. This program and the accompanying materials
+    are made available under the terms of the Apache License
+    Version 2.0 or the Svarog License Agreement (the "License");
+    You may not use this file except in compliance with the License. 
+   
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See LICENSE file in the project root for the specific language governing 
+    permissions and limitations under the License.
+   
+ -->
+<project name="svarog" basedir="." default="main">
+	<property name="major-version-number" value="2.1" />
+	<property name="project-name" value="${ant.project.name}" />
+	<property name="src.dir" value="src" />
+	<property name="tests.dir" value="tests" />
+	<property name="scripts.dir" value="scripts" />
+	<property name="test_results.dir" value="test_results" />
+	<property name="build.dir" value="build" />
+	<property name="release.dir" value="release" />
+	<property name="classes.dir" value="${build.dir}/classes" />
+	<property name="tests_classes.dir" value="${build.dir}/tests" />
+	<property name="jar.dir" value="${build.dir}/jar" />
+	<property name="lib.dir" value="../common_libs" />
+	<property name="main-class" value="com.prtech.svarog.SvarogInstall" />
+	<property name="triglav.libs" value="../triglav_rest/WebContent/WEB-INF/lib" />
+	<property name="importer.libs" value="../svarog_importer/lib" />
+	<property name="batch.libs" value="../svarog_batch_executor/lib" />
+	<property name="junit.dir" value="../common_libs" />
+	<property name="hamcrest.path" value="../common_libs" />
+	<path id="junit.path">
+		<pathelement location="${build.dir}/classes" />
+		<pathelement location="${project_classpath}" />
+		<pathelement location="${tests_classes.dir}" />
+		<pathelement location="${hamcrest.path}" />
+		<pathelement path="${classpath}" />
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${junit.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+		<pathelement location="classes" />
+	</path>
+
+	<path id="base.path">
+		<pathelement location="${build.dir}/classes" />
+		<pathelement location="${project_classpath}" />
+		<pathelement path="${classpath}" />
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+		<pathelement location="classes" />
+	</path>
+
+	<target name="batch_exists">
+		<available file="${batch.libs}" type="dir" property="batch.present" />
+	</target>
+	<path id="classpath">
+		<fileset dir="${lib.dir}" includes="**/*.jar" />
+	</path>
+	<path id="application" location="${jar.dir}/${ant.project.name}.jar" />
+	<target name="clean">
+		<delete dir="${build.dir}" />
+	</target>
+	<target name="build_json">
+		<delete dir="conf/config/" />
+		<delete dir="conf/records/" />
+		<java fork="true" failonerror="yes" classname="com.prtech.svarog.SvarogInstall">
+			<arg line="-j" />
+			<classpath refid="base.path" />
+		</java>
+	</target>
+	<target name="migrate_filestore_DB2FS">
+		<java fork="true" failonerror="yes" classname="com.prtech.svarog.SvarogInstall">
+			<arg line="MIGRATE_FILESTORE" />
+			<classpath refid="base.path" />
+		</java>
+	</target>
+	<target name="install_svarog">
+		<java fork="true" failonerror="yes" classname="com.prtech.svarog.SvarogInstall">
+			<arg line="-i" />
+			<classpath refid="base.path" />
+		</java>
+	</target>
+	<target name="install_svarog_drop">
+		<java fork="true" failonerror="yes" classname="com.prtech.svarog.SvarogInstall">
+			<arg line="-id" />
+			<classpath refid="base.path" />
+		</java>
+	</target>
+	<target name="upgrade_svarog">
+		<java fork="true" failonerror="yes" classname="com.prtech.svarog.SvarogInstall">
+			<arg line="-u" />
+			<classpath refid="base.path" />
+		</java>
+	</target>
+	<target name="upgrade_svarog_force">
+		<java fork="true" failonerror="yes" classname="com.prtech.svarog.SvarogInstall">
+			<arg line="-uf" />
+			<classpath refid="base.path" />
+		</java>
+	</target>
+	<target name="compile_tests" depends="clean, compile, jar">
+		<mkdir dir="${tests_classes.dir}" />
+		<javac encoding="UTF-8" target="1.7" debug="true" debuglevel="lines,vars,source" srcdir="${tests.dir}" destdir="${tests_classes.dir}" classpathref="junit.path" />
+	</target>
+	<target name="compile">
+		<mkdir dir="${classes.dir}" />
+		<javac encoding="UTF-8" target="1.7" debug="true" debuglevel="lines,vars,source" srcdir="${src.dir}" destdir="${classes.dir}" classpathref="classpath" />
+		<copy todir="${classes.dir}">
+			<fileset dir="${src.dir}" excludes="**/*.java" />
+		</copy>
+	</target>
+	<target name="jar" depends="compile">
+		<mkdir dir="${jar.dir}" />
+		<jar destfile="${jar.dir}/${ant.project.name}-${major-version-number}_dev.jar" basedir="${classes.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="${main-class}" />
+			</manifest>
+			<fileset dir="${src.dir}" includes="**/*.java" />
+		</jar>
+	</target>
+	<target name="jar-no-source" depends="compile">
+		<mkdir dir="${jar.dir}" />
+		<jar destfile="${jar.dir}/${ant.project.name}-${major-version-number}_dev.jar" basedir="${classes.dir}">
+			<manifest>
+				<attribute name="Main-Class" value="${main-class}" />
+			</manifest>
+		</jar>
+	</target>
+	<target name="triglav_exists">
+		<available file="${triglav.libs}" type="dir" property="triglav.present" />
+	</target>
+	<target name="copy_svarog2triglav" depends="triglav_exists" if="triglav.present">
+		<property name="version-number" value="${major-version-number}_dev" />
+		<copy file="${release.dir}/${project-name}-${version-number}/${project-name}-${version-number}.jar" tofile="${triglav.libs}/${ant.project.name}-${major-version-number}_dev.jar" overwrite="true" />
+	</target>
+	<target name="importer_exists">
+		<available file="${importer.libs}" type="dir" property="importer.present" />
+	</target>
+	<target name="copy_svarog2importer" depends="importer_exists" if="importer.present">
+		<copy file="${jar.dir}/${ant.project.name}-${major-version-number}_dev.jar" tofile="${importer.libs}/${ant.project.name}-${major-version-number}_dev.jar" overwrite="true" />
+	</target>
+	<target name="copy_svarog2batch" depends="batch_exists" if="batch.present">
+		<copy file="${jar.dir}/${ant.project.name}-${major-version-number}_dev.jar" tofile="${batch.libs}/${ant.project.name}-${major-version-number}_dev.jar" overwrite="true" />
+	</target>
+	<target name="build_version">
+		<buildnumber />
+		<property name="version-number" value="${major-version-number}.${build.number}" />
+		<property name="log4j-level" value='level="INFO"' />
+		<property name="include_source" value='false' />
+		<mkdir dir="${release.dir}/${project-name}-${version-number}" />
+		<jar basedir="${classes.dir}" destfile="${release.dir}/${project-name}-${version-number}/${project-name}-${version-number}.jar">
+			<manifest>
+				<attribute name="Built-By" value="${builder}" />
+				<attribute name="Built-On" value="${build-info.current-date}" />
+				<attribute name="Built-At" value="${build-info.current-time}" />
+				<attribute name="Implementation-Version" value="${version-number}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="build_dev">
+		<property name="version-number" value="${major-version-number}_dev" />
+		<property name="log4j-level" value='level="TRACE"' />
+		<property name="include_source" value='true' />
+		<delete dir="${release.dir}/${project-name}-${version-number}" />
+		<mkdir dir="${release.dir}/${project-name}-${version-number}" />
+		<jar basedir="${classes.dir}" destfile="${release.dir}/${project-name}-${version-number}/${project-name}-${version-number}.jar">
+			<manifest>
+				<attribute name="Built-By" value="${builder}" />
+				<attribute name="Built-On" value="${build-info.current-date}" />
+				<attribute name="Built-At" value="${build-info.current-time}" />
+				<attribute name="Implementation-Version" value="${version-number}" />
+			</manifest>
+			<fileset dir="${src.dir}" includes="**/*.java" />
+		</jar>
+	</target>
+	<target name="package" depends="compile">
+		<copy todir="${release.dir}/${project-name}-${version-number}/conf">
+			<fileset dir="conf/" />
+		</copy>
+		<mkdir dir="${release.dir}/${project-name}-${version-number}/custom/" />
+		<copy todir="${release.dir}/${project-name}-${version-number}/custom/">
+			<fileset dir="custom/" />
+		</copy>
+		<copy todir="${release.dir}/${project-name}-${version-number}/${lib.dir}">
+			<fileset dir="${lib.dir}" />
+		</copy>
+		<copy file="svarog.properties" todir="${release.dir}/${project-name}-${version-number}/">
+		</copy>
+		<copy file="${src.dir}/log4j2.xml" todir="${release.dir}/${project-name}-${version-number}/">
+		</copy>
+		<replace file="${release.dir}/${project-name}-${version-number}/log4j2.xml" token='level="TRACE"' value='${log4j-level}' />
+		<copy todir="${release.dir}/${project-name}-${version-number}/">
+			<fileset dir="${src.dir}/scripts/" />
+		</copy>
+		<replace token="{JAR_NAME}" value="${project-name}-${version-number}.jar">
+			<fileset dir="${release.dir}/${project-name}-${version-number}/" casesensitive="yes">
+				<patternset id="non.test.sources">
+					<include name="*.bat" />
+					<exclude name="*.sh" />
+				</patternset>
+			</fileset>
+		</replace>
+	</target>
+	<target name="release" depends="build_version, package">
+	</target>
+	<target name="dev" depends="build_dev, package, refresh">
+	</target>
+	<target name="refresh">
+	</target>
+	<target name="clean-build" depends="clean,jar,copy_svarog2triglav,copy_svarog2importer, copy_svarog2batch" />
+	<target name="bootstrap" depends="clean, compile,build_json,clean, compile, compile,compile,install_svarog" />
+	<target name="main" depends="clean-build" />
+
+	<target name="run_tests" depends="compile_tests">
+		<delete dir="${test_results.dir}" />
+		<mkdir dir="${test_results.dir}" />
+		<junit printsummary="yes" haltonfailure="no" failureproperty="test.failed" showoutput="yes">
+			<classpath refid="junit.path" />
+			<batchtest todir="${test_results.dir}">
+				<fileset dir="${tests_classes.dir}">
+					<include name="**/*.class" />
+				</fileset>
+				<formatter type="plain" />
+				<formatter type="xml" />
+			</batchtest>
+		</junit>
+		<fail message="Test failure detected, check test results. Download SVAROG artefacts" if="test.failed" />
+	</target>
+</project>

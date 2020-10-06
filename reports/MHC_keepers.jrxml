@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MHC_keepers" language="groovy" pageWidth="661" pageHeight="595" orientation="Landscape" columnWidth="661" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="98be1119-7b70-4e76-854d-f12d95f29774">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="path" class="java.lang.String"/>
+	<parameter name="OBJ_ID" class="java.lang.Long"/>
+	<queryString>
+		<![CDATA[select
+	/*person 1*/
+	case
+		when vp1.first_name is null then vp1.full_name
+		else vp1.first_name
+	end as name1,
+	vp1.last_name as surn1,
+	vp1.nat_reg_number as pers_id1,
+	case
+		when vp1.mobile_number is null then vp1.phone_number
+		else vp1.mobile_number
+	end as pers_phone1
+from
+	naits.vsvarog_link vsl
+join naits.vholding_responsible vp1 on
+	vsl.link_obj_id_2 = vp1.object_id
+join naits.vsvarog_link_type vslt on
+	vslt.object_id = vsl.link_type_id
+where
+	now() between vsl.dt_insert and vsl.dt_delete
+	and now() between vp1.dt_insert and vp1.dt_delete
+	and now() between vslt.dt_insert and vslt.dt_delete
+	and vslt.link_type = 'HOLDING_KEEPER'
+	and vsl.link_obj_id_1 in (
+		select parent_id
+	from
+		naits.vmovement_doc
+	where
+		object_id = $P{OBJ_ID}
+		and now() between dt_insert and dt_delete)
+limit 1;]]>
+	</queryString>
+	<field name="name1" class="java.lang.String"/>
+	<field name="surn1" class="java.lang.String"/>
+	<field name="pers_id1" class="java.lang.String"/>
+	<field name="pers_phone1" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="30" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="bb6688d0-0595-4c28-a512-bbdd905f30a6" x="95" y="0" width="70" height="15" forecolor="#0099CC"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5722117b-902c-4f16-b2a9-2620e2317365" x="0" y="15" width="95" height="15" forecolor="#0099CC"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Holding of origin]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="1f85d00a-55da-47e4-bafd-2379ba98e67f" x="165" y="0" width="75" height="15" forecolor="#0099CC"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Surname]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="dbb50d6f-9d2f-45c4-926e-65c0343afba1" x="390" y="0" width="270" height="15" forecolor="#0099CC"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Phone]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="fc68a76e-d72d-4553-bf11-d0db92f224ad" x="390" y="15" width="270" height="15" forecolor="#000000"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pers_phone1}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="dd36d602-3b95-428f-8984-1915bc9a6d13" x="240" y="0" width="150" height="15" forecolor="#0099CC"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ID#]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="95b7eff0-4f72-45f6-8c7b-e1538e0c45b2" x="95" y="15" width="70" height="15" forecolor="#000000"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{name1}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="2d3a3918-6c50-42c9-91e0-a44a36aabf41" x="240" y="15" width="150" height="15" forecolor="#000000"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pers_id1}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="3b84d11b-bc8c-45e8-8052-38e714add610" x="165" y="15" width="75" height="15" forecolor="#000000"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{surn1}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="c07004c5-e764-4f0f-b1cb-7dc38da73953" x="0" y="0" width="95" height="15" forecolor="#0099CC"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Keeper]]></text>
+			</staticText>
+		</band>
+	</detail>
+</jasperReport>

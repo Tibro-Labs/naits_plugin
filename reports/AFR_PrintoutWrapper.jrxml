@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AFR_PrintoutWrapper" language="groovy" pageWidth="792" pageHeight="612" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="5" bottomMargin="20" isTitleNewPage="true" uuid="f791b6a2-08ea-4158-b973-1196ed38fc69">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="village_code" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OBJ_ID" class="java.lang.Long"/>
+	<queryString>
+		<![CDATA[select
+village_code,
+cast (object_id as bigint)  as object_id,
+pic
+from naits.vholding vhold
+where
+     now() between vhold.dt_insert and vhold.dt_delete
+     and vhold.village_code = $P{village_code}
+order by vhold.name ASC;]]>
+	</queryString>
+	<field name="village_code" class="java.lang.String"/>
+	<field name="object_id" class="java.lang.Long"/>
+	<field name="pic" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="50">
+			<subreport runToBottom="true">
+				<reportElement uuid="1e928d29-228e-46e1-9e45-7c0171218ebf" x="-19" y="0" width="789" height="50"/>
+				<subreportParameter name="village_code">
+					<subreportParameterExpression><![CDATA[$P{village_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["AFR_title.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<detail>
+		<band height="244">
+			<subreport runToBottom="true">
+				<reportElement uuid="b3370d65-6d42-4fb8-8450-17a79fb02089" x="-19" y="0" width="789" height="242"/>
+				<subreportParameter name="holding_rownum">
+					<subreportParameterExpression><![CDATA[$V{REPORT_COUNT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$F{object_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA["AFR_main.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20">
+			<textField evaluationTime="Report">
+				<reportElement uuid="957eaf34-fbd6-4918-835d-8c8b051d8646" x="710" y="0" width="40" height="20"/>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="5b1e0469-b236-4e54-a25b-865eb22a6009" x="630" y="0" width="80" height="20"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

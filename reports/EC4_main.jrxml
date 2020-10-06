@@ -1,0 +1,1258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="EC2_main" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="911dfc99-1d2b-4af8-a716-db58394c9af0">
+	<property name="ireport.zoom" value="0.75"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="2060"/>
+	<parameter name="OBJ_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[00110011]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[220484]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[/* '00110011', '220484'*/
+/* '789654123', '220484'*/
+/* '111222333', '220484'*/
+
+select * from naits.selectexportcert($P{OBJ_ID}, $P{USER_ID});]]>
+	</queryString>
+	<field name="issued_by" class="java.lang.String"/>
+	<field name="anim_count" class="java.lang.Long"/>
+	<field name="exporter_name" class="java.lang.String"/>
+	<field name="exporter_address" class="java.lang.String"/>
+	<field name="place_of_origin" class="java.lang.String"/>
+	<field name="exp_holding_id" class="java.lang.String"/>
+	<field name="exp_holding_id_line1" class="java.lang.String"/>
+	<field name="exp_holding_id_line2" class="java.lang.String"/>
+	<field name="countries_of_transit" class="java.lang.String"/>
+	<field name="transport_type_code" class="java.lang.String"/>
+	<field name="transport_type" class="java.lang.String"/>
+	<field name="exp_certificate_id" class="java.lang.String"/>
+	<field name="quarantine_id" class="java.math.BigDecimal"/>
+	<field name="holding_id" class="java.lang.String"/>
+	<field name="imp_country" class="java.lang.String"/>
+	<field name="imp_country_txt" class="java.lang.String"/>
+	<field name="imp_address" class="java.lang.String"/>
+	<field name="imp_company" class="java.lang.String"/>
+	<field name="imp_company_full" class="java.lang.String"/>
+	<field name="exp_keeper_id" class="java.math.BigDecimal"/>
+	<field name="exp_vehicle_license" class="java.lang.String"/>
+	<field name="bip_holding" class="java.lang.String"/>
+	<field name="border_cross_point" class="java.lang.String"/>
+	<field name="user_full_name" class="java.lang.String"/>
+	<field name="user_to_sign" class="java.lang.String"/>
+	<field name="date_from" class="java.sql.Date"/>
+	<field name="q_date_from" class="java.lang.String"/>
+	<field name="date_to" class="java.sql.Date"/>
+	<field name="q_date_to" class="java.lang.String"/>
+	<field name="dd_diff" class="java.lang.Integer"/>
+	<field name="qtype_code" class="java.lang.String"/>
+	<field name="q_type" class="java.lang.String"/>
+	<field name="q_reason" class="java.lang.String"/>
+	<field name="q_status" class="java.lang.String"/>
+	<field name="dd" class="java.lang.String"/>
+	<field name="mm" class="java.lang.String"/>
+	<field name="yyyy" class="java.lang.String"/>
+	<field name="name_consignee" class="java.lang.String"/>
+	<field name="e_status" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="309" splitType="Stretch">
+			<staticText>
+				<reportElement x="506" y="0" width="49" height="10" forecolor="#CCCCCC" uuid="d9d93425-72eb-452f-af86-11ff033dfd43"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<text><![CDATA[v.0.1]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="174" height="59" uuid="441cb277-7492-4aa7-a91e-6e953092711f"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{e_status}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="217" width="555" height="17" uuid="fb680280-5816-434c-aa7b-faefee3941ca"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="11" isBold="true"/>
+				</textElement>
+				<text><![CDATA[საქართველოდან ქუვეითის სახელმწიფოში საკლავი მამრი ცხვრისა და თხის ექსპორტისათვის
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="246" width="555" height="17" uuid="941980dd-63d8-460e-a0e7-d7b85614ae06"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FOR THE EXPORTATION OF MALE SHEEP AND GOATS FOR SLAUGHTER FROM]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="263" width="555" height="17" uuid="73b7069a-76d5-4d59-bb3a-02c9085f9e04"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[GEORGIA TO THE STATE OF KUWAIT]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="292" width="555" height="17" uuid="7677d74c-8120-4013-9372-a9be7616f086"/>
+				<box topPadding="2" leftPadding="20" bottomPadding="2" rightPadding="2"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[1. ზოგადი ინფორმაცია / General information]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="480" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="277" height="20" uuid="7ebb5929-d204-40ea-8a4d-994ed4666505"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[1.1. გამგზავნი/Consignor:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="50" width="277" height="30" uuid="70095914-ee27-4744-92da-5d608c98390f"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["მისამართი/ Address: " + ($F{exporter_address} == null ?"":$F{exporter_address})]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="80" width="555" height="20" uuid="e27286df-c1dc-4f8e-a7de-a5e88c521d67"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[1.4. მიმღები/ Consignee]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="277" y="30" width="278" height="50" uuid="1def65b5-5ee6-440b-bb55-2759af936fd9"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["1.3 ვეტერინარული ორგანო/Veterinary Authority: " + $F{issued_by}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="100" width="555" height="20" uuid="0cc2f625-37a2-4579-8fbd-8bf0279cc96e"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სახელი/ Name: "+($F{imp_company}==null?"":$F{imp_company}) + " " + ($F{name_consignee}==null?"":$F{name_consignee})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="140" width="277" height="50" uuid="8b0f5473-9bf8-4b2c-adbc-b352a7bc6355"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["1.5. წარმოშობის ქვეყანა/ Country of origin: საქართველო/Georgia"]]></textFieldExpression>
+			</textField>
+			<break>
+				<reportElement x="0" y="444" width="100" height="1" uuid="1e025162-fbc3-427e-8ff0-aed9ba5e9a22"/>
+			</break>
+			<textField>
+				<reportElement x="0" y="190" width="277" height="50" uuid="0c1ed2a4-c575-4e33-ac72-87f283c2df37"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["1.7. დანიშნულების ქვეყანა/ Country of destination: ქუვეითი/Kuwait"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="240" width="277" height="50" uuid="ff88629e-4e45-4b95-bfdd-1e89191eb1d3"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[1.9. დატვირთვის ადგილი/Place of shipment:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="277" y="140" width="278" height="30" uuid="4766e8f8-3959-4d70-bfb4-92ed4e50430d"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[1.6. წარმოშობის ზონა ან ქვეყნის ნაწილი/Zone or compartment of Origin:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="277" y="170" width="278" height="20" uuid="b0d9dff8-2944-49ad-b015-de7901ae041f"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[1.8. წარმოშობის ადგილი/ Place of origin:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="277" y="254" width="278" height="36" uuid="5d604db9-e263-4a7b-9545-3c9e2a16aefc"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["1.10. გაგზავნის თარიღი / Date of departure: " + $F{q_date_to}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="91" y="443" width="368" height="15" uuid="f7726f05-8503-4c35-9b41-ef77bda95df2"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[გვერდი / Page / Sayfa 1 / 5]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="277" y="0" width="278" height="30" uuid="c14654ee-71d5-484f-8669-cf1af95f9678"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["1.2. სერტიფიკატის ნომერი/ Certificate reference number: "+ $F{exp_certificate_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="20" width="277" height="30" uuid="b138defe-9df0-4faa-93ad-fbae20d3afce"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სახელი/ Name: " + ($F{exporter_name} == null ? "":$F{exporter_name})]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="120" width="555" height="20" uuid="ebf480b8-ca6a-49f8-8307-497c49ca7e4a"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["მისამართი/ Address: "+ ($F{imp_address}==null?"":$F{imp_address})]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="277" y="188" width="278" height="23" uuid="92d99ed1-6a04-4b44-8778-6dc926da02d0"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სახელი/ Name: " + $F{place_of_origin} + " " + $F{holding_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="277" y="211" width="278" height="43" uuid="bdd8081a-45f8-494d-8993-ad954f4d8287"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["მისამართი/ Address: " + $F{place_of_origin} +" " +$F{exp_holding_id_line1} + " " + $F{exp_holding_id_line2}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="310" width="555" height="20" uuid="3defa6d1-3114-424d-a172-34f82b266c43"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[1.11. სატრანსპორტო საშუალება/Means of transport :]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="133" y="330" width="20" height="15" forecolor="#000000" uuid="c662ff34-0753-450d-8b5e-687afcc6d1b2"/>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["☐"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="13" y="330" width="120" height="15" uuid="0e187474-8812-4c14-9fbd-9992de91fc4a"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[თვითმფრინავი/ Airplane]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="133" y="330" width="20" height="15" forecolor="#000000" uuid="0ae95c01-8945-46a6-ae00-c0f30c9268d7">
+					<printWhenExpression><![CDATA[$F{transport_type_code} == '1']]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["✕"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="176" y="330" width="120" height="15" uuid="35b638f5-97ed-445e-a00a-e0312f6659c0"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[გემი/ Ship]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="296" y="330" width="20" height="15" forecolor="#000000" uuid="62588da9-3f14-4b10-87ef-b3170e1b1915">
+					<printWhenExpression><![CDATA[$F{transport_type_code} == '2']]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["✕"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="296" y="330" width="20" height="15" forecolor="#000000" uuid="469373d3-8c41-4ce8-b15d-d8261c2dde70"/>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["☐"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="486" y="330" width="20" height="15" forecolor="#000000" uuid="260e7009-d462-4424-96ab-23364659dae5">
+					<printWhenExpression><![CDATA[$F{transport_type_code} != '1' && $F{transport_type_code} != '2']]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["✕"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="486" y="330" width="20" height="15" forecolor="#000000" uuid="907f269c-1e6e-4e24-b929-56bee43a6fdb"/>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["☐"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="366" y="330" width="120" height="15" uuid="ad689212-c029-4f67-8595-3ccf6ad22806"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[სხვა/ Other]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="330" width="12" height="20" uuid="20c18b50-d1d3-412e-a8f5-b7106b251aaf"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="543" y="330" width="12" height="20" uuid="e8749940-9419-4fc7-b775-c97c6cff146e"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="350" width="555" height="20" uuid="b1e2aec4-8a77-4a47-bc68-214f621c4dfe"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[1.13. საქონლის იდენტიფიკაცია/ Identification of commodities:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="290" width="555" height="20" uuid="18633ba5-972f-4f2c-a19c-afabe6f839d5"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["1.12. მთლიანი რაოდენობა/Total Quantity: " + $F{anim_count}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="25">
+			<subreport>
+				<reportElement x="0" y="0" width="200" height="12" uuid="66528c89-3ad9-46af-ba19-86fccd91e8c1"/>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "EC4_animals_all.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="619">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="17" width="518" height="32" uuid="a29e0be0-0fc9-45e1-9e6a-ed9839dd69a1"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["მე, " + $F{user_to_sign} + ", ქვემოთ ხელმომწერმა სახელმწიფო ვეტერინარმა სერტიფიკატის გაცემის დღეს შევამოწმე ცხოველი და მას არ აღენიშნება ინფექციური და გადამდები დაავადებების კლინიკური ნიშნები."]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="555" height="17" uuid="cb30e433-121e-4419-a017-d92ce30807bf"/>
+				<box topPadding="2" leftPadding="20" bottomPadding="2" rightPadding="2"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[2. სანიტარიული ინფორმაცია / Sanitary Information]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="80" width="494" height="33" uuid="fa97b2f5-ec3a-41cb-8152-02c5ceeec9ea"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.1. ქვეყანა ან ზონა გაგზავნამდე განსაზღვრული პერიოდის განმავლობაში თავისუფალია შემდეგი დაავადებებისგან/Country or zone free for the following diseases for a specific period prior to shipment:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="49" width="518" height="31" uuid="0ea9a177-b107-41f3-813d-e748ee4af96d"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<textFieldExpression><![CDATA["I, " + $F{user_to_sign} + ", the under signed Official Veterinarian have examined animal(s) today and showed no clinical signs of infectious and contagious diseases."]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="50" y="113" width="468" height="104" uuid="59c31cef-27ba-49df-9b34-20fa9a00e3d6"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[a. რიფტის ველის ცხელება / Rift Valley Fever: (ცხოველის) დაბადებიდან ან გაგზავნამდე, არანაკლებ, 14 დღის განმავლობაში; ან დატვირთვის ადგილამდე ტრანსპორტირებისას არ გაუვლია ტერიტორია, სადაც ადგილი ჰქონდა ეპიზოოტიას; ან დაცული იყო ვექტორებთან კონტაქტისგან, როდესაც გაიარა ტერიტორია, სადაც ადგილი ჰქონდა ეპიზოოტიას. / Since birth or for at least 14 days prior to shipment; or did not transit through an area experiencing an epizootic during transportation to the place of shipment; or were protected from vector attacks when transiting through an area experiencing an epizootic.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="50" y="217" width="468" height="33" uuid="e803c287-9e0a-4532-a1c0-c688df93a290"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[b. ვეზიკულარული სტომატიტი / Vesicular stomatitis დაბადებიდან ან, არანაკლებ 21 დღის განმავლობაში / since birth or for at least 21 days.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="50" y="250" width="468" height="36" uuid="a1c3cb1c-9377-4853-a0b8-c30dfcf24533"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[c. პარატუბერკულოზი / Para tuberculosis დაბადებიდან ან გაგზავნამდე ბოლო 12 თვის განმავლობაში / since birth or 12 months prior to shipment.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="286" width="494" height="46" uuid="2f203383-7c58-44f5-9f44-2d945ec94280"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.2.მეურნეობაში, საიდანაც გამოდის ცხოველი და რომელშიც გაგზავნამდე განსაზღვრული დროის განმავლობაში ოფიციალურად არ დაფიქსირებულა შემდეგი დაავადებები; / Establishment in which no case reported officially for the following diseases for a specified period prior to shipment:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="50" y="350" width="468" height="167" uuid="04fd77a0-2328-44d5-aea6-8cbeb079bd71"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[b. წვრილფეხა პირუტყვის ჭირი (PPR), ცხვრისა და თხის ყვავილი: / Peste des petits
+ruminants (PPR), sheep and goat pox : დაბადებიდან, ან არანაკლებ ბოლო 21 დღის განმავლობაში, თხის კონტაგიოზური პლევროპნევმონია დაბადებიდან ან ბოლო 45 დღის განმავლობაში და მეურნეობა არ მდებარეობდა ინფიცირებულ ზონაში;
+ჩაუტარდა ვაქცინაცია: წვრილფეხა პირუტყვის ჭირის საწინააღმდეგო ცოცხალი ატენუირებული PPRV ვაქცინით გაგზავნამდე არანაკლებ 21 დღით ადრე; ცხვრისა და თხის ყვავილის საწინააღმდეგოდ გაგზავნამდე არანაკლებ 15 დღისა და არაუმეტეეს 4 თვისა; since birth, or for at least the 21 days, Contagious caprine pleuropneumonia for goats only since birth or 45 days, and that the establishment was not situated in an infected zone; were vaccinated against PPR with live attenuated PPRV vaccines at least 21 days prior to shipment; not less than 15 days and not more than 4 months prior to shipment for sheep and goat pox,]]></text>
+			</staticText>
+			<break>
+				<reportElement x="0" y="596" width="100" height="1" uuid="4cce94f0-b189-459b-9e7b-2a901f8779a7"/>
+			</break>
+			<staticText>
+				<reportElement x="50" y="332" width="468" height="18" uuid="9e861fb6-f77c-4cea-ab07-2085abc39f92"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[a. ჯილეხი: 20 დღე / Anthrax: 20 days;]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="90" y="582" width="368" height="15" uuid="da62dec5-9a66-4e04-8ea3-ce58f00b72ad"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<text><![CDATA[გვერდი / Page / Sayfa 2 / 5]]></text>
+			</staticText>
+		</band>
+		<band height="609">
+			<staticText>
+				<reportElement x="50" y="0" width="468" height="44" uuid="b2826b33-17f0-4590-b40f-ad83b4e1aa8a"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[c. ცოფი: არანაკლებ ბოლო 12 თვის განმავლობაში ან ჩაუტარდათ ვაქცინაცია/რევაქცინაცია ვაქცინის მწარმოებლის რეკომენდაციების შესაბამისად / Rabies for at least 12 months or were vaccinated or revaccinated in accordance with the recommendations of the manufacturer.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="50" y="44" width="468" height="88" uuid="76615c37-0c4f-4260-9fc3-0c6dcc8d2dc5"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[d. თურქული: დაბადებიდან ან ბოლო სამი თვის განმავლობაში, თურქული არ დაფიქსირებულა მეურნეობიდან ათი კილომეტრის რადიუსში; არ ყოფილან შეხებაში თურქულის ინფექციის წყაროსთან მათი კარანტინის ადგილიდან დატვირთვის ადგილამდე ტრანსპორტირებისას. / Foot and Mouth Disease (FMD) since birth or for the past 3 months, FMD has not occurred within a ten-kilometer radius of the establishment; were not exposed any source of FMD infection during their transportation from the quarantine station to the place of shipment.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="132" width="494" height="81" uuid="4e413e0b-e1dc-4f91-99a7-60a830e2af5f"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.3 ბრუცელოზი:ინფექციისგანთავისუფალიქვეყანაანზონაანინფექციისგანთავისუფალი ფარა ან ნახირი (ა) საჭიროებს ტესტს) ან თუ ფარა ან ნახირი არ არის მიჩნეული როგორც დაავადებისგან თავისუფალი და რომელშიც წლის განმავლობაში არც ერთი შემთხვევა არ დაფიქსირებულა (ბ) საჭიროებს ტესტს). / Brucellosis: country or zone free from infection or herd or flock free from infection (a) test required) or if herd or flock not qualified for free in which no case reported during the year (b) test required).]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="213" width="494" height="45" uuid="ba58f06e-6dd9-403a-8746-38094b0af3dc"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.4 ცხვრის ეპიდიდიმიტი (Brucella ovis): (გარდა კასტრირებული მამრისა) ფარა თავისუფალია, ან თუ ფარა არ არის თავისუფალი (ა) საჭიროა ტესტი). / Ovine epididymitis (Brucella ovis): (except castrated male) flock free, or if flock other than free (a) test required).]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="258" width="494" height="60" uuid="f801a0fe-01d8-4e94-8ac5-70ce48719f2c"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.5 ცხვრის კატარალური ცხელება (ბლუტანგი): ცხოველები იმყოფებოდნენ ვექტორებისგან
+დაცულ მეურნეობაში გაგზავნამდე არანაკლებ ბოლო 60 დღის და დატვირთვის
+ადგილამდე ტრანსპორტირებისას. / Bluetongue: animals were kept in a vector-protected establishment for at least 60 days prior to shipment and during transportation to the place of shipment.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="318" width="494" height="48" uuid="179b962e-6f6a-437e-9ccf-58daa751c4d8"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.6 სკრეპი: ცხოველები გამოდიან სკრეპისგან თავისუფალი მეურნეობიდან როგორც მოცემულია OIE-ს კოდექსის 14.8.5 მუხლში. / Scrapie animals come from an establishment free from scrapie as described in Article 14.8.5.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="366" width="494" height="75" uuid="a8a84c10-4061-44e7-9ecc-22af91eeedf3"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.7 ძველი და ახალი მსოფლიოს ხორცის ბუზით დაავადება: ქვეყანაში დაფიქსირების შემთხვევაში ხორციელდება ცხოველთა ჯანმრთელობის დაცვის მსოფლიო ორგანიზაციის (OIE) 2014 წლის ხმელეთის ცხოველთა ჯანმრთელობის დაცვის კოდექსის 8.10.1-დან 8.10.3 მუხლების შესაბამისი ღონისძიებები. /Old and New world screwworm: country if infested comply with the OIE Terrestrial Code 2014 article 8.10.1 to 8.10.3.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="441" width="494" height="39" uuid="c050c763-35de-4f96-81fd-2211b9238aaf"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.8 ვაქცინაცია: ვაქცინირებული არიან შემდეგ დაავადებებზე / Vaccination: have been vaccinated for the following diseases]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="90" y="583" width="368" height="15" uuid="4e00e0d2-96d2-4c12-92ee-e8474cd440b0"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<text><![CDATA[გვერდი / Page / Sayfa 3 / 5]]></text>
+			</staticText>
+			<break>
+				<reportElement x="0" y="598" width="100" height="1" uuid="dea65653-0617-4f1b-b193-43d4b2426af7"/>
+			</break>
+		</band>
+		<band height="686">
+			<break>
+				<reportElement x="0" y="673" width="100" height="1" uuid="43fa165f-0fb8-4e7b-928d-cbf47323b57e"/>
+			</break>
+			<staticText>
+				<reportElement x="50" y="23" width="468" height="31" uuid="b02f3dff-da62-487f-bf4f-d674a3e3440a"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[b. ცხვრისა და თხის ყვავილზე გაგზავნამდე არანაკლებ 15 დღით და არაუმეტეს 12 თვით ადრე. / Sheep and goat pox not less than 15 days and not more than 12 months prior to shipment.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="50" y="0" width="468" height="23" uuid="955fe2b5-a316-4d0c-8d7c-a749be198ae0"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[a. წვრილფეხა პირუტყვის ჭირზე გაგზავნამდე 14 დღით ადრე. / PPR 14 days prior to shipment.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="54" width="494" height="33" uuid="03b82680-72e2-46ce-84e8-85f768630b80"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.9ლაბორატორიული ტესტები: მოითხოვება უარყოფითი შედეგით, ტესტი უნდა შეესაბამებოდეს OIE-ს სახელმძღვანელოს. / Laboratory tests: required negative results, test approved by the OIE Manual.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="50" y="87" width="468" height="78" uuid="5cf8d321-863b-43c5-9cf5-7763115d6111"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[a. ბრუცელოზი (ა) სქესობრივად მომწიფებული ცხოველები გაგზავნამდე 30 დღით
+ადრე; (ბ) 30 დღის განმავლობაში იზოლირებული და ამავე პერიოდში შემოწმებული; ახალმოგებულის შემთხვევაში ტესტი ჩატარებულ იქნა მოგებიდან არანაკლებ 30 დღის შემდეგ. / Brucellosis (a) sexually matured animals 30 days prior to shipment; (b) isolated for 30 days and tested during this period; in the case of post-parturient females, the test was carried out at least 30 days after giving birth.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="50" y="165" width="468" height="32" uuid="92c40b6d-23f8-4d6c-9faa-f4868e05c521"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[b. ცხვრის ეპიდიდიმიტი (Brucella ovis): (ა) 6 თვეზე მეტი ასაკის ცხვარი გაგზავნამდე 30 დღით ადრე. / Ovine epididymitis (Brucella ovis): (a) sheep over 6 months of age 30 days prior to shipment]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="50" y="197" width="468" height="63" uuid="97438484-859c-4aeb-a275-9dc767bf09b3"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[c. თურქულის დაავადების ვირუსი (FMDV) (ვირუსოლოგია და სეროლოგია)
+იზოლაციიდან 28 დღის შემდეგ - შემთხვევითობის პრინციპით შერჩეული ცხოველების 5%. / (Foot and Mouth Disease Virus (FMDV) (virology and serology) 28 days after isolation - 5% of randomly selected animals.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="260" width="494" height="92" uuid="100e99f0-786f-4a4a-8d45-7b07d24dead6"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.10. ცხოველები არ გამოდიან ინფექციური დაავადების გამოვლენის გამო ვეტერინარულ შეზღუდვებს დაქვემდებარებული ტერიტორიიდან; და არ წარმოადგენენ გადამდები ან ინფექციური დაავადების კონტროლისა და აღმოფხვრის ეროვნული პროგრამის ფარგლებში გამოწუნებულ ცხოველებს / Do not come from an area under veterinary restriction due to an outbreak of an infectious disease; and must not be animals, which have been culled under a national program to control and eradicate a contagious or infectious disease.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="25" y="352" width="494" height="47" uuid="d1b747b8-e2dd-4579-8262-294139a30a37"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.11. დამუშავებული არიან ენდო (ფასციოლას საწინააღმდეგო პრეპარატის ჩათვლით) და ექტო პარაზიტებზე; / Have been effectively treated against internal (including effective drugs against liver fluke) and external parasites;]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="25" y="399" width="494" height="44" uuid="7a7d45a0-4e7b-4f63-9e7b-44dc42f8ca51"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.12. გამოდიან ფარიდან, რომელშიც ადგილი არ ჰქონია OIE-ს სიით განსაზღვრულ სხვა დაავადებებს გაგზავნამდე ბოლო ერთი თვის განმავლობაში; / Were derived from flock where other OIE listed diseases have not occurred during the past 1 month prior to shipment;]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="443" width="494" height="48" uuid="8d000bd4-fbde-498f-b16f-ab975b9d908f"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.13. იმყოფებოდნენ ქვეყნის კომპეტენტური ვეტერინარული ორგანოს მიერ აღიარებულ ვექტორებისგან დაცულ საკარანტინო სადგომში, გაგზავნამდე არანაკლებ 21 დღით ადრე; / Were kept in a vector proof quarantine station approved by the Veterinary Authority of the country for at least 21 days prior to shipment;]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="90" y="659" width="368" height="15" uuid="7a8b9ed8-c856-471b-8a3f-fd548165978f"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<text><![CDATA[გვერდი / Page / Sayfa 4 / 5]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="491" width="494" height="83" uuid="5d55c9a5-1a51-4d46-b3c8-5712447f3188"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.14. იგზავნებიან წარმოშობის ადგილიდან და არ ჰქონიათ კონტაქტი სხვა ცხოველებთან; დატვირთვის ადგილამდე გადადგილების დროს არ გაუვლიათ ტერიტორია, სადაც ადგილი ჰქონდა ინფექციური და გადამდები დაავადებების შემთხვევებს; / Were sent directly from the holding of the origin and have not come in contact with other animals; were not passed through an area with and exposed to an infectious or contagious during their transit to the place of shipment;]]></text>
+			</staticText>
+		</band>
+		<band height="203">
+			<staticText>
+				<reportElement x="24" y="17" width="495" height="91" uuid="96c74001-a361-4a08-a2c7-3fd22f5de3bd"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.15. საშუალებები, რომლითაც ხორციელდება ცხოველების ტრანსპორტირება ფერმიდან მათ დანიშნულების ადგილამდე და გადაადგილების განმავლობაში მათდამი მოპყრობა უნდა შეესაბამებოდეს 2013 წლის OIE-ს ხმელეთის ცხოველების ჯანმრთელობის დაცვის კოდექსის 7.2. ან 7.4 მუხლებით დადგენილ ცხოველთა კეთილდღეობის სტანდარტებს, / The facilities by which animals are transported from the source of the farm to their destination and the way they are handled during the journey should comply with the Animal Welfare standards of the OIE Terrestrial Animal Health Code 2013, chapter 7.2. or 7.4;]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="108" width="495" height="30" uuid="35031934-7a48-4b58-81f6-02b063944611"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[2.16. აერთაშორისო ვეტერინარული სერტიფიკატის მოქმედების ვადა / Validity of the International Veterinary Certificate]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="24" y="138" width="495" height="35" uuid="dde63784-360c-4bbf-9edc-343e74e0b023"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[სერტიფიკატი დატვირთვის თარიღიდან ათი დღის განმავლობაში / The certificate is valid for ten days from the date of loading]]></text>
+			</staticText>
+		</band>
+		<band height="379">
+			<staticText>
+				<reportElement x="101" y="0" width="163" height="30" uuid="7994679f-89aa-4261-8c27-7c2135aa7566"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<text><![CDATA[ადგილი/ Place]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="101" height="30" uuid="be1d0203-9558-418c-b05a-4983a535b205"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<text><![CDATA[თარიღი/ Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="264" y="0" width="290" height="30" uuid="b527beb2-8b9e-4e73-8af7-3c0226137661"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<text><![CDATA[ უფლებამოსილი ვეტერინარის ბეჭედი და ხელმოწერა/Stamp and Signature of the official Veterinarian]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="30" width="101" height="35" uuid="2748f84b-5778-4b3a-9a19-06bbc18dafb8"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yyyy}+", "+$F{dd} + " " + $F{mm}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="101" y="30" width="163" height="35" uuid="9f81cb74-991a-4f2a-981c-f0a3dee625d5"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="264" y="30" width="290" height="35" uuid="5fe0af95-a402-40e2-9f01-c1c1ed5394c9"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="-1" y="65" width="555" height="18" uuid="e7b98de4-c458-44db-a116-ef721ff6317a"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სახელი დიდი ასოებით და თანამდებობა / Name in block capitals and designation " ]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="-1" y="83" width="555" height="37" uuid="523fed58-ff2f-4017-bbf8-7b245d589599"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{user_to_sign}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="147" width="556" height="38" uuid="c667c2d9-0862-4535-8760-52b30700ab65"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+					<paragraph lineSpacing="1_1_2"/>
+				</textElement>
+				<text><![CDATA[წინამდებარე ვეტერინარული სერტიფიკატი შეიცავს სერიულად დანომრილ ხუთ გვერდს/This Veterinary Health certificate contains five pages serially numbered]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="90" y="364" width="368" height="15" uuid="6475f7ad-31af-4896-8278-78f1857abdd2"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="9"/>
+				</textElement>
+				<text><![CDATA[გვერდი / Page / Sayfa 5 / 5]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<noData>
+		<band height="50"/>
+	</noData>
+</jasperReport>

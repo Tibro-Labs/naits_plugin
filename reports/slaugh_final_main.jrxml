@@ -1,0 +1,1313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="slaugh_final_main" language="groovy" pageWidth="521" pageHeight="872" columnWidth="501" leftMargin="10" rightMargin="10" topMargin="10" bottomMargin="10" uuid="6dbeae56-c836-4c1b-bd63-76174c892365">
+	<property name="ireport.zoom" value="1.1000000000000005"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select distinct va.animal_id, va.old_animal_id,
+(date_part('year', now()) - date_part('year', va.birth_date))animal_age,
+naits.translateCodeValue(va.animal_class,'ANIMAL_CLASS','en_US')animal_breed,
+va.country_old_id, va.country, va.birth_date, va.registration_date,
+vsf.slaughter_date,
+vhr.full_name,
+vh.name
+from naits.vanimal va join naits.vpost_slaught_form vsf on vsf.parent_id = va.object_id join naits.vholding vh on va.parent_id=vh.object_id join naits.vsvarog_link vsl on vsl.link_obj_id_1=vh.object_id
+join naits.vholding_responsible vhr on vsl.link_obj_id_2=vhr.object_id join naits.vsvarog_link_type vlt on vsl.link_type_id = vlt.object_id
+where now() between va.dt_insert and va.dt_delete
+and now() between vh.dt_insert and vh.dt_delete
+and now() between vsf.dt_insert and vsf.dt_delete
+and now() between vsl.dt_insert and vsl.dt_delete
+and now() between vhr.dt_insert and vhr.dt_delete
+and now() between vlt.dt_insert and vlt.dt_delete
+and va.status='SLAUGHTRD'
+and vlt.link_type='HOLDING_KEEPER'
+and va.object_id=$P{OBJ_ID}]]>
+	</queryString>
+	<field name="animal_id" class="java.lang.String"/>
+	<field name="old_animal_id" class="java.lang.String"/>
+	<field name="animal_age" class="java.lang.Double"/>
+	<field name="animal_breed" class="java.lang.String"/>
+	<field name="country_old_id" class="java.lang.String"/>
+	<field name="country" class="java.lang.String"/>
+	<field name="birth_date" class="java.sql.Date"/>
+	<field name="registration_date" class="java.sql.Date"/>
+	<field name="slaughter_date" class="java.sql.Date"/>
+	<field name="full_name" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<variable name="BORN_IN" class="java.lang.String">
+		<variableExpression><![CDATA[($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country}]]></variableExpression>
+	</variable>
+	<variable name="DAYS_DIFFERENCE" class="java.lang.Integer">
+		<variableExpression><![CDATA[new Integer((int)((new Date().getTime() - $F{birth_date}.getTime()) / (1000*60*60*24)))]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="788" splitType="Stretch">
+			<textField>
+				<reportElement uuid="98ebf10f-8b69-48ed-b428-b4283fe0d959" mode="Opaque" x="0" y="45" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Animal number: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="b98b5303-a80e-4144-959c-337da7b8d47c" mode="Opaque" x="0" y="0" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Type of product: " + (($F{animal_breed}) == "Sheep" ? "Mutton" : ($F{animal_breed}) == "Pig" ? "Pork" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"BEEF": "VEAL") : "n/a")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="3791db01-49dd-4512-8052-ba25a3936e22" mode="Opaque" x="0" y="60" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Born in: " + (($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="d2c6e760-e4ac-47c4-8105-d52eafe2a002" mode="Opaque" x="0" y="75" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Raised in: " + ((($V{DAYS_DIFFERENCE}) <= (int)30) ? "Younger than 30 days":   ($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="74470be2-25b0-4344-adc1-28e490d3847e" mode="Opaque" x="0" y="90" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Slaughtered in: " + $F{country}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="859e4499-d710-4795-a3b2-87635c20dacb" mode="Opaque" x="0" y="145" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Form number #2:              ____________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c6f049e3-fe87-496b-9298-5417aa40ee2f" mode="Opaque" x="0" y="160" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Net weight:                  ______________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="79d0d6b1-b89d-42c5-b0e8-fbc38b96a280" mode="Opaque" x="0" y="175" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Conditions for keeping: Store on C°]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="20d9915e-784a-4071-81cd-a7389e7970d2" mode="Opaque" x="0" y="186" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Shelf-life: 48 hours]]></text>
+			</staticText>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement uuid="44dbbea6-521b-42a4-addf-289bba4ac8f5" mode="Opaque" x="0" y="105" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date of slaughter: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="493fbc61-edff-4a1c-a89c-6934c526f07e" mode="Opaque" x="0" y="15" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Name of operator: " + (($F{full_name}) == null && ($F{name}) ==null ? " "
+    : ($F{full_name}) != null && ($F{name}) ==null ? $F{full_name}
+    : ($F{full_name}) == null && ($F{name}) !=null ? $F{name}
+    : ($F{full_name}) != null && ($F{name}) !=null ? $F{full_name}
+    : " N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="285c1063-0da7-4c70-bbf3-eed6baeda18d" mode="Opaque" x="0" y="30" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Licence # of operator: "]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="7b6270b2-64e3-45da-99fd-8a145efa600c" mode="Opaque" x="0" y="120" width="250" height="25" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Date of manifacture: Same as slaughter date   ☐
+	                 Other: ____________________]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="a83b143c-8956-4723-967b-899383123640" mode="Opaque" x="251" y="0" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Type of product: " + (($F{animal_breed}) == "Sheep" ? "Mutton" : ($F{animal_breed}) == "Pig" ? "Pork" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"BEEF": "VEAL") : "n/a")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="2a0b181b-28a7-4295-a3b2-58b5233aae6f" mode="Opaque" x="251" y="30" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Licence # of operator: "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="adafeec3-ef65-4ca7-be9b-bec28a5b1f86" mode="Opaque" x="251" y="60" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Born in: " + $V{BORN_IN}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="5c5b3835-3004-4f0a-a634-94bbdbf7312f" mode="Opaque" x="251" y="120" width="250" height="25" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Date of manifacture: Same as slaughter date   ☐
+	                 Other: ____________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="d5f1c1cb-1538-4b2f-bf47-8e7e27f7ac9e" mode="Opaque" x="251" y="90" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Slaughtered in: " + $F{country}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="9a8986da-7c36-4068-8331-287f7c305860" mode="Opaque" x="251" y="186" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Shelf-life: 48 hours]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d049d884-04b7-4cc1-81a0-3414e81e7e5d" mode="Opaque" x="251" y="175" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Conditions for keeping: Store on C°]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="476a73ab-695b-49e4-a462-79cb8f51884b" mode="Opaque" x="251" y="145" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Form number #2:              ____________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="148f0d2b-4806-490f-89fc-5555c2e7e0be" mode="Opaque" x="251" y="15" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Name of operator: " + (($F{full_name}) == null && ($F{name}) ==null ? " "     : ($F{full_name}) != null && ($F{name}) ==null ? $F{full_name}     : ($F{full_name}) == null && ($F{name}) !=null ? $F{name}     : ($F{full_name}) != null && ($F{name}) !=null ? $F{full_name}     : " N/A")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="55aadc65-1d70-404b-9da5-08d0e1f7c5e4" mode="Opaque" x="251" y="160" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Net weight:                  ______________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="4054678d-a5a1-474c-acbf-6ae014160692" mode="Opaque" x="251" y="75" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Raised in: " + ((($V{DAYS_DIFFERENCE}) <= (int)30) ? "Younger than 30 days":   ($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="1d3186ef-88f3-4a65-b048-aa2fa87884d4" mode="Opaque" x="251" y="45" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Animal number: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement uuid="2ea7fe63-c20c-4b09-a421-35c05fbe66ce" mode="Opaque" x="251" y="105" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date of slaughter: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement uuid="7612e901-e4d1-467a-b5ee-4dc221d70ca3" mode="Opaque" x="251" y="302" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date of slaughter: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="6db77f60-7aca-4288-ab91-5e0b28c1ea26" mode="Opaque" x="251" y="212" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Name of operator: " + (($F{full_name}) == null && ($F{name}) ==null ? " "     : ($F{full_name}) != null && ($F{name}) ==null ? $F{full_name}     : ($F{full_name}) == null && ($F{name}) !=null ? $F{name}     : ($F{full_name}) != null && ($F{name}) !=null ? $F{full_name}     : " N/A")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="a8f4dcad-ca12-4fa7-8663-b2cffb01b2ab" mode="Opaque" x="251" y="342" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Form number #2:              ____________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="9b5bbe11-b38a-4b24-82b6-38ebbaee5952" mode="Opaque" x="251" y="372" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Conditions for keeping: Store on C°]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="f1b18e76-3ef9-458a-85a4-4d09925f23bd" mode="Opaque" x="251" y="383" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Shelf-life: 48 hours]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="c97cd42e-7ba7-4a8e-b795-823ba9c7e059" mode="Opaque" x="251" y="227" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Licence # of operator: "]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="fefa958f-0d2c-435d-b5f7-5137072f2765" mode="Opaque" x="251" y="197" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Type of product: " + (($F{animal_breed}) == "Sheep" ? "Mutton" : ($F{animal_breed}) == "Pig" ? "Pork" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"BEEF": "VEAL") : "n/a")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="a798643c-fb6a-4bf6-85d3-49d91b253e45" mode="Opaque" x="251" y="317" width="250" height="25" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Date of manifacture: Same as slaughter date   ☐
+	                 Other: ____________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="b0b8d98d-6701-4c0a-9c8c-144f7fd88775" mode="Opaque" x="251" y="272" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Raised in: " + ((($V{DAYS_DIFFERENCE}) <= (int)30) ? "Younger than 30 days":   ($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="224de4eb-a242-4a1a-a080-c0450894a5ba" mode="Opaque" x="251" y="242" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Animal number: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="fcab5583-3562-4e3b-a743-59ee99c4aea4" mode="Opaque" x="251" y="287" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Slaughtered in: " + $F{country}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b1987398-7d0a-4e30-9223-4a321d1f7681" mode="Opaque" x="251" y="257" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Born in: " + $V{BORN_IN}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="9e8a4a39-efee-4fef-ad81-318fdeee8f45" mode="Opaque" x="251" y="357" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Net weight:                  ______________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="14d6b98d-8d17-4e0c-8488-63d186d9743a" mode="Opaque" x="251" y="454" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Born in: " + $V{BORN_IN}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="0f559b1c-5ce2-4d80-a45f-2c77f3008c4d" mode="Opaque" x="251" y="539" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Form number #2:              ____________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c360c858-0342-49e9-a2d1-7bfb3b801599" mode="Opaque" x="251" y="580" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Shelf-life: 48 hours]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="1d9bf10a-845f-4e31-8f52-976306156190" mode="Opaque" x="251" y="469" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Raised in: " + ((($V{DAYS_DIFFERENCE}) <= (int)30) ? "Younger than 30 days":   ($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="9e30c655-33e4-42f6-b551-25bcf1f56395" mode="Opaque" x="251" y="424" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Licence # of operator: "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="c87e02b8-d56f-42dc-9950-443c3932f12e" mode="Opaque" x="251" y="439" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Animal number: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="127cba59-dc8d-48c8-8126-0c2c96b68bcd" mode="Opaque" x="251" y="394" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Type of product: " + (($F{animal_breed}) == "Sheep" ? "Mutton" : ($F{animal_breed}) == "Pig" ? "Pork" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"BEEF": "VEAL") : "n/a")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="2c79a114-deec-446f-b165-23f222fa5c7b" mode="Opaque" x="251" y="554" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Net weight:                  ______________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="651b5221-9f6b-47d9-b36c-41cea1e611b8" mode="Opaque" x="251" y="484" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Slaughtered in: " + $F{country}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement uuid="9eb1d6b0-bcd8-4581-aee5-ba296c37edbd" mode="Opaque" x="251" y="499" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date of slaughter: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="9fe405d7-6379-4b58-aebf-2c3adb30bb03" mode="Opaque" x="251" y="409" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Name of operator: " + (($F{full_name}) == null && ($F{name}) ==null ? " "     : ($F{full_name}) != null && ($F{name}) ==null ? $F{full_name}     : ($F{full_name}) == null && ($F{name}) !=null ? $F{name}     : ($F{full_name}) != null && ($F{name}) !=null ? $F{full_name}     : " N/A")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="637f673d-d780-4c22-b20c-5fa419cbf98c" mode="Opaque" x="251" y="514" width="250" height="25" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Date of manifacture: Same as slaughter date   ☐
+	                 Other: ____________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="8e92ca3b-1d36-4acc-989b-d8dba2b2f3a5" mode="Opaque" x="251" y="569" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Conditions for keeping: Store on C°]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="21b8113f-4b6c-49b2-bbf6-911d242a1c90" mode="Opaque" x="251" y="651" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Born in: " + $V{BORN_IN}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="413366c3-5a9a-4d72-b1f6-fd4fc45b9f91" mode="Opaque" x="251" y="736" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Form number #2:              ____________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="cac6911e-63b8-4efc-89b0-6a152a4408c7" mode="Opaque" x="251" y="777" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Shelf-life: 48 hours]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="4ab9211c-aacf-49e8-8b91-e7892b828d24" mode="Opaque" x="251" y="666" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Raised in: " + ((($V{DAYS_DIFFERENCE}) <= (int)30) ? "Younger than 30 days":   ($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b4607eea-68bb-4f77-8ed6-117c07e97637" mode="Opaque" x="251" y="621" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Licence # of operator: "]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="8ecf3f18-a70d-4ed8-8a9e-a655ec8a933b" mode="Opaque" x="251" y="636" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Animal number: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="77307990-42a7-465f-8c3c-24d92cae65f4" mode="Opaque" x="251" y="591" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Type of product: " + (($F{animal_breed}) == "Sheep" ? "Mutton" : ($F{animal_breed}) == "Pig" ? "Pork" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"BEEF": "VEAL") : "n/a")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="bb5e8d55-c198-46d5-ab75-272c13fda1d8" mode="Opaque" x="251" y="751" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Net weight:                  ______________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="e8ba2c87-4c37-47be-80d9-64f9ac51e431" mode="Opaque" x="251" y="681" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Slaughtered in: " + $F{country}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement uuid="545d5c80-3b0e-4bea-9896-6154fd0114a8" mode="Opaque" x="251" y="696" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date of slaughter: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="9f0b8112-8713-4e36-883b-f27d2942f76c" mode="Opaque" x="251" y="606" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Name of operator: " + (($F{full_name}) == null && ($F{name}) ==null ? " "     : ($F{full_name}) != null && ($F{name}) ==null ? $F{full_name}     : ($F{full_name}) == null && ($F{name}) !=null ? $F{name}     : ($F{full_name}) != null && ($F{name}) !=null ? $F{full_name}     : " N/A")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="281b3f79-e0b8-4b0e-a137-118820f7a9a9" mode="Opaque" x="251" y="711" width="250" height="25" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Date of manifacture: Same as slaughter date   ☐
+	                 Other: ____________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b410ddf1-10fb-4acc-b1ac-a2de8a550af7" mode="Opaque" x="251" y="766" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Conditions for keeping: Store on C°]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="b80b5692-77f9-4129-8541-a5f185992b1c" mode="Opaque" x="0" y="287" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Slaughtered in: " + $F{country}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="09c362e6-e3c4-4100-9b4b-a2f8ddf81599" mode="Opaque" x="0" y="383" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Shelf-life: 48 hours]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="397f4e4e-915b-41b2-83d2-a802987e4bf3" mode="Opaque" x="0" y="212" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Name of operator: " + (($F{full_name}) == null && ($F{name}) ==null ? " "
+    : ($F{full_name}) != null && ($F{name}) ==null ? $F{full_name}
+    : ($F{full_name}) == null && ($F{name}) !=null ? $F{name}
+    : ($F{full_name}) != null && ($F{name}) !=null ? $F{full_name}
+    : " N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="857f1556-e975-46ee-a6e4-ef3a508bc83e" mode="Opaque" x="0" y="227" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Licence # of operator: "]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="07ee2ab1-63c9-40a1-b05a-7d1be5debc5c" mode="Opaque" x="0" y="317" width="250" height="25" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Date of manifacture: Same as slaughter date   ☐
+	                 Other: ____________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="0df7851f-a106-4ad4-a0cb-4e1d3ad2305d" mode="Opaque" x="0" y="357" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Net weight:                  ______________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e10c71b8-6892-40cd-87e8-ae0cb768dc6c" mode="Opaque" x="0" y="372" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Conditions for keeping: Store on C°]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="e5cbb96b-e6f2-43f8-928d-20fdaff71d17" mode="Opaque" x="0" y="197" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Type of product: " + (($F{animal_breed}) == "Sheep" ? "Mutton" : ($F{animal_breed}) == "Pig" ? "Pork" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"BEEF": "VEAL") : "n/a")]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement uuid="324f504a-c134-4af2-a24d-5210e7b07e37" mode="Opaque" x="0" y="302" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date of slaughter: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="60c5bf6f-b6cc-4c7f-becb-63d962e65676" mode="Opaque" x="0" y="342" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Form number #2:              ____________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="34c0ba57-4b9d-4599-86c1-65c32d46ceda" mode="Opaque" x="0" y="272" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Raised in: " + ((($V{DAYS_DIFFERENCE}) <= (int)30) ? "Younger than 30 days":   ($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="16dae6b0-1590-42e7-bf84-186722fd571a" mode="Opaque" x="0" y="242" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Animal number: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="4fe703e4-5a9f-4f92-843e-176431842466" mode="Opaque" x="0" y="484" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Slaughtered in: " + $F{country}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="033232be-7231-4efd-804f-993a7c045508" mode="Opaque" x="0" y="580" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Shelf-life: 48 hours]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="8af400b3-b848-4106-a4bd-9b3433ee95fa" mode="Opaque" x="0" y="409" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Name of operator: " + (($F{full_name}) == null && ($F{name}) ==null ? " "
+    : ($F{full_name}) != null && ($F{name}) ==null ? $F{full_name}
+    : ($F{full_name}) == null && ($F{name}) !=null ? $F{name}
+    : ($F{full_name}) != null && ($F{name}) !=null ? $F{full_name}
+    : " N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="ce01639f-9cc4-49b2-bc83-b7c79e3510a5" mode="Opaque" x="0" y="424" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Licence # of operator: "]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="ad691715-aea2-4746-915c-5398ee34d285" mode="Opaque" x="0" y="514" width="250" height="25" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Date of manifacture: Same as slaughter date   ☐
+	                 Other: ____________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5dae771c-0aaf-4c04-af81-9cb5a082ac9f" mode="Opaque" x="0" y="554" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Net weight:                  ______________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="bc36b4ed-a72a-467b-83ea-dd3fb5750693" mode="Opaque" x="0" y="569" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Conditions for keeping: Store on C°]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="15949d61-04d0-4da2-9269-4992b6a2b4d1" mode="Opaque" x="0" y="394" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Type of product: " + (($F{animal_breed}) == "Sheep" ? "Mutton" : ($F{animal_breed}) == "Pig" ? "Pork" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"BEEF": "VEAL") : "n/a")]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement uuid="8bf3eb9d-58c0-45eb-b7ce-b1ba69abc55a" mode="Opaque" x="0" y="499" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date of slaughter: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="0c3774f0-5040-4a1c-a6a6-9f9afee587fa" mode="Opaque" x="0" y="539" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Form number #2:              ____________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="d91a0b1e-82c2-4583-a65a-e7b81aa04119" mode="Opaque" x="0" y="469" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Raised in: " + ((($V{DAYS_DIFFERENCE}) <= (int)30) ? "Younger than 30 days":   ($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="f6e37530-79c7-4313-9c4a-ca49dd4b5900" mode="Opaque" x="0" y="439" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Animal number: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b24cce23-d222-45e3-9d83-757d586d514b" mode="Opaque" x="0" y="681" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Slaughtered in: " + $F{country}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="4a9125f0-699d-40b3-95da-f1182f142957" mode="Opaque" x="0" y="666" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Raised in: " + ((($V{DAYS_DIFFERENCE}) <= (int)30) ? "Younger than 30 days":   ($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="a0c17f75-bedf-4dd7-a40f-eece6409917a" mode="Opaque" x="0" y="621" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Licence # of operator: "]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="d06da923-8354-4f80-a60e-1696191b9e40" mode="Opaque" x="0" y="766" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Conditions for keeping: Store on C°]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="27656295-e8aa-405a-ac32-ad7f2b78e1dd" mode="Opaque" x="0" y="591" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Type of product: " + (($F{animal_breed}) == "Sheep" ? "Mutton" : ($F{animal_breed}) == "Pig" ? "Pork" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"BEEF": "VEAL") : "n/a")]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement uuid="80bb6cfd-8d26-41a9-b0e6-6edc22dc5ec1" mode="Opaque" x="0" y="696" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date of slaughter: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="13c5e892-7855-4cd4-80c1-fb7764668ed8" mode="Opaque" x="0" y="751" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Net weight:                  ______________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ce4e6ab2-1074-4aa8-8848-cd92cf9f1c1a" mode="Opaque" x="0" y="711" width="250" height="25" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Date of manifacture: Same as slaughter date   ☐
+	                 Other: ____________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="334337b1-e66b-4760-ab4b-9c72bd3cb447" mode="Opaque" x="0" y="606" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Name of operator: " + (($F{full_name}) == null && ($F{name}) ==null ? " "     : ($F{full_name}) != null && ($F{name}) ==null ? $F{full_name}     : ($F{full_name}) == null && ($F{name}) !=null ? $F{name}     : ($F{full_name}) != null && ($F{name}) !=null ? $F{full_name}     : " N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="10c10f98-c2c5-4ab5-b5e1-0ff5f415322b" mode="Opaque" x="0" y="636" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Animal number: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="af1ede2a-19cc-46f3-972c-2850dd665ce9" mode="Opaque" x="0" y="777" width="250" height="11" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[Shelf-life: 48 hours]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="19f31efa-37cc-4c87-83d8-d79ac1b0008b" mode="Opaque" x="0" y="736" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Form number #2:              ____________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="3d6a27ee-3e22-4c6e-b6ad-1b431450788f" mode="Opaque" x="0" y="651" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Born in: " + $V{BORN_IN}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b63fcfb0-a7db-4ac1-9f7d-9fd925f471d0" mode="Opaque" x="0" y="454" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Born in: " + $V{BORN_IN}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="416347d5-a67a-44c1-976d-25de464fa8ab" mode="Opaque" x="0" y="257" width="250" height="15" backcolor="#F1FFFF"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5" lineColor="#F1FFFF"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5" lineColor="#F1FFFF"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Born in: " + $V{BORN_IN}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="StatusUpdatePrintoutWrapper" language="groovy" pageWidth="792" pageHeight="612" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="5" bottomMargin="20" isTitleNewPage="true" uuid="f791b6a2-08ea-4158-b973-1196ed38fc69">
+	<property name="ireport.zoom" value="0.75"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="village_code" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA["/home/ristepejov/projects/NAITS2018/Release1/SUF9/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ACTIVITY" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+	naits.translateCodeValue(left($P{village_code},2), 'REGIONS', 'ka_GE') region,
+	naits.translateCodeValue(left($P{village_code},4), 'MUNICIPALITIES', 'ka_GE') munic,
+	naits.translateCodeValue(left($P{village_code},6), 'COMMUNITIES', 'ka_GE') commun,
+	naits.translateCodeValue($P{village_code}, 'VILLAGES', 'ka_GE') village,
+	vh.village_code,
+	cast (vh.object_id as bigint)  as object_id,
+	vh.pic,
+	$P{ACTIVITY} as activity,
+	vp.last_name
+from naits.vholding vh
+join naits.vsvarog_link vsl on vh.object_id = vsl.link_obj_id_1
+join naits.vholding_responsible vp on vsl.link_obj_id_2 = vp.object_id
+where
+now() < vh.dt_delete and
+now() < vsl.dt_delete and
+now() < vp.dt_delete and
+vh.village_code = $P{village_code} and
+vh.status = 'VALID'
+order by vp.last_name ASC]]>
+	</queryString>
+	<field name="region" class="java.lang.String"/>
+	<field name="munic" class="java.lang.String"/>
+	<field name="commun" class="java.lang.String"/>
+	<field name="village" class="java.lang.String"/>
+	<field name="village_code" class="java.lang.String"/>
+	<field name="object_id" class="java.lang.Long"/>
+	<field name="pic" class="java.lang.String"/>
+	<field name="activity" class="java.lang.String"/>
+	<field name="last_name" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="81" splitType="Immediate">
+			<subreport runToBottom="true">
+				<reportElement x="-20" y="0" width="790" height="57" uuid="60842c55-703e-41ef-b3ff-e0ac6906dda7"/>
+				<subreportParameter name="SUBREPORT_DIR"/>
+				<subreportParameter name="village_code">
+					<subreportParameterExpression><![CDATA[$P{village_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$F{object_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ACTIVITY">
+					<subreportParameterExpression><![CDATA[$P{ACTIVITY}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "statusUpdateFormTitle1.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport runToBottom="true">
+				<reportElement x="-20" y="57" width="790" height="22" uuid="0b2a56be-e14e-4e0e-bdb7-da81ac11339c"/>
+				<subreportParameter name="SUBREPORT_DIR"/>
+				<subreportParameter name="village_code">
+					<subreportParameterExpression><![CDATA[$P{village_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$F{object_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "statusUpdateFormTitle2.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</title>
+	<detail>
+		<band height="244">
+			<subreport runToBottom="true">
+				<reportElement x="-20" y="2" width="790" height="242" uuid="acd51cb5-d404-4097-93fc-15b271bdd580"/>
+				<subreportParameter name="SUBREPORT_DIR"/>
+				<subreportParameter name="region">
+					<subreportParameterExpression><![CDATA[$F{region}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="holding_rownum">
+					<subreportParameterExpression><![CDATA[$V{REPORT_COUNT}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="village_code">
+					<subreportParameterExpression><![CDATA[$P{village_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$F{object_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="village">
+					<subreportParameterExpression><![CDATA[$F{village}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="ACTIVITY">
+					<subreportParameterExpression><![CDATA[$P{ACTIVITY}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="munic">
+					<subreportParameterExpression><![CDATA[$F{munic}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="commun">
+					<subreportParameterExpression><![CDATA[$F{commun}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "statusUpdateFormPerVillage_gr.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="20">
+			<textField evaluationTime="Report">
+				<reportElement x="710" y="0" width="40" height="20" uuid="957eaf34-fbd6-4918-835d-8c8b051d8646"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="630" y="0" width="80" height="20" uuid="5b1e0469-b236-4e54-a25b-865eb22a6009"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

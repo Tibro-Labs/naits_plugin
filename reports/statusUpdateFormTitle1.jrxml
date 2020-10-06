@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="statusUpdateFormTitle" language="groovy" pageWidth="792" pageHeight="612" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="242dcb76-a031-467a-a173-dad46531f42c">
+	<property name="ireport.zoom" value="0.75"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="path" class="java.lang.String">
+		<property name="/Users/DmitrijsRassohins/Documents/_FAO/ireports" value=""/>
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[77882]]></defaultValueExpression>
+	</parameter>
+	<parameter name="village_code" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="ACTIVITY" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+naits.translateCodeValue(left($P{village_code},2), 'REGIONS', 'ka_GE') region,
+naits.translateCodeValue(left($P{village_code},4), 'MUNICIPALITIES', 'ka_GE') munic,
+naits.translateCodeValue(left($P{village_code},6), 'COMMUNITIES', 'ka_GE') commun,
+naits.translateCodeValue($P{village_code}, 'VILLAGES', 'ka_GE') village]]>
+	</queryString>
+	<field name="region" class="java.lang.String"/>
+	<field name="munic" class="java.lang.String"/>
+	<field name="commun" class="java.lang.String"/>
+	<field name="village" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="57">
+			<textField isBlankWhenNull="true">
+				<reportElement x="498" y="36" width="105" height="20" forecolor="#009933" uuid="e14ed984-80f3-4bdf-b1b3-8a8237f4c15b"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{commun}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="603" y="36" width="41" height="20" forecolor="#0099CC" uuid="a69f8298-2deb-49bc-87d7-0636200ca8cb"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[სოფელი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="571" y="0" width="95" height="20" forecolor="#0099CC" uuid="01327b06-09f1-4b8d-9dc0-9cb58efdb1df"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[ბეჭდვის თარიღი:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="463" y="36" width="35" height="20" forecolor="#0099CC" uuid="c1e19084-f113-4e33-ac18-586ceef53d18"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[თემი]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="666" y="0" width="86" height="20" forecolor="#0099CC" uuid="72ddc4a3-1689-43a1-80dd-de6e4496d9dc"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="644" y="36" width="105" height="20" forecolor="#009933" uuid="9cb4fa02-aac6-45c3-8a88-e3696161334f"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{village}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="358" y="36" width="105" height="20" forecolor="#009933" uuid="74fbfa96-d9a8-47fb-b917-64be4b095cbc"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{munic}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="257" y="0" width="241" height="20" uuid="20c928f2-3d9d-4996-b977-38da518fc4bf"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[სტატუსის განახლების ფორმა]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="177" y="22" width="80" height="13" forecolor="#0099CC" uuid="a1a18097-f96d-4a51-999e-3ae021876568"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ღონისძიება:]]></text>
+			</staticText>
+			<image>
+				<reportElement x="0" y="0" width="161" height="55" uuid="e2aa5027-6256-40e1-a5de-34f6438fd456"/>
+				<imageExpression><![CDATA["nfa_logo.png"]]></imageExpression>
+			</image>
+			<line>
+				<reportElement x="145" y="20" width="607" height="1" uuid="aafd5013-e16c-406a-9c1d-3ebcc96840c3"/>
+			</line>
+			<staticText>
+				<reportElement x="304" y="36" width="54" height="20" forecolor="#0099CC" uuid="f501db6b-8b7f-4441-a1ac-85bfd9afd6af"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[მუნიც./ქალაქი]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="199" y="36" width="105" height="20" forecolor="#009933" uuid="a66cd45f-70d0-4a0f-9509-c4edb7fe2964"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{region}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="145" y="36" width="54" height="20" forecolor="#0099CC" uuid="a4ece7e8-528b-4016-9b1f-e485d3870bb6"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<text><![CDATA[რეგიონი]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="257" y="21" width="287" height="14" forecolor="#000000" uuid="76bb7212-85e4-4aa0-94de-d8afe2937af5"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{ACTIVITY}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="700" y="22" width="49" height="10" forecolor="#CCCCCC" uuid="a54096ef-8bcf-4cb1-bcf9-0f63f41b229a"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<text><![CDATA[v.5.00]]></text>
+			</staticText>
+		</band>
+	</title>
+</jasperReport>

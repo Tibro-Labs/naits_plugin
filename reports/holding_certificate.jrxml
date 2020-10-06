@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Holding certificate" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="934e8966-f4ad-42eb-a894-9c9bfaa96cf0">
+	<property name="ireport.zoom" value="1.2100000000000002"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="48"/>
+	<property name="ireport.background.image.properties" value="true,true,0.2,-8,-8,0,0,858,750"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[80068]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String">
+		<defaultValueExpression><![CDATA["./"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT
+name as name,
+pic as pic,
+physical_address as address,
+naits.translateCodeValue(village_code,'VILLAGES','en_US') as village ,
+naits.translateCodeValue(substring(village_code, 0,5),'MUNICIPALITIES','en_US') as munic,
+naits.translateCodeValue(substring(village_code, 0,3),'REGIONS','en_US') as region,
+date_of_reg as dt_creation
+FROM naits.vholding
+where now() between dt_insert and dt_delete and object_id = $P{OBJ_ID}]]>
+	</queryString>
+	<field name="name" class="java.lang.String"/>
+	<field name="pic" class="java.lang.String"/>
+	<field name="address" class="java.lang.String"/>
+	<field name="village" class="java.lang.String"/>
+	<field name="munic" class="java.lang.String"/>
+	<field name="region" class="java.lang.String"/>
+	<field name="dt_creation" class="java.util.Date"/>
+	<background>
+		<band height="355" splitType="Stretch">
+			<image scaleImage="RetainShape" hAlign="Center" vAlign="Middle" evaluationTime="Report">
+				<reportElement uuid="4052d53b-8c8a-46b9-b344-bf7f8bcf3e00" mode="Opaque" x="0" y="0" width="115" height="64"/>
+				<imageExpression><![CDATA[$P{path}+"georgia.png"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement uuid="b122ade9-596c-4e88-9170-12f2481507c9" x="702" y="0" width="100" height="50"/>
+				<imageExpression><![CDATA[$P{path}+"georgia_flag.png"]]></imageExpression>
+			</image>
+		</band>
+	</background>
+	<title>
+		<band height="84">
+			<staticText>
+				<reportElement uuid="d5cf1164-06a9-4b5d-bc19-9667f63c2f1f" x="115" y="16" width="565" height="50"/>
+				<box>
+					<pen lineWidth="1.0" lineColor="#009900"/>
+					<topPen lineWidth="1.0" lineColor="#009900"/>
+					<leftPen lineWidth="1.0" lineColor="#009900"/>
+					<bottomPen lineWidth="1.0" lineColor="#009900"/>
+					<rightPen lineWidth="1.0" lineColor="#009900"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="24" isBold="true" isItalic="true" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Holding certificate]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="35" splitType="Stretch">
+			<textField>
+				<reportElement uuid="ecab9b9e-e901-4e8b-ba67-c1b08cab4ea5" x="571" y="0" width="109" height="35"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9" isItalic="true" pdfEncoding="Cp1251"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Release  date: "+ new SimpleDateFormat("dd.MM.yyyy").format(new Date())]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="233" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="20a57ebd-f2a5-40cb-846a-f69d187d7b56" x="115" y="65" width="189" height="35"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Holding name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="69b0e38c-145f-46ae-b202-88669948e54c" x="115" y="100" width="189" height="35"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Address]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="78caad7f-da30-4a67-b1af-49abfaf7f115" x="115" y="135" width="189" height="35"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Village, Municipality, Region]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e07f3025-2000-42d3-b8ca-5237776e2649" x="115" y="170" width="189" height="35"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Date of registration]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="367dff8d-db9b-466b-ba97-9dad338085b3" x="304" y="65" width="376" height="35"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isItalic="true" pdfEncoding="Cp1251"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{name} != null) ? $F{name} : "N/A"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="f3daf04c-373f-4960-bb05-cf8abb4c1bc4" x="304" y="100" width="376" height="35"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isItalic="true" pdfEncoding="Cp1251"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{address} != null) ? $F{address} : "N/A"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="1a5946ec-dc1b-49c5-9325-c5a1c7ecf502" x="304" y="135" width="376" height="35"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isItalic="true" pdfEncoding="Cp1251"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{village}+", "+$F{munic}+", "+$F{region}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="1a7f5b7d-50d5-4b77-83be-cb950164861d" x="304" y="170" width="376" height="35"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isItalic="true" pdfEncoding="Cp1251"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{dt_creation} != null) ? new SimpleDateFormat("dd.MM.yyyy").format($F{dt_creation}) : "N/A"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="73588e94-a508-4c2d-b0ee-9b22f6751b56" x="115" y="30" width="189" height="35"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Holding Identification Code]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="231d7184-8159-4b2a-bcbf-f64696713ea5" x="304" y="30" width="376" height="35"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isItalic="true" pdfEncoding="Cp1251"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{pic} != null) ? $F{pic} : "N/A"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="50">
+			<staticText>
+				<reportElement uuid="8fca33e7-05d1-45c4-981e-7e11cfb2facb" x="115" y="15" width="565" height="35"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9" isBold="true" isItalic="true" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Certificate generated from National Animal Identification and Traceability System of Georgia]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+</jasperReport>

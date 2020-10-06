@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="STAT_TAG_REPLACEMENT" language="groovy" pageWidth="700" pageHeight="555" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="700" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="3e964d46-1774-4804-8322-f17ae4772191">
+	<property name="ireport.zoom" value="1.331000000000006"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="path" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="village_code" class="java.lang.String"/>
+	<parameter name="DATE_DMY_1" class="java.lang.String"/>
+	<parameter name="DATE_DMY_2" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select
+--vh.region_code,--
+naits.get_label_text_per_value(vh.region_code, 'REGIONS', 'en_US') as region,
+--vh.munic_code,--
+naits.get_label_text_per_value(vh.munic_code, 'MUNICIPALITIES', 'en_US') as munic,
+--vh.commun_code, --
+naits.get_label_text_per_value(vh.commun_code, 'COMMUNITIES', 'en_US') as commun,
+--vh.village_code,--
+naits.get_label_text_per_value(vh.village_code, 'VILLAGES', 'en_US') as village,
+va.animal_id,
+va.animal_class,
+etr.old_ear_tag,
+etr.replacement_date,
+naits.get_label_text_per_value(etr.reason, 'TAG_REPLACEMENT_REASON', 'en_US') as reason
+from naits.varea var
+join naits.vholding vh on vh.village_code=var.area_name
+join naits.vanimal va on va.parent_id=vh.object_id
+join naits.vear_tag_replc etr on etr.parent_id=va.object_id
+where var.dt_delete > now() and
+vh.dt_delete > now() and
+va.dt_delete > now() and
+etr.dt_delete > now() and
+vh.village_code=$P{village_code} and
+etr.replacement_date between $P{DATE_DMY_1}::date and $P{DATE_DMY_2}::date
+order by animal_id, animal_class;]]>
+	</queryString>
+	<field name="region" class="java.lang.String"/>
+	<field name="munic" class="java.lang.String"/>
+	<field name="commun" class="java.lang.String"/>
+	<field name="village" class="java.lang.String"/>
+	<field name="animal_id" class="java.lang.String"/>
+	<field name="animal_class" class="java.lang.String"/>
+	<field name="old_ear_tag" class="java.lang.String"/>
+	<field name="replacement_date" class="java.sql.Date"/>
+	<field name="reason" class="java.lang.String"/>
+	<group name="current_id">
+		<groupExpression><![CDATA[$F{animal_id} + " " + $F{animal_class}]]></groupExpression>
+		<groupHeader>
+			<band height="30">
+				<staticText>
+					<reportElement uuid="987b4ae7-9adb-4df3-974a-ca4f0805e0f7" mode="Opaque" x="0" y="15" width="128" height="15" backcolor="#EAEAEA"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+						<font fontName="DejaVu Sans" size="10" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Replaced tag]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="95c80a2f-0eac-4e71-b264-686015be0158" x="340" y="15" width="90" height="15"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{region}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="f9db5bc3-2821-4ad7-8bb7-108167865df7" x="430" y="15" width="90" height="15"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{munic}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="dd1afb18-48cc-44d2-b68d-b474b8f13492" x="520" y="15" width="90" height="15"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{commun}]]></textFieldExpression>
+				</textField>
+				<textField isBlankWhenNull="true">
+					<reportElement uuid="0ed75500-71fe-4ba8-a3db-ce7a372545ca" x="610" y="15" width="90" height="15"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA[$F{village}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement uuid="1d8f7255-7224-4165-b681-b5293e099d4e" mode="Opaque" x="340" y="0" width="90" height="15" backcolor="#EAEAEA"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA["Region"]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement uuid="bd575447-5c3d-45ec-b596-ada7e25dbc6d" mode="Opaque" x="0" y="0" width="340" height="15" backcolor="#EAEAEA"/>
+					<box leftPadding="0">
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Top">
+						<font isBold="true" isItalic="false"/>
+					</textElement>
+					<textFieldExpression><![CDATA["Current ear tag: " + $F{animal_id}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement uuid="b8700403-a5a8-4334-883e-49f0b2011e25" mode="Opaque" x="430" y="0" width="90" height="15" backcolor="#EAEAEA"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA["Munic"]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement uuid="79ba8714-2488-4ae4-a978-43293b99724b" mode="Opaque" x="520" y="0" width="90" height="15" backcolor="#EAEAEA"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA["Commun"]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement uuid="09067f53-9e25-4252-a69f-e1cc224d2930" mode="Opaque" x="610" y="0" width="90" height="15" backcolor="#EAEAEA"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA["Village"]]></textFieldExpression>
+				</textField>
+				<textField pattern="dd/MM/yyyy">
+					<reportElement uuid="7473b743-6373-4b10-b102-0a96285365e3" mode="Opaque" x="128" y="15" width="109" height="15" backcolor="#EAEAEA"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5"/>
+						<bottomPen lineWidth="0.5"/>
+						<rightPen lineWidth="0.5"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA["Replacement date"]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement uuid="205ab9a5-e4a5-4fc2-8966-95305284a084" mode="Opaque" x="237" y="15" width="103" height="15" backcolor="#EAEAEA"/>
+					<box>
+						<pen lineWidth="0.5"/>
+						<topPen lineWidth="0.5"/>
+						<leftPen lineWidth="0.5" lineStyle="Solid"/>
+						<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+						<rightPen lineWidth="0.5" lineStyle="Solid"/>
+					</box>
+					<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+						<font fontName="DejaVu Sans" size="10" isBold="false"/>
+					</textElement>
+					<text><![CDATA[Reason]]></text>
+				</staticText>
+			</band>
+		</groupHeader>
+	</group>
+	<title>
+		<band height="51">
+			<staticText>
+				<reportElement uuid="490039b1-e5e4-4534-a96a-9e7e868f6a5b" x="0" y="0" width="160" height="25"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="14" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Statistical Report:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="16300763-0f35-494b-87ae-12175ae8a3e8" x="160" y="0" width="540" height="25"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="14" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Ear tag replacement till specific date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d06f2724-1664-4d7d-9bcf-1bba324831db" x="0" y="25" width="80" height="15"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Village code:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="bf92611d-01a9-40a6-937a-8fcf227e63e8" stretchType="RelativeToBandHeight" x="80" y="25" width="80" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{village_code}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="78817546-0bd2-4e75-b8c4-d6137186dded" x="160" y="25" width="68" height="15"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Date from:]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="8dba45e4-a4d0-4f48-a654-4f14553c6b04" stretchType="RelativeToBandHeight" x="228" y="25" width="93" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{DATE_DMY_1}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="01814859-94be-44f8-96a8-7ab3a5ea1ae7" stretchType="RelativeToBandHeight" x="379" y="25" width="93" height="15" isPrintWhenDetailOverflows="true" forecolor="#000000"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{DATE_DMY_2}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="4c32b8f9-084e-4a96-b2d1-532562ef0d69" x="321" y="25" width="58" height="15"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Date to:]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="84825db1-1f93-43a7-8f24-dbccdbc46323" x="128" y="0" width="109" height="15"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{replacement_date}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="4e6d0202-628c-42b5-9e74-30346ef31ca6" x="0" y="0" width="128" height="15"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{old_ear_tag}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="d003c9d0-3d04-47d2-b99d-563a7cfe9078" x="237" y="0" width="103" height="15"/>
+				<box>
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{reason}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="444160d0-026b-42f8-a78a-6a893231cc95" mode="Opaque" x="340" y="0" width="360" height="15" backcolor="#EAEAEA"/>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<textElement/>
+				<text><![CDATA[]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="18">
+			<textField>
+				<reportElement uuid="c59b9f11-c1d4-4ccc-bfce-45d41755b79e" x="674" y="3" width="26" height="15"/>
+				<box leftPadding="2" bottomPadding="2">
+					<pen lineWidth="0.5" lineStyle="Dashed"/>
+					<topPen lineWidth="0.5" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.5" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.5" lineStyle="Dashed"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Bottom"/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="inv_vacc_reg" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="842" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="3052cb06-db9f-4d06-9b0c-8a1d0c964537">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="terr_code" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_NAME" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="fromdate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="todate" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	$P{USER_NAME} as username,
+	to_char(vb.vacc_date, 'dd/mm/yyyy') as event_date,
+	'Vaccination/ვაქცინაცია: ' || vb.vacc_code as code,
+	va.animal_id as animal_id,
+	vh.pic as holding_id,
+	/*animal info: spec. breed, color, gender, birth date*/
+	naits.get_label_text_per_value(va.animal_class,
+	'ANIMAL_CLASS',
+	'en_US') as animal_class,
+	naits.get_label_text_per_value(va.animal_race,
+	'ANIMAL_RACE',
+	'en_US') as animal_race,
+	naits.get_label_text_per_value(va.color,
+	'COLOR',
+	'en_US') as animal_color,
+	naits.get_label_text_per_value(va.gender,
+	'GENDER',
+	'en_US') as animal_gender,
+	va.status as animal_status,
+	to_char(va.birth_date, 'dd/mm/yyyy') as animal_birth,
+	to_char(va.death_date, 'dd/mm/yyyy') as animal_death,
+	vh.name as holding_info,
+	vh.village_name as village,
+	to_char(vb.dt_insert, 'dd/mm/yyyy') as date_reg
+from
+	naits.vholding vh
+join naits.vanimal va on
+	va.parent_id = vh.object_id /* ADDITIONAL INFO */
+join naits.vsvarog_link vl on
+	(va.object_id = vl.link_obj_id_1
+	and vl.link_type_id = (
+	select
+		object_id
+	from
+		naits.vsvarog_link_type
+	where
+		now() between dt_insert and dt_delete
+		and link_type = 'ANIMAL_VACC_BOOK' ))
+join naits.vvaccination_book vb on
+	vb.object_id = vl.link_obj_id_2
+where
+	now() < vl.dt_delete
+	and now() < va.dt_delete
+	and now() < vb.dt_delete
+	and vb.status = 'VALID'
+	and va.status = 'VALID'
+	and vb.dt_insert between to_timestamp($P{fromdate} || ' 00:00:00', 'DD.MM.YYYY HH24:MI:SS') and to_timestamp($P{todate} || ' 23:59:59', 'DD.MM.YYYY HH24:MI:SS')
+	and ( ($P{USER_NAME} = '')
+	or (vl.user_id = (
+	select
+		object_id
+	from
+		naits.vsvarog_users us
+	where
+		now() < us.dt_delete
+		and us.status = 'VALID'
+		and us.user_name = $P{USER_NAME}
+	limit 1)))
+	and vh.village_code like ($P{terr_code} || '%');]]>
+	</queryString>
+	<field name="username" class="java.lang.String"/>
+	<field name="event_date" class="java.lang.String"/>
+	<field name="code" class="java.lang.String"/>
+	<field name="animal_id" class="java.lang.String"/>
+	<field name="holding_id" class="java.lang.String"/>
+	<field name="animal_class" class="java.lang.String"/>
+	<field name="animal_race" class="java.lang.String"/>
+	<field name="animal_color" class="java.lang.String"/>
+	<field name="animal_gender" class="java.lang.String"/>
+	<field name="animal_status" class="java.lang.String"/>
+	<field name="animal_birth" class="java.lang.String"/>
+	<field name="animal_death" class="java.lang.String"/>
+	<field name="holding_info" class="java.lang.String"/>
+	<field name="village" class="java.lang.String"/>
+	<field name="date_reg" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="21" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="d739073a-42aa-464b-8b11-a09f563a5542" x="183" y="5" width="43" height="16"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="7" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="7e85865e-c5ec-41e7-b0c0-4f2edd6f197e" x="290" y="5" width="230" height="16"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="7" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Animal Info]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e8fa068b-34ab-4f6e-a79c-6d9094d09140" x="0" y="5" width="183" height="16"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="7" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Activity]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="eb6b691b-ab9a-4867-9dfd-7053971eb333" x="580" y="5" width="118" height="16"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="7" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Holding info]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="787a03d9-cafb-4b84-a834-7a7d8bdef0d1" x="698" y="5" width="82" height="16"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="7" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Village]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d8b85665-60c0-47c3-8ff4-b8686b5dba3e" x="226" y="5" width="64" height="16"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="7" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Animal ID]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="1fa0ed30-e2fe-42aa-84d3-6b005dc606ed" x="520" y="5" width="60" height="16"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="7" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Holding ID]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField>
+				<reportElement uuid="1cf5f461-1f5e-452f-b668-18640c6fe203" x="0" y="0" width="183" height="15"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Vaccination/ვაქცინაცია:" + ($F{code} == null ? "N/A": $F{code})]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="84a35f90-ce85-4aa4-8e9c-a239a78de9cd" x="520" y="0" width="60" height="15" forecolor="#000000"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{holding_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="97b185e3-83c5-4ade-8fb0-6f91d2b7a7bf" x="290" y="0" width="230" height="15" forecolor="#000000"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{animal_class} == null ? ", " : $F{animal_class}) + ($F{animal_race} == null ? ", " :$F{animal_race})+ ($F{animal_color} == null ? ", " : $F{animal_color}) + ($F{animal_gender} == null ? ", " : $F{animal_gender}) + ($F{animal_status} == null ? ", " : $F{animal_status}) + ($F{animal_birth} == null ? ", " : $F{animal_birth}) + ($F{animal_death} == null ? "" : $F{animal_death})]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="3fba4bfe-9fc5-477f-ae8c-0dd3e6599c35" x="226" y="0" width="64" height="15" forecolor="#000000"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="ea28d965-c076-4394-8382-7e8bfe7b21b4" x="183" y="0" width="43" height="15" forecolor="#000000"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{event_date}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="5d3281ff-d237-4e50-b444-73c05d9a03e9" x="698" y="0" width="82" height="15" forecolor="#000000"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{village}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="d6e3d5f0-0779-4cea-945e-014761990b54" x="580" y="0" width="118" height="15" forecolor="#000000"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{holding_info}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="HC_an_flock" language="groovy" pageWidth="700" pageHeight="990" orientation="Landscape" whenNoDataType="NoDataSection" columnWidth="700" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="61860756-6baa-40ec-bf17-4a9e0daf7847">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String">
+		<defaultValueExpression><![CDATA["/home/meagain/Desktop/NAITS/StatusUpdatePrintout/"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[/*50223*/
+select
+vhold.pic, vhold.object_id,
+vperson.first_name as asocname,
+vperson.last_name as asocsurname,
+vperson.nat_reg_number as asocrid
+from naits.vholding vhold
+	left join naits.vsvarog_link vsl on (
+		vhold.object_id = vsl.link_obj_id_1
+		and now() between vsl.dt_insert and vsl.dt_delete
+		and vsl.link_type_id = 50091)
+	left join naits.vholding_responsible vperson on (
+		vsl.link_obj_id_2 = vperson.object_id
+		and now() between vperson.dt_insert and vperson.dt_delete)
+where
+	now() between vhold.dt_insert and vhold.dt_delete
+	and vhold.object_id = $P{OBJ_ID}]]>
+	</queryString>
+	<field name="pic" class="java.lang.String"/>
+	<field name="object_id" class="java.math.BigDecimal"/>
+	<field name="asocname" class="java.lang.String"/>
+	<field name="asocsurname" class="java.lang.String"/>
+	<field name="asocrid" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band/>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="a3a1cf75-20a4-45cc-820a-45b3782300dd" x="372" y="0" width="71" height="15" forecolor="#009933"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{asocrid}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="8e604d96-35fe-4403-a073-b23a672f213d" x="346" y="0" width="26" height="15" forecolor="#0099CC"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[პ.ნ.]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="4fadcb8b-838a-496f-9eba-46eff933a15f" x="210" y="0" width="136" height="15" forecolor="#000000"/>
+				<box leftPadding="1" rightPadding="1">
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{asocsurname}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="1db2aab3-e48a-4c13-9e9c-de84572952d9" x="0" y="0" width="47" height="15" forecolor="#0099CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სახელი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c87cb55d-cded-4dfe-9f7e-559ce8fb265c" x="183" y="0" width="27" height="15" forecolor="#0099CC"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[გვარი]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="c886f8e1-5cb7-41ba-837f-6dd135387d7c" x="47" y="0" width="136" height="15" forecolor="#000000"/>
+				<box leftPadding="1" rightPadding="1">
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{asocname}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

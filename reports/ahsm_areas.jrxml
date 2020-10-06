@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ahsm_areas" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="4b96bec8-503e-4f87-be36-da3f4829618b">
+	<property name="ireport.zoom" value="1.210000000000001"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/daut/Documents/AHSM affected areas report/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_NAME" class="java.lang.String">
+		<defaultValueExpression><![CDATA[ADM_TEST]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+substring(area_name from 0 for 3 ) region_code,
+naits.translateCodeValue(substring(area_name from 0 for 3 ),'AREA_CODE','en_US')region_name,
+substring(area_name from 0 for 5 ) munic_code,
+naits.translateCodeValue(substring(area_name from 0 for 5 ),'AREA_CODE','en_US')munic_name,
+substring(area_name from 0 for 7 ) commun_code,
+naits.translateCodeValue(substring(area_name from 0 for 7 ),'AREA_CODE','en_US')commun_name,
+substring(area_name from 0 for 9 ) village_code,
+naits.translateCodeValue(substring(area_name from 0 for 9 ),'AREA_CODE','en_US')village_name,
+area_name, area_type,
+naits.translateCodeValue(area_name,'AREA_CODE','en_US')area_transl,
+responsible_user, reason,
+naits.translateCodeValue(area_status,'AREA_STATUS','en_US')area_status,
+naits.translateCodeValue(disease_id,'AREA_DISEASE', 'en_US')disease_name
+
+from naits.varea va join naits.varea_health vh on va.object_id=vh.parent_id
+
+where area_status != '2'
+and now() between va.dt_insert and va.dt_delete
+and now() between vh.dt_insert and vh.dt_delete
+order by area_name, area_type asc]]>
+	</queryString>
+	<field name="region_code" class="java.lang.String"/>
+	<field name="region_name" class="java.lang.String"/>
+	<field name="munic_code" class="java.lang.String"/>
+	<field name="munic_name" class="java.lang.String"/>
+	<field name="commun_code" class="java.lang.String"/>
+	<field name="commun_name" class="java.lang.String"/>
+	<field name="village_code" class="java.lang.String"/>
+	<field name="village_name" class="java.lang.String"/>
+	<field name="area_name" class="java.lang.String"/>
+	<field name="area_type" class="java.lang.String"/>
+	<field name="area_transl" class="java.lang.String"/>
+	<field name="responsible_user" class="java.lang.String"/>
+	<field name="reason" class="java.lang.String"/>
+	<field name="area_status" class="java.lang.String"/>
+	<field name="disease_name" class="java.lang.String"/>
+	<variable name="todaysDate" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="60" splitType="Stretch">
+			<textField>
+				<reportElement uuid="fccd0eb5-5b48-44d3-82d3-dba89df44b79" x="201" y="0" width="421" height="29"/>
+				<box leftPadding="3"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="20" isBold="true" isUnderline="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Affected area information"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="9899a85d-897c-48c4-bb76-f65e9522767a" x="1" y="40" width="147" height="15"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date: " +  new SimpleDateFormat("dd/MM/yy").format(new Date())]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement uuid="ed666450-63de-4717-a7cc-39b83900dac0" x="369" y="40" width="433" height="15"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="11" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Opened by: " + $P{USER_NAME}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="21">
+			<staticText>
+				<reportElement uuid="5ac69659-b40d-40a1-8724-38e51a4e9102" x="0" y="0" width="100" height="21"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Region name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="497a3212-035b-4832-8d0f-9c8e8ed37c50" x="300" y="0" width="100" height="21"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Village]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d94ed7fe-3eba-41d1-804a-aecda545c59e" x="500" y="0" width="100" height="21"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Disease]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="f2534b34-5ec4-478f-9ed6-decadc5ff35a" x="600" y="0" width="60" height="21"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Health status]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5ffa1401-f2b3-4298-8867-b34a5fca3eba" x="100" y="0" width="100" height="21"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Municipality]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="96c23f64-4bd4-46e2-8a76-f0da5880b099" x="200" y="0" width="100" height="21"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Community]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e2d4056b-ea70-4b81-8012-f3ec355761a2" x="660" y="0" width="142" height="21"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Reason]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e571587f-1f1e-466f-b5b7-870535949c02" x="400" y="0" width="100" height="21"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="9" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Geostat code]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement uuid="a94fd743-9091-4de9-a9b1-d8227614c0e9" x="0" y="0" width="100" height="20"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{region_name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="2d1ebd2b-6caa-417c-b452-a6230c2d101e" x="500" y="0" width="100" height="20"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{disease_name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="501eca54-a7a6-4f7a-85fd-446c96f521c4" x="600" y="0" width="60" height="20"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{area_status}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="977ac22e-c434-4e3f-9da7-30894fae353a" x="100" y="0" width="100" height="20"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{area_name}.length()>3)?$F{munic_name}:""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="8b85f62a-0fc8-4adf-92d8-1cdcb50240f5" x="300" y="0" width="100" height="20"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{area_name}.length()>7)?$F{village_name}:""]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="15fad2ef-9741-47da-bfca-2ed82dbd6cf6" x="200" y="0" width="100" height="20"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{area_name}.length()>5)?$F{commun_name}:""]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="df99ae57-fea9-449d-807e-f6e5b5f9efc8" x="660" y="0" width="142" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{reason}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="051f3ce0-4a82-4a46-abcf-d6a8c99f7aaf" x="400" y="0" width="100" height="20"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{area_name}.length()>7)?$F{village_code}:($F{area_name}.length()>5)?$F{commun_code}:($F{area_name}.length()>3)?$F{munic_code}:($F{area_name}.length()>1)?$F{region_code}:""]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="17" splitType="Stretch">
+			<textField>
+				<reportElement uuid="edc2166f-a768-443c-9594-8bc85c50da91" x="718" y="0" width="84" height="17"/>
+				<box rightPadding="2"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnFooter>
+</jasperReport>

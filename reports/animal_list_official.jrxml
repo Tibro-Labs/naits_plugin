@@ -1,0 +1,907 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Animal list Official" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="934e8966-f4ad-42eb-a894-9c9bfaa96cf0">
+	<property name="ireport.zoom" value="1.3310000000000175"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<property name="ireport.background.image.properties" value="true,true,0.2,-8,-8,0,0,858,750"/>
+	<parameter name="path" class="java.lang.String">
+		<defaultValueExpression><![CDATA["./"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[219283]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT hol.pic, hol.physical_address address, getLabelforCodeListItem('VILLAGES',hol.village_code, 'en_US') village,
+hol.village_code, substring(hol.village_code, 1, 4),
+getLabelforCodeListItem('MUNICIPALITIES', substring(hol.village_code, 1, 4), 'en_US') munic,
+ani.animal_id, getLabelforCodeListItem('GENDER', ani.gender, 'en_US') gender,
+getLabelforCodeListItem('ANIMAL_CLASS', ani.animal_class, 'en_US') animal_class,
+getLabelforCodeListItem('ANIMAL_RACE', ani.animal_race, 'en_US') animal_race,
+ani.birth_date,
+ age(now(),ani.birth_date)age, vhr.full_name, vhr.nat_reg_number, vhr.phone_number
+FROM naits.vanimal ani
+join naits.vholding hol on ani.parent_id = hol.object_id
+join naits.vsvarog_link vsl on hol.object_id = vsl.link_obj_id_1
+join naits.vholding_responsible vhr on vsl.link_obj_id_2 = vhr.object_id
+join naits.vsvarog_link_type vslt on vslt.object_id = vsl.link_type_id
+where
+now() between ani.dt_insert and ani.dt_delete
+--and ani.birth_date is not null
+and now() between hol.dt_insert and hol.dt_delete
+and now() between vsl.dt_insert and vsl.dt_delete
+and now() between vhr.dt_insert and vhr.dt_delete
+and now() between vslt.dt_insert and vslt.dt_delete
+and vslt.link_type='HOLDING_KEEPER'
+and hol.object_id = $P{OBJ_ID}]]>
+	</queryString>
+	<field name="pic" class="java.lang.String"/>
+	<field name="animal_id" class="java.lang.String"/>
+	<field name="gender" class="java.lang.String"/>
+	<field name="animal_class" class="java.lang.String"/>
+	<field name="animal_race" class="java.lang.String"/>
+	<field name="birth_date" class="java.sql.Date"/>
+	<field name="age" class="java.lang.String"/>
+	<field name="full_name" class="java.lang.String"/>
+	<field name="nat_reg_number" class="java.lang.String"/>
+	<field name="phone_number" class="java.lang.String"/>
+	<field name="munic" class="java.lang.String"/>
+	<field name="village" class="java.lang.String"/>
+	<field name="address" class="java.lang.String"/>
+	<background>
+		<band height="36">
+			<image>
+				<reportElement uuid="8d66478c-e3e9-4c7b-ba86-565f498a6c10" x="0" y="0" width="83" height="35"/>
+				<imageExpression><![CDATA["./003_NFA.png"]]></imageExpression>
+			</image>
+		</band>
+	</background>
+	<title>
+		<band height="159">
+			<staticText>
+				<reportElement uuid="f34d7239-494c-4edd-b9f8-9a9e11cab810" x="108" y="0" width="442" height="22"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="854a5290-12dc-4071-838c-0bbc2e454760" x="108" y="22" width="442" height="15"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[(Activity: Vaccination/Sampling and Identification )]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="73588e94-a508-4c2d-b0ee-9b22f6751b56" x="0" y="37" width="108" height="23"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Municipality / City]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ef79bac0-aa10-4666-86c9-36c5df5ef6a4" x="0" y="83" width="108" height="24"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Address]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ddfcda62-d931-4063-94ca-69fa2bb48b14" x="0" y="107" width="108" height="22"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d957ea6f-9b66-4a3e-9c40-892a85253b1e" x="265" y="37" width="124" height="23"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Owner Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5cd88cb2-cf50-4f7d-a302-5e926ff1e232" x="265" y="60" width="124" height="23"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Owner ID]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="3c84b653-2aed-4c9c-857f-29635355f014" x="265" y="83" width="124" height="24"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Owner Tel]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="f688a20e-bdb8-4442-a9ff-aff055367861" x="265" y="107" width="124" height="22"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Owner Occupation]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="a2e88026-a1e7-42d2-857f-0aa61828e43d" x="389" y="107" width="161" height="22"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="fa32716d-b72f-42b3-aba1-9522e0928a7b" x="13" y="140" width="189" height="18"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="11" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Additional information:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="9a41acbc-6603-4040-8c96-d9e9fd0437d7" x="201" y="140" width="349" height="18"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="534c6402-9c4a-4ad7-a9b6-23a9c4c47151" x="0" y="60" width="108" height="23"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Village]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="b598fa9e-27ac-4e91-abe0-fbd8410178f0" x="389" y="37" width="161" height="23"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{full_name} != null ? $F{full_name} : "N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="6fe9a7e3-9c2a-4c4c-b1ec-e6a300778f85" x="389" y="60" width="161" height="23"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{nat_reg_number} != null ? $F{nat_reg_number} : "N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="ee8557e1-43ab-4932-b7d2-45232135a1f4" x="389" y="83" width="161" height="24"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{phone_number} != null ? $F{phone_number} : "N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b79ea72b-d9d9-41a0-b88c-885d79a010f5" x="108" y="37" width="157" height="23"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{munic}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="182f34ef-ed01-48d6-b24d-84d508feae46" x="108" y="60" width="157" height="23"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{village}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="e209c351-0679-4258-bd12-345e236e8c7e" x="108" y="83" width="157" height="24"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{address} != null ? $F{address} : "N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="387d5873-2e67-49df-8b38-1e902ea52dd2" x="108" y="107" width="157" height="22"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new SimpleDateFormat("dd.MM.yyyy").format(new Date())]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="32"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="82">
+			<staticText>
+				<reportElement uuid="6759f52c-4e8d-4e12-ac9f-ee09f6868c62" x="25" y="19" width="48" height="63"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Animal ID number]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ba3d4784-5f7e-4941-9005-4891885d83ec" x="166" y="19" width="47" height="63"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Breed]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="3e72471d-8f78-4574-9e8b-b6401f4f5b0c" x="213" y="19" width="70" height="63"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Notice]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d11b7fcc-242c-45a9-b74a-05a1479715b9" x="108" y="19" width="58" height="63"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Age]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="68535904-3dfa-46ba-93a7-2ec28f2d9b6c" x="283" y="0" width="268" height="19"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Animals in holding and activites]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="9e7801c7-58da-4744-8307-1dee30cad88f" x="283" y="19" width="67" height="21"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Cattle]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e15f3e3e-0362-432f-a703-68fdf7e537f0" x="350" y="19" width="67" height="21"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Sheep]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="672c4780-3acb-438c-908c-29228fd4fec7" x="417" y="19" width="67" height="21"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Goat]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="96cc89ca-e785-4101-b540-1e1688c7d758" x="484" y="19" width="67" height="21"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Equine]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="1abe1b33-1b34-469a-b94e-dce68d55d0b3" x="283" y="40" width="41" height="42"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Vaccination/Sampling]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d2e297e3-2f2f-4ec7-a59f-dc10ae89512d" x="324" y="40" width="26" height="42"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[New Ear tag]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="08d66f05-dda5-4a94-917d-1c8d30f103ca" x="391" y="40" width="26" height="42"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[New Ear tag]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e71042d1-1d6d-498a-a10f-8113f5c9c56d" x="350" y="40" width="41" height="42"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Vaccination/Sampling]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="59c91691-f2e7-4454-952d-d594829aa4b7" x="417" y="40" width="41" height="42"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Vaccination/Sampling]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="fb5a7ee8-fdd5-4218-851d-c3e14b693ccc" x="458" y="40" width="26" height="42"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[New Ear tag]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="61350dd9-e1c7-4531-a296-9615a8eb1afb" x="484" y="40" width="41" height="42"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Vaccination/Sampling]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="d041ea02-a5dd-41c7-a1e9-4b2ed9ec178d" x="525" y="40" width="26" height="42"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[New Ear tag]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ac20c74d-dce5-439d-ac42-fea37502ae66" x="25" y="0" width="258" height="19"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Animal data]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="4a03d91a-ff8f-455f-8ddb-9bf0cc5c400c" x="0" y="19" width="25" height="63"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[#]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="27dedb53-1354-4b84-977e-c0853e000e4d" x="73" y="19" width="35" height="63"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="9" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Gender]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="26" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="b60cda89-962b-46f7-b8ed-04a5a77b79ba" x="484" y="0" width="41" height="25"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ba87e5c8-1017-434d-8c06-b949b9f38058" x="213" y="0" width="70" height="25"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="3cbcae6f-790c-49cc-b75e-af03b8838829" x="391" y="0" width="26" height="25"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="51f6c83e-8c0e-4510-830c-efda219be22e" x="350" y="0" width="41" height="25"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="abb27360-8c05-4ed8-adba-ae27281589f5" x="458" y="0" width="26" height="25"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="99881afd-0757-46a9-988e-3838862f0cf8" x="525" y="0" width="26" height="25"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="06d9f6d0-4ef3-4b49-9c45-3fb2e16a452b" x="417" y="0" width="41" height="25"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="49140a05-09dd-417a-a0a3-68e80583ecb5" x="283" y="0" width="41" height="25"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c91956d6-b693-4748-a5dd-d4c6e7cd3f88" x="324" y="0" width="26" height="25"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Justified" verticalAlignment="Middle">
+					<font size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="415e31f4-693a-47eb-9eb3-920e7ea8ba5f" x="25" y="0" width="48" height="25"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="0267f508-dbed-47d2-ae03-e1d90224c447" x="73" y="0" width="35" height="25"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{gender} != null ? $F{gender} : "N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b9c153fc-80b3-4274-8816-5115ee0219f2" x="108" y="0" width="58" height="25"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{age} != null ? $F{age} : "N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="1488974a-24d1-4c7f-8075-1653f84b2deb" x="166" y="0" width="47" height="25"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{animal_race}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="ab549705-6661-4509-bb34-ed881966089f" x="0" y="0" width="25" height="25"/>
+				<box leftPadding="3">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font size="9"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="31">
+			<staticText>
+				<reportElement uuid="d573e2c8-5e40-47e2-a24d-3ba915ca90d7" x="0" y="15" width="550" height="15"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Vaccination and Identification is Free]]></text>
+			</staticText>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="82">
+			<staticText>
+				<reportElement uuid="2e0162c4-21e0-496f-b1a7-3e0b76d3a884" x="4" y="13" width="551" height="22"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="11" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Owner signature:        /  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _  / ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="51f9312a-5f91-4707-910e-3a617ec719b0" x="4" y="35" width="551" height="22"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="11" isBold="false" isItalic="false" isStrikeThrough="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Veterynarians code:  /  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _  /        /  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _  / ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="6f7be87f-6ed1-4f7d-a5c0-25643599435d" x="4" y="57" width="551" height="10"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="5" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[                                                                                                                              (Signature)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="1f8f13b0-d5e9-41c0-888f-9a35ed938097" x="4" y="67" width="551" height="15"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="9" isBold="false" isItalic="false" pdfEncoding="Cp1251"/>
+				</textElement>
+				<text><![CDATA[Vaccination and Identification is Free]]></text>
+			</staticText>
+		</band>
+	</lastPageFooter>
+</jasperReport>

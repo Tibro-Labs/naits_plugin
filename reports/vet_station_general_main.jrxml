@@ -1,0 +1,744 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="vet_station_general_main" language="groovy" pageWidth="842" pageHeight="595" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="9e0d9f13-16b6-4adf-86e5-3eab72e644c3">
+	<property name="ireport.zoom" value="1.210000000000001"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="path" class="java.lang.String">
+		<property name="/Users/DmitrijsRassohins/Documents/_FAO/ireports" value=""/>
+		<defaultValueExpression><![CDATA["/home/ristepejov/projects/NAITS2018/Release1/SUF9/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="holding_rownum" class="java.lang.String" isForPrompting="false"/>
+	<queryString>
+		<![CDATA[select
+	vhold.pic holdingId,
+	naits.translateCodeValue(vhold.munic_code,
+	'MUNICIPALITIES',
+	'ka_GE') munic,
+	naits.translateCodeValue(vhold.commun_code,
+	'COMMUNITIES',
+	'ka_GE') commun,
+	naits.translateCodeValue(vhold.village_code,
+	'VILLAGES',
+	'ka_GE') vilage,
+	vhold.physical_address address,
+	(vhold.gps_north::text || 'N,' || vhold.gps_east::text || 'E' ) gps,
+	vperson.first_name as keeperName,
+	vperson.last_name as keeperSurname,
+	vperson.birth_date as birthDate,
+	vperson.phone_number as phone,
+	vperson.nat_reg_number as keeper_id,
+	naits.get_label_text_per_value(vp.status,
+	'OBJ_STATUS',
+	'en_US')as status,
+	vp.pet_id,
+	vp.pet_name,
+	vp.pet_breed,
+	vp.birth_date,
+	vp.registration_date,
+	naits.get_label_text_per_value(vp.pet_tag_type,
+	'PET_TAG_TYPE',
+	'en_US')as tag_type,
+	naits.get_label_text_per_value(vp.gender,
+	'GENDER',
+	'en_US')as gender,
+	naits.get_label_text_per_value(vp.pet_type,
+	'PET_TYPE',
+	'en_US')as pet_type,
+	vpo.nat_reg_number,
+	vpo.first_name,
+	vpo.last_name,
+	vpp.passport_id,
+	vpp.dt_valid_from,
+	vpp.dt_valid_to,
+	vpp.status as pass_status
+from
+	naits.vholding vhold
+left join naits.vsvarog_link vsl on
+	(vhold.object_id = vsl.link_obj_id_1
+	and now() < vsl.dt_delete
+	and vsl.link_type_id = (
+	select
+		object_id
+	from
+		naits.vsvarog_link_type vslt
+	where
+		now() < dt_delete
+		and vslt.link_type = 'HOLDING_KEEPER'))
+left join naits.vholding_responsible vperson on
+	(vsl.link_obj_id_2 = vperson.object_id
+	and now() between vperson.dt_insert and vperson.dt_delete)
+left join naits.vhealth_passport vpp on
+	(vpp.holding_obj_id::numeric = vhold.object_id
+	and now() between vpp.dt_insert and vpp.dt_delete)
+left join naits.vpet vp on
+	(vpp.parent_id = vp.object_id
+	and now() between vp.dt_insert and vp.dt_delete)
+left join naits.vsvarog_link vsl2 on
+	(vp.object_id = vsl2.link_obj_id_1
+	and now() < vsl2.dt_delete
+	and vsl2.link_type_id = (
+	select
+		object_id
+	from
+		naits.vsvarog_link_type vslt
+	where
+		now() < dt_delete
+		and vslt.link_type = 'PET_OWNER'))
+left join naits.vholding_responsible vpo on
+	(vsl2.link_obj_id_2 = vpo.object_id
+	and now() between vpo.dt_insert and vpo.dt_delete)
+where
+	now() between vhold.dt_insert and vhold.dt_delete
+	and vhold.object_id = $P{OBJ_ID};]]>
+	</queryString>
+	<field name="holdingid" class="java.lang.String"/>
+	<field name="munic" class="java.lang.String"/>
+	<field name="commun" class="java.lang.String"/>
+	<field name="vilage" class="java.lang.String"/>
+	<field name="address" class="java.lang.String"/>
+	<field name="gps" class="java.lang.String"/>
+	<field name="keepername" class="java.lang.String"/>
+	<field name="keepersurname" class="java.lang.String"/>
+	<field name="birthdate" class="java.sql.Date"/>
+	<field name="phone" class="java.lang.String"/>
+	<field name="keeper_id" class="java.lang.String"/>
+	<field name="status" class="java.lang.String"/>
+	<field name="pet_id" class="java.lang.String"/>
+	<field name="pet_name" class="java.lang.String"/>
+	<field name="pet_breed" class="java.lang.String"/>
+	<field name="birth_date" class="java.sql.Date"/>
+	<field name="registration_date" class="java.sql.Date"/>
+	<field name="tag_type" class="java.lang.String"/>
+	<field name="gender" class="java.lang.String"/>
+	<field name="pet_type" class="java.lang.String"/>
+	<field name="nat_reg_number" class="java.lang.String"/>
+	<field name="first_name" class="java.lang.String"/>
+	<field name="last_name" class="java.lang.String"/>
+	<field name="passport_id" class="java.lang.String"/>
+	<field name="dt_valid_from" class="java.sql.Date"/>
+	<field name="dt_valid_to" class="java.sql.Date"/>
+	<field name="pass_status" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="100" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="05ead065-1608-4280-973f-80ad662e712f" x="0" y="5" width="329" height="20"/>
+				<box leftPadding="5"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Veterinary station general information]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="33a963c8-9d73-46b5-a110-811504bc404a" x="0" y="25" width="702" height="1"/>
+			</line>
+			<staticText>
+				<reportElement uuid="561c93a2-8be3-4337-89e3-fa9c0336fcd3" x="550" y="5" width="87" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="DejaVu Sans" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Print date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="7bb5bff9-4308-4062-835f-f518030a5cc0" x="0" y="35" width="83" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[PIC №]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="1d3b637c-ccf6-4a92-93c8-cb9e0b31949c" x="185" y="35" width="66" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Munic/City]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ed28daa5-c9b1-4b83-8eb7-accf30aefdf4" x="311" y="35" width="59" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Community]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="34829fb3-53a0-48be-aedc-87cf721800a0" x="459" y="35" width="41" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Village]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="00f14e32-5602-4390-94dd-b6ad8fbbc1e8" x="573" y="35" width="34" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[GPS]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="7cf21289-c764-4a35-96e0-0db01afd9ab9" x="83" y="55" width="89" height="1"/>
+			</line>
+			<line>
+				<reportElement uuid="47bd15de-70e8-403d-92e9-e350a991cad0" x="358" y="55" width="101" height="1"/>
+			</line>
+			<line>
+				<reportElement uuid="95f4d390-b75b-401e-84cc-c904d9ec1da7" x="500" y="55" width="73" height="1"/>
+			</line>
+			<line>
+				<reportElement uuid="09678b68-3729-426f-be54-62e8d4b61f61" x="250" y="55" width="62" height="1"/>
+			</line>
+			<line>
+				<reportElement uuid="3d41f489-07bc-4377-93b5-d58f762a9281" x="607" y="55" width="145" height="1"/>
+			</line>
+			<staticText>
+				<reportElement uuid="2e1cf9a9-e84b-443a-a1b5-56707aa11ad8" x="0" y="57" width="83" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Keeper name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="5124d9e1-9053-4023-8234-bc7a81fa2627" x="224" y="57" width="47" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Surname]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="4244cb21-1d67-4f58-b5ce-c6326decb43e" x="390" y="57" width="33" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Birth date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="6e9a926a-5c17-4f78-8abc-f991599affab" x="616" y="57" width="27" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Mob.]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="46d04f7c-0f8a-468b-9f71-be0e544bcc81" x="250" y="35" width="62" height="20" forecolor="#009933"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{munic}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="ab41cb0c-554b-430d-83a8-48ec72421ecf" x="369" y="35" width="90" height="20" forecolor="#009933"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{commun}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="0cee17b9-c59b-4041-b2cb-a45910b9e2a7" x="500" y="35" width="73" height="20" forecolor="#009933"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{vilage}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="809e2d44-463f-487f-9f97-e2971f79ee7d" x="607" y="35" width="145" height="20" forecolor="#009933"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{gps}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="0822e4d0-83d9-4562-b594-2c874e92ccdd" x="83" y="57" width="141" height="20" forecolor="#000000"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keepername}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="1ecb049b-31dd-49f4-a48d-9307df850d22" x="271" y="57" width="119" height="20" forecolor="#000000"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keepersurname}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="4ae9e25f-a3b0-4ec0-aaaf-7c5e6a9705c5" x="423" y="57" width="96" height="20" forecolor="#009933"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{birthdate}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="a89cee22-c858-4033-a342-fa9e898b61a8" x="643" y="57" width="110" height="20" forecolor="#009933"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{phone}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="4b7cb097-d709-49ac-9cfc-1393add49b48" x="83" y="35" width="90" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{holdingid}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="6095ddac-7ed4-4455-b099-ee1ca7505261" x="519" y="57" width="26" height="20" forecolor="#000000"/>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[P.N.]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="104aa4ea-ac23-490d-a7a5-28e6620c3e09" x="545" y="57" width="71" height="20" forecolor="#009933"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keeper_id}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="6b6c1480-34d7-4900-a570-b274f611897e" x="636" y="5" width="66" height="20" forecolor="#0099CC"/>
+				<textElement textAlignment="Center" verticalAlignment="Top">
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="20b5ba3d-b085-443a-904a-e2b31eb07c64" x="271" y="77" width="119" height="1"/>
+			</line>
+			<line>
+				<reportElement uuid="d09d9608-3425-4b1f-ac91-9a2c5bc9bcd9" x="423" y="77" width="96" height="1"/>
+			</line>
+			<line>
+				<reportElement uuid="33c48e3a-f4a3-4a54-bc54-f8cd0ee07620" x="643" y="77" width="109" height="1"/>
+			</line>
+			<line>
+				<reportElement uuid="1e233e0c-0abf-4c90-b564-cbec6328b184" x="545" y="77" width="71" height="1"/>
+			</line>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="b645f466-a133-4b36-8e80-b2e048fb83f9" x="702" y="0" width="51" height="35"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="24"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{holding_rownum}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="1031fdf5-e410-4afd-957a-73cfbed82387" x="83" y="77" width="140" height="1"/>
+			</line>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="20">
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="16afbbd1-88de-4f23-a40a-f79bbf604180" stretchType="RelativeToTallestObject" x="0" y="0" width="60" height="20"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Pet ID"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="1909e590-6e63-4625-868a-4a421e2fdfa1" stretchType="RelativeToTallestObject" x="60" y="0" width="58" height="20"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Pet breed"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="f2dff012-70c8-4532-adf0-b0ed039e62ca" stretchType="RelativeToTallestObject" x="118" y="0" width="55" height="20"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Birth date"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="91b2fd58-b41b-47c1-a1eb-022876a61d71" stretchType="RelativeToTallestObject" x="173" y="0" width="60" height="20"/>
+				<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Registration date"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="2138fce6-8174-445c-bf52-831ec3eecea9" stretchType="RelativeToTallestObject" x="233" y="0" width="47" height="20"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Tag type"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="a4b6c009-71a5-4999-bb7f-191970ca7ddd" stretchType="RelativeToTallestObject" x="280" y="0" width="43" height="20"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Gender"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="2c9633eb-c2ff-4ba4-889f-9d91bc699840" stretchType="RelativeToTallestObject" x="323" y="0" width="47" height="20"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Pet type"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="fa22b1ab-d3cf-45e8-ab71-1e7d6eb0c317" stretchType="RelativeToTallestObject" x="370" y="0" width="62" height="20"/>
+				<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Owner PN"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="ef6b2df7-3076-458a-bf7e-edd050e9a304" stretchType="RelativeToTallestObject" x="432" y="0" width="60" height="20"/>
+				<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Owner first name"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="6d3b823d-4ce5-43a0-bddf-eccb5bae3636" stretchType="RelativeToTallestObject" x="492" y="0" width="60" height="20"/>
+				<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Owner last name"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="f75dce99-0d03-4f3d-afe1-1209dd399231" stretchType="RelativeToTallestObject" x="612" y="0" width="60" height="20"/>
+				<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Passport ID"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="3910d37c-f411-47ee-a398-e48930706ac9" stretchType="RelativeToTallestObject" x="672" y="0" width="60" height="20"/>
+				<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Valid from"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="f588d05a-0766-4f7b-a95b-7bf5f0603c3b" stretchType="RelativeToTallestObject" x="732" y="0" width="60" height="20"/>
+				<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Valid to"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="70b7a16f-47e2-4a82-8daf-851087b6e019" stretchType="RelativeToTallestObject" x="552" y="0" width="60" height="20"/>
+				<box topPadding="2" leftPadding="1" bottomPadding="2" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Passport Status"]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="d9f23503-e56e-43a2-9e45-6dc939ab68ad" stretchType="RelativeToTallestObject" x="0" y="0" width="60" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pet_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="c21db8e3-14fa-4c41-b2d2-b6ce5b2f82f6" stretchType="RelativeToTallestObject" x="60" y="0" width="58" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pet_breed}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="6e01730f-2a13-4ed9-80b7-015bf4ce9f5d" stretchType="RelativeToTallestObject" x="118" y="0" width="55" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{birth_date}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="bb4dfd06-56f3-453a-89d9-b8c6d8709d56" stretchType="RelativeToTallestObject" x="173" y="0" width="60" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{registration_date}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="42d16d1c-8e89-4f21-a40e-8007a242c389" stretchType="RelativeToTallestObject" x="233" y="0" width="47" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{tag_type}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="4bd70bac-1b0c-42b4-ba3e-f9582b090f91" stretchType="RelativeToTallestObject" x="280" y="0" width="43" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{gender}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="ca6c638c-ca80-4357-8dd7-8414534187d5" stretchType="RelativeToTallestObject" x="323" y="0" width="47" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pet_type}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="31f8cfed-010c-4a7d-8739-66fdb703e524" stretchType="RelativeToTallestObject" x="370" y="0" width="62" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nat_reg_number}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="20372c68-d839-4978-b49c-e1c300114e1e" stretchType="RelativeToTallestObject" x="432" y="0" width="60" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{first_name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="8418cdb7-5b72-426d-a80c-0f717ec695e6" stretchType="RelativeToTallestObject" x="492" y="0" width="60" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{last_name}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="d6a3b9b4-6fb8-4e67-8400-c9eb6d527d56" stretchType="RelativeToTallestObject" x="612" y="0" width="60" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{passport_id}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="2a4b6bc6-a52b-4104-abbb-5c3aece32cb6" stretchType="RelativeToTallestObject" x="672" y="0" width="60" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dt_valid_from}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="true">
+				<reportElement uuid="afe8a538-9496-4dfa-8aec-1f08c551af6a" stretchType="RelativeToTallestObject" x="732" y="0" width="60" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dt_valid_to}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="a34d2620-b36d-4811-877d-2015089ed9fa" stretchType="RelativeToTallestObject" x="552" y="0" width="60" height="20"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{pass_status}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="15"/>
+	</pageFooter>
+</jasperReport>

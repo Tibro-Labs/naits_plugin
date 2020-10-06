@@ -1,0 +1,2244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="EC2_main" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="911dfc99-1d2b-4af8-a716-db58394c9af0">
+	<property name="ireport.zoom" value="0.75"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.String">
+		<defaultValueExpression><![CDATA[00110011]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String">
+		<parameterDescription><![CDATA[]]></parameterDescription>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="USER_ID" class="java.lang.Integer">
+		<defaultValueExpression><![CDATA[220484]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[/* '00110011', '220484'*/
+/* '789654123', '220484'*/
+/* '111222333', '220484'*/
+
+select * from naits.selectexportcert($P{OBJ_ID}, $P{USER_ID});]]>
+	</queryString>
+	<field name="issued_by" class="java.lang.String"/>
+	<field name="anim_count" class="java.lang.Long"/>
+	<field name="exporter_name" class="java.lang.String"/>
+	<field name="exporter_address" class="java.lang.String"/>
+	<field name="place_of_origin" class="java.lang.String"/>
+	<field name="exp_holding_id" class="java.lang.String"/>
+	<field name="exp_holding_id_line1" class="java.lang.String"/>
+	<field name="exp_holding_id_line2" class="java.lang.String"/>
+	<field name="countries_of_transit" class="java.lang.String"/>
+	<field name="transport_type_code" class="java.lang.String"/>
+	<field name="transport_type" class="java.lang.String"/>
+	<field name="exp_certificate_id" class="java.lang.String"/>
+	<field name="quarantine_id" class="java.math.BigDecimal"/>
+	<field name="holding_id" class="java.lang.String"/>
+	<field name="imp_country" class="java.lang.String"/>
+	<field name="imp_country_txt" class="java.lang.String"/>
+	<field name="imp_address" class="java.lang.String"/>
+	<field name="imp_company" class="java.lang.String"/>
+	<field name="imp_company_full" class="java.lang.String"/>
+	<field name="exp_keeper_id" class="java.math.BigDecimal"/>
+	<field name="exp_vehicle_license" class="java.lang.String"/>
+	<field name="bip_holding" class="java.lang.String"/>
+	<field name="border_cross_point" class="java.lang.String"/>
+	<field name="user_full_name" class="java.lang.String"/>
+	<field name="user_to_sign" class="java.lang.String"/>
+	<field name="date_from" class="java.sql.Date"/>
+	<field name="q_date_from" class="java.lang.String"/>
+	<field name="date_to" class="java.sql.Date"/>
+	<field name="q_date_to" class="java.lang.String"/>
+	<field name="dd_diff" class="java.lang.Integer"/>
+	<field name="qtype_code" class="java.lang.String"/>
+	<field name="q_type" class="java.lang.String"/>
+	<field name="q_reason" class="java.lang.String"/>
+	<field name="q_status" class="java.lang.String"/>
+	<field name="dd" class="java.lang.String"/>
+	<field name="mm" class="java.lang.String"/>
+	<field name="yyyy" class="java.lang.String"/>
+	<field name="name_consignee" class="java.lang.String"/>
+	<field name="e_status" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="332" splitType="Stretch">
+			<staticText>
+				<reportElement x="506" y="0" width="49" height="10" forecolor="#CCCCCC" uuid="d9d93425-72eb-452f-af86-11ff033dfd43"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<text><![CDATA[v.0.1]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="174" height="59" uuid="441cb277-7492-4aa7-a91e-6e953092711f"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{e_status}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="217" width="555" height="17" uuid="fb680280-5816-434c-aa7b-faefee3941ca"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="11" isBold="false"/>
+				</textElement>
+				<text><![CDATA[საქართველოდან საუდის არაბეთის სამეფოში საკლავ და სანაშენე მსხვილფეხა პირუტყვის, ცხვრისა]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="234" width="555" height="17" uuid="4689b8c8-7711-4230-8651-35e815d75e83"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="11" isBold="false"/>
+				</textElement>
+				<text><![CDATA[და თხის ექსპორტისათვის]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="268" width="555" height="17" uuid="d659889f-9413-462b-9be8-91e70cb4e195"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[VETERINARY HEALTH CERTIFICATE]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="291" width="555" height="17" uuid="941980dd-63d8-460e-a0e7-d7b85614ae06"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[FOR THE EXPORTATION OF CATTLE, SHEEP AND GOATS FOR SLAUGHTER AND BREEDING FROM]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="308" width="555" height="17" uuid="73b7069a-76d5-4d59-bb3a-02c9085f9e04"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[GEORGIA TO THE SAUDI ARABIA]]></text>
+			</staticText>
+		</band>
+	</title>
+	<detail>
+		<band height="453" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="20" width="246" height="45" uuid="78fca7ad-88dd-4e6e-9e3e-ef1b0d7f4f59"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{issued_by}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="20" width="246" height="45" uuid="c14654ee-71d5-484f-8669-cf1af95f9678"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{exp_certificate_id}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="65" width="246" height="20" uuid="7ebb5929-d204-40ea-8a4d-994ed4666505"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.3. გამგზავნი/ Consignor /]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="85" width="246" height="20" uuid="15b44948-416e-4a17-b489-7fe3ab48a6b7"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სახელი/ Name]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="105" width="246" height="43" uuid="70095914-ee27-4744-92da-5d608c98390f"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{exporter_name}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="148" width="246" height="20" uuid="e27286df-c1dc-4f8e-a7de-a5e88c521d67"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[მისამართი/ Address]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="168" width="246" height="51" uuid="83719141-4127-4ccf-bacf-283f5815044e"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{exporter_address}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="219" width="246" height="20" uuid="1a0bc837-605c-4523-a44c-6607d68ca4ac"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ტელეფონი/ Tel.No.:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="239" width="246" height="34" uuid="74d507b7-3c5b-4039-be91-6539bd83d665"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<staticText>
+				<reportElement x="309" y="65" width="246" height="20" uuid="18d47fbe-67e9-47f3-9ff7-1d6209f99bc7"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.4. მიმღები/ Consignee]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="309" y="85" width="246" height="20" uuid="379f53ff-5ecd-42c5-8307-ba8cf4d4aff9"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სახელი/ Name]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="105" width="246" height="20" uuid="0cc2f625-37a2-4579-8fbd-8bf0279cc96e"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{imp_company}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="309" y="148" width="246" height="20" uuid="b616a290-16d3-4c26-9385-e79fc53d28cf"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[მისამართი/ Address]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="168" width="246" height="51" uuid="8248559e-beb5-44f9-ac5d-826982f3fc72"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{imp_address}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="309" y="219" width="246" height="20" uuid="331d19ad-1243-450f-88bd-40b1e2e1cca4"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ტელეფონი/ Tel.No.:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="239" width="246" height="34" uuid="565b5fa6-b427-4bdd-83ad-0775129ac461"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="273" width="123" height="31" uuid="62420e3b-9cc7-4b2d-8452-f3c9e3e431bf"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.5. წარმოშობის ქვეყანა/ Country of origin]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="364" width="123" height="20" uuid="f3c5f6a6-0e51-4b8f-adcd-0fabbede619b"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ISO კოდი/ ISO Code]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="304" width="123" height="60" uuid="7c2e1f43-aef1-4647-8bcd-ced584b1bfd7"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[საქართველო GEORGIA]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="384" width="123" height="34" uuid="fc142e82-efd8-471f-ba24-d7241ea9b18a"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[GEO]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="186" y="304" width="123" height="60" uuid="c80ca5ec-6bf1-45e1-aab9-f7b06d1dae6c"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="186" y="364" width="123" height="20" uuid="7822660f-78f6-4f7e-8423-731ff790d7f2"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[კოდი/ Code]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="186" y="384" width="123" height="34" uuid="4df5987b-a57c-4e28-9afb-d45119a4bfb5"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="186" y="273" width="123" height="31" uuid="7ce757e6-72df-4418-adf4-aa671605af81"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.6. წარმოშობის რეგიონი/ Region of origin]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="309" y="364" width="123" height="20" uuid="231f20ea-c065-4319-84c9-89f73e6c23f2"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ISO კოდი/ ISO Code]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="309" y="273" width="123" height="31" uuid="91bb24cc-e52c-40ca-92d0-24bacea16174"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.7. დანიშნულების ქვეყანა/ Country of destination]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="309" y="384" width="123" height="34" uuid="9d7113b8-c8d9-4cc7-a9ee-97e15fa88e0e"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[SAU]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="309" y="304" width="123" height="60" uuid="33924e9a-b096-40c9-9dc0-12555872554e"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[საუდის არაბეთის სამეფო
+SAUDI ARABIA]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="432" y="364" width="123" height="20" uuid="488e5db7-eda7-4fc9-9f08-9703a6102f81"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[კოდი/ Code]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="432" y="273" width="123" height="31" uuid="e65460e6-da78-4652-8a07-96358e545f96"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.8. დანიშნულების რეგიონი/ Region of destination]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="432" y="384" width="123" height="34" uuid="c1fb7725-ac4d-4da7-aacd-9b3ba1adcd14"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="432" y="304" width="123" height="60" uuid="a1d42ff1-b2ec-4e9a-b088-ed4a9b1157da"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="429" width="433" height="15" uuid="c60e881e-2d9c-4ea6-834e-7cc9a1f7492b"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[გვერდი / Page / Sayfa 1 / 5]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="537" y="429" width="18" height="15" uuid="9363552e-563a-4c63-90da-2c83ad620505"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1]]></text>
+			</staticText>
+			<break>
+				<reportElement x="0" y="443" width="100" height="1" uuid="1e025162-fbc3-427e-8ff0-aed9ba5e9a22"/>
+			</break>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="125" width="246" height="23" uuid="b5fcba0b-362a-4063-9c90-58b7e129d7d0"/>
+				<box leftPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{name_consignee}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="63" height="418" uuid="7038d7b7-a1db-4cbe-87d0-bf0c7999253a"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Part I: Details of dispatched/ consignment /]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="0" width="246" height="20" uuid="daca2100-6fc0-48ed-8cca-0314dafb4697"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.1. სერტიფიკატის გამცემი ორგანო/ Issued by]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="309" y="0" width="246" height="20" uuid="7c714466-7cce-4ae1-af48-60e467ff049a"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.2. სერტიფიკატის ნომერი/ Certificate reference number]]></text>
+			</staticText>
+		</band>
+		<band height="802">
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="0" width="63" height="765" uuid="ff0d6f63-be44-4fc2-a8fc-2fe7abac853e"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="0" width="492" height="20" uuid="cb69410d-1885-4fe8-8aa1-c560f8ad6a07"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.9. წარმოშობის ადგილი/ Place of origin]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="40" width="246" height="27" uuid="aa0176e0-ab6c-4d2f-ae4f-0ce66fc2499f"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{holding_id}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="20" width="246" height="20" uuid="11e54cdc-59a5-476b-bc54-2a381c4f9524"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სახელი/ Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="309" y="20" width="246" height="20" uuid="1fe68eff-8898-44b9-860a-448fcbf742e5"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[მისამართი/ Address]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="67" width="246" height="18" uuid="9c6e5291-478f-4a3c-8fb4-d28aac117da9"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{exporter_address}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="105" width="246" height="45" uuid="e1c2dde8-ae79-4c58-a1f1-2b40e4fb0751"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="85" width="246" height="20" uuid="7a5ae44c-30f2-48db-bddf-4b249125f072"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სახელი/ Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="309" y="85" width="246" height="20" uuid="1803e8f4-3288-4a8b-aa7c-37d0528e8c34"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[მისამართი/ Address]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="105" width="246" height="45" uuid="e8734fe0-0cb6-4f08-9ec1-367a8101d17b"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="170" width="246" height="45" uuid="72d81942-ce1d-4e39-a81a-0a1a8275e1cc"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="150" width="246" height="20" uuid="71100b8c-4ae0-40fb-860d-e0526421de20"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სახელი/ Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="309" y="150" width="246" height="20" uuid="da8ccad1-5a03-4b9d-97fb-bab2ae34c3fc"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[მისამართი/ Address]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="170" width="246" height="45" uuid="71b44bce-a9e2-4bd8-9b85-2f1dc8b4b761"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="235" width="246" height="45" uuid="14dfefaf-3af8-41ed-ba85-f6e29e3f328c"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{q_date_to}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="215" width="246" height="20" uuid="cef3e7dc-7d2d-4ca0-a3fa-cefc88f3bd43"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.10. ჩატვირთვის ადგილი / Place of loading]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="309" y="215" width="246" height="20" uuid="afcb8f1c-9b80-4c0e-863d-0ec2298c123d"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.11. გაგზავნის თარიღი / Date of departure]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="300" width="246" height="45" uuid="2d46c31c-2e98-407f-b6da-64139bded84e"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="300" width="246" height="45" uuid="af0d5fee-07d3-4eb4-86b1-c304b6e15ceb"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{exp_holding_id_line1} + " " +$F{exp_holding_id_line2}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="280" width="246" height="20" uuid="64582b9e-7178-4438-a493-3722dc12900a"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[მისამართი/ Address]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="309" y="280" width="246" height="20" uuid="ee48c622-d86e-4d5a-967f-035a622f4823"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[გაგზავნის დრო/ Time of departure]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="235" width="246" height="45" uuid="92d99ed1-6a04-4b44-8778-6dc926da02d0"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{holding_id}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="345" width="246" height="20" uuid="f7d38387-3229-4d3b-953c-6a6d9ae1fa05"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.12. სატრანსპორტო საშუალება/Means of transport]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="309" y="345" width="246" height="20" uuid="88c16081-d567-4edc-b411-d1566ded7696"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.13. საქონლის კოდი/ Commodity code (HS code)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="365" width="246" height="20" uuid="bc3e1c2c-ec6a-446d-a50a-4a5f544cdb7d"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[თვითმფრინავი/ Airplane]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="212" y="365" width="20" height="15" forecolor="#000000" uuid="17ee356b-9d94-4ee5-a50e-d51b23331e9b">
+					<printWhenExpression><![CDATA[$F{transport_type_code} == '1']]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["✕"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="212" y="365" width="20" height="15" forecolor="#000000" uuid="4e5a6f6c-c972-4860-976f-85f07e8bcf55"/>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["☐"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="385" width="246" height="20" uuid="d7bd3e5a-4950-40e9-a54c-ad808d519f58"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[გემი/ Ship]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="212" y="385" width="20" height="15" forecolor="#000000" uuid="77705057-6b70-45b5-8987-c013834bcece">
+					<printWhenExpression><![CDATA[$F{transport_type_code} == '2']]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["✕"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="212" y="385" width="20" height="15" forecolor="#000000" uuid="2542f7ad-64a0-4743-a320-51afe8f1cda6"/>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["☐"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="405" width="246" height="20" uuid="7ca1b119-7f17-4086-a250-0e26c3f7108a"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[რკინიგზის ვაგონი/ Railway wagon]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="212" y="405" width="20" height="15" forecolor="#000000" uuid="b6d17fc9-55dd-439b-bb6e-2bacd4ac92c0">
+					<printWhenExpression><![CDATA[$F{transport_type_code} == '4']]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["✕"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="212" y="405" width="20" height="15" forecolor="#000000" uuid="15d6cf1c-2d61-4d0e-a892-78f6f0892dab"/>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["☐"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="425" width="246" height="20" uuid="b51858d2-bedf-4bda-88f4-a218ebbd38f7"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ავტომანქანა/ Road vehicle]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="212" y="425" width="20" height="15" forecolor="#000000" uuid="e3be9fe3-43d4-4338-9ef3-8674baf3ea00">
+					<printWhenExpression><![CDATA[$F{transport_type_code} == '3']]></printWhenExpression>
+				</reportElement>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["✕"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="212" y="425" width="20" height="15" forecolor="#000000" uuid="f84a8909-0a38-4a81-a315-cefef13b6c82"/>
+				<box>
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["☐"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="445" width="246" height="20" uuid="21d188ac-e934-47d2-a43a-5b0f531c3e64"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სხვა/ Other]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="465" width="246" height="45" uuid="a28dfdab-c281-47f2-88b5-d56733f03601"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{transport_type}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="98" y="510" width="211" height="20" uuid="ff88629e-4e45-4b95-bfdd-1e89191eb1d3"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[იდენტიფიკაცია/ Identification]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="530" width="246" height="45" uuid="c88e58e2-b006-4d20-8687-816ae9268b08"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{exp_vehicle_license}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="98" y="575" width="211" height="20" uuid="40e2f2b3-3c82-4ba1-b0bb-ad761301b47e"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[თანმხლები დოკუმენტაცია/ Documentary references]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="595" width="246" height="45" uuid="b57903ef-7b1b-4e64-a519-a14d5ccc0917"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="365" width="246" height="40" uuid="dfe7d8c2-eed3-4980-84a1-17a089d2d66f"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<staticText>
+				<reportElement x="309" y="405" width="246" height="30" uuid="8ce1447f-3af7-473b-8eed-527445cb6e8a"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.14. საუდის არაბეთში შესვლის ადგილი/ Entry point in Saudi Arabia]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="435" width="246" height="75" uuid="4632623e-94fa-44fc-99d1-3d1851ee4e2a"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<staticText>
+				<reportElement x="309" y="510" width="246" height="30" uuid="b6b49f73-b331-4aca-9808-c3e08b3da3a7"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.15. რაოდენობა/ Quantity]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="540" width="246" height="100" uuid="18633ba5-972f-4f2c-a19c-afabe6f839d5"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{anim_count}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="640" width="492" height="20" uuid="9d74dbaa-6a56-43a6-8647-b03f569c19e4"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.16. საქონლის აღწერილობა/ Description of commodity]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="660" width="492" height="45" uuid="5966ade6-8cd4-4fd4-9983-0f52d03082e2"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="705" width="492" height="20" uuid="0e2398e6-b2a6-4e12-8886-c06e478a03a3"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.17. საქონლის დანიშნულება/ Commodities certified for /]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="745" width="492" height="20" uuid="3dc2e0db-103d-4f92-92fc-c5962f60ac5b"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[გასუქება/ Fattening]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="725" width="492" height="20" uuid="cdc51c7c-e302-4aa1-9450-7f0993631d7f"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[მოშენება/ Breeding]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="212" y="725" width="20" height="15" forecolor="#000000" uuid="0e44edb6-f5b3-41e1-8dbf-368f6808a0ec">
+					<printWhenExpression><![CDATA[1 == 0]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="0">
+					<pen lineStyle="Solid" lineColor="#000000"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["✕"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="212" y="725" width="20" height="15" forecolor="#000000" uuid="e3889d0d-4b86-402b-9f02-0c907cc67054"/>
+				<box leftPadding="0">
+					<pen lineStyle="Solid" lineColor="#000000"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["☐"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="212" y="745" width="20" height="15" forecolor="#000000" uuid="5ad46025-3a2c-4868-a933-d6b53e5c2519"/>
+				<box leftPadding="0">
+					<pen lineStyle="Solid" lineColor="#000000"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["☐"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="212" y="745" width="20" height="15" forecolor="#000000" uuid="6dcd8d35-54ad-4d22-a9af-a9144e600747">
+					<printWhenExpression><![CDATA[1 == 0]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="0">
+					<pen lineStyle="Solid" lineColor="#000000"/>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["✕"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="777" width="433" height="15" uuid="41c346d3-fe90-4b38-a8d5-a6cb18bbe7cc"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[გვერდი / Page / Sayfa 2 / 5]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="537" y="777" width="18" height="15" uuid="12a1096f-6347-41df-9ad1-99de0020fe5c"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[2]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="575" width="35" height="20" uuid="714ae921-6883-4080-807d-7c19d39ae4ea"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="510" width="35" height="20" uuid="70977c41-9b5a-4fef-93e7-5021ede096c4"/>
+				<box>
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[]]></text>
+			</staticText>
+			<break>
+				<reportElement x="0" y="792" width="100" height="1" uuid="4cce94f0-b189-459b-9e7b-2a901f8779a7"/>
+			</break>
+			<textField isBlankWhenNull="true">
+				<reportElement x="309" y="40" width="246" height="27" uuid="e723885b-5a0b-4a0a-9208-39e9fe05d33a"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{place_of_origin} + " " + $F{exp_holding_id_line1} + " " +$F{exp_holding_id_line2}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="63" y="67" width="246" height="18" uuid="b34af25a-8f34-48a1-9c3e-471520cdfaf3"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{exporter_name}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="33">
+			<staticText>
+				<reportElement x="63" y="0" width="492" height="20" uuid="4682395d-aac9-45ad-ab24-3d4958bea602"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[1.18. საქონლის იდენტიფიკაცია/ Identification of the commodities]]></text>
+			</staticText>
+			<subreport>
+				<reportElement x="63" y="20" width="492" height="12" uuid="fcfb2696-5aff-443a-b856-35812ab48df7"/>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{SUBREPORT_DIR}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="USER_ID">
+					<subreportParameterExpression><![CDATA[$P{USER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "EC2_animals.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="527">
+			<textField>
+				<reportElement x="284" y="13" width="271" height="21" uuid="6c8cedad-f43d-43b1-aec5-41c26c6bc548"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{exp_certificate_id}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="284" y="0" width="271" height="13" uuid="a414c7de-2f4c-4232-a3b2-14c4242422a0"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Certificate reference number / სერტიფიკატის ნომერი]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="0" width="284" height="34" uuid="0ff37854-b5cc-41a9-b232-a9518633a68f"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[""]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="34" width="555" height="34" uuid="cdc2df6f-bc73-483c-8d51-97b69da21512"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[II. Health Information/ ინფორმაცია ჯანმრთელობის შესახებ
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="309" width="555" height="71" uuid="41f47a9e-a0f8-4aa1-bf42-1d7273fac60c"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[III. 1.They come from the country which, at the date of issuing this certificate/ ცხოველ(ებ)ი გამოდიან ქვეყნიდან, რომელშიც წინამდებარე სერტიფიკატის
+გაცემის დროს
+(a)The establishments from which the animals are originated, Foot and Mouth, Anthrax and Rabies diseases have not been offically detected for 12 months/ ა) სადგომ(ებ)ში, საიდანაც ცხოველ(ებ)ი გამოდი(ან)ს ბოლო 12 თვის განმავლობაში ოფიციალურად არ დაფიქსირებულა თურქულის, ჯილეხისა და ცოფის შემთხვევები.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="414" width="555" height="38" uuid="7f5490ab-984e-4273-bc4c-41e3169c19c8"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[IV.1.The animals to be exported originated from the establishmentsofficially free from Brucellosis, FMD, Anthrax and Tuberculosis/ექსპორტირებული ცხოველ(ებ)ი გამოდიან სადგომ(ებ)იდან, რომლ(ებ)იც ოფიციალურად თავისუფალია ბრუცელოზის, თურქულის, ჯილეხისა და ტუბერკულოზისაგან.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="537" y="503" width="18" height="15" uuid="cd006b32-166b-4916-9005-99ffab09d351"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[3]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="503" width="433" height="15" uuid="3a18a412-d92c-4ef9-aa54-5dce6dd55fc3"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[გვერდი / Page / Sayfa 3 / 5]]></text>
+			</staticText>
+			<break>
+				<reportElement x="0" y="521" width="100" height="1" uuid="6c84421e-1e65-43cb-95b0-49df4e3374ec"/>
+			</break>
+			<staticText>
+				<reportElement x="0" y="203" width="555" height="72" uuid="ee5f6af5-b29b-4186-8d55-5c04d7cd2ab4"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[‐ any stilbene or thyrostatic substances/არ მიუღია(თ) იზომერული ან თირეოსტატიკური ნივთიერებები
+‐ oestrogenic, androgenic, gestagenic or ß‐agonist substances for purposes other than therapeutic or zootechnic treatment (according to the Implementing Regulation on the measures with regard to the monitoring of substances and the residues of these in live animals and animal products) / ესტროგენური, ანდროგენური,ჰორმონალური ან ß-აგონისტი ნივთიერებები, გარდა მკურნალობის მიზნით გამოყენებისა (ცოცხალ ცხოველებსა და ცხოველურ პროდუქტებში ნივთიერებებისა და მათი ნარჩენების მონიტორინგის ზომების შესახებ დანერგილი რეგულაციების შესაბამისად).]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="68" width="555" height="20" uuid="7ae94d10-ac3c-4968-b40e-4271e8727801"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[II.1. Public Health Attestation /საზოგადოებრივი ჯანმრთელობის ატესტაცია]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="88" width="555" height="30" uuid="ae3c4b1d-2224-4e5a-b777-fa2e490f0270"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[I, the undersigned official veterinarian, hereby certify, that the animals described in this certificate/მე, ქვემოთ ხელის მომწერი უფლებამოსილი პირი (ვეტერინარი) ვადასტურებ, რომ წინამდებარე სერტიფიკატში აღნიშნული ცხოველ(ებ)ი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="118" width="555" height="65" uuid="b72e1969-e34a-4655-9ada-ec85d708e07e"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[II.1.1.come from holdings which have been free from any official prohibiton on health grounds, for the last 42 days in the case of brucellosis, for the last 30 days in the case of anthrax, for the last six months in the case of rabies, and have not been in contact with animals from holdings which did not satisfy these conditions/გამოდის(ან) სადგომ(ებ)იდან, რომელ(ებ)იც თავისუფალია ჯანმრთელობასთან დაკავშირებული ყველა შეზღუდვისაგან, ბოლო 42 დღის განმავლობაში ბრუცელოზისაგან, ბოლო 30 დღის განმავლობაში ჯილეხისაგან, ბოლო 6 თვის განმავლობაში ცოფისაგან და არ ჰქონია(თ) კონტაქტი სადგომებთან ან ცხოველ(ებ)თან, რომლ(ებ)იც არ აკმაყოფილებენ ზემოხსენებულ მოთხოვნებს.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="183" width="555" height="20" uuid="fa97b2f5-ec3a-41cb-8152-02c5ceeec9ea"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[II.1.2.have not received/]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="275" width="555" height="34" uuid="35c852a4-91ff-42e0-9110-b2e7d69a3d11"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[III.Health Status of the Exporting Country/ ექსპორტიორი ქვეყნის ჯანმრთელობის სტატუსი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="380" width="555" height="34" uuid="d4f2e5a0-90b4-408c-945c-5113550835ec"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[IV. Health status of the herd of origin/ ფარის/ჯოგის ჯანმრთელობის მდგომარეობა]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="452" width="555" height="37" uuid="bd0be837-9e8c-415d-8047-b06c825ef32e"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[IV.2.The animals to be exported originated from the farms which have been clinically free of Paratuberculosis for the last 12 months./ ექსპორტირებული ცხოველ(ებ)ი გამოდიან ფერმ(ებ)იდან, სადაც ბოლო 12 თვის განმავლობაში კლინიკურად არ გამოვლენილა პარატუბერკულოზი.]]></text>
+			</staticText>
+		</band>
+		<band height="734">
+			<textField>
+				<reportElement x="0" y="0" width="284" height="34" uuid="cbc628d2-24f0-4d81-926c-65d46a9dbddf"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<staticText>
+				<reportElement x="284" y="0" width="271" height="13" uuid="1739d938-b853-4b2f-95f0-fe6f7f14a37f"/>
+				<box topPadding="1" leftPadding="1" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Certificate reference number / სერტიფიკატის ნომერი]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="284" y="13" width="271" height="21" uuid="d83890d0-e2f3-4a76-b2f7-db5a33664e10"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{exp_certificate_id}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="417" width="555" height="68" uuid="1941abd7-35a8-457b-af16-31b79be3a7b3"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[The means of transport or containers into which they will be loaded comply with the international transport provisions for live animals, will be cleaned and disinfected prior to loading with an officially approved disinfectant and are constructed in such a way that faeces, urine, litter and dry feed can not seep or drop during transportation from the means of transport. / სატრანსპორტო საშუალებები, რომლითაც ცხოველ(ებ)ი გადაიზიდება, შეესაბამება ცოცხალი ცხოველების გადაზიდვის საერთაშორისო სატრანსპორტო წესებს, მათ გადაზიდვის წინ ჩაუტარდათ დასუფთავება და დეზინფექცია საქართველოში მიღებული სადეზინფექციო და სარეცხი საშუალებებით და ისინი მოწყობილია ისე, რომ ტრანსპორტირებისას გარეთ არ გამოჟონავს ფეკალი, შარდი, ნარჩენები და მშრალი საკვები.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="63" y="694" width="433" height="15" uuid="d7428dc2-82b1-4a15-a613-4b9df1c8f2d6"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[გვერდი / Page / Sayfa 4 / 5]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="537" y="694" width="18" height="15" uuid="1e4670c0-cd98-4fea-a1d7-ecf185e01c13"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[4]]></text>
+			</staticText>
+			<break>
+				<reportElement x="0" y="709" width="100" height="1" uuid="43fa165f-0fb8-4e7b-928d-cbf47323b57e"/>
+			</break>
+			<staticText>
+				<reportElement x="0" y="34" width="555" height="34" uuid="ca1ac6ae-2606-4fce-927e-a987daadce93"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[V. Health status of animals/ ცხოველების ჯანმრთელობის სტატუსი]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="0" y="68" width="555" height="85" uuid="9db32ea6-5d28-48ce-aec4-f890c8302973"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["V.1.The animals to be exported have been kept in isolationbetween the date "+$F{date_from}+" and "+$F{date_to}+" under the control of exporting country’s official veterinarians for at least 21 days prior to export and found to be clinically free from any symptom of infectious or contagious diseases.and were tested clinically and laboratory and found negative for FMD, Brucellosis Tuberclosis(The results of all laboratory tests must attached with the veterinary certificate)/ ექსპორტირებული ცხოველ(ებ)ი იმყოფებოდ(ნენ)ა კარანტინში "+$F{date_from}+" დან "+$F{date_to}+" მდე ექსპორტიორი ქვეყნის ოფიციალური ვეტერინარ(ებ)ის კონტროლის ქვეშ გაგზავნამდე მინიმუმ 21 დღის განმავლობაში და კლინიკურად არ გამოვლენილა ინფექციური და გადამდები დაავადების სიმპტომ(ებ)ი, შემოწმებული იქნენ კლინიკურად და ლაბორატორიულად და თავისუფალი არიან თურქულის, ბრუცელოზისა და ტუბერკულოზისაგან (ლაბორატორიული ტესტის პასუხები უნდა ახლდეს ვეტერინარულ სერტიფიკატს)."]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="153" width="555" height="48" uuid="8fc48dd1-6c9b-4900-b317-4ba7580d6c1b"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[V.2.They have remained since birth or at least 30 days before dispatch in the holding(s) described under box reference I.10. in and around which, in an area with a 150 km radius, there has been no case / outbreak of the diseases referred to in point III.1.(a) during the previous 60 days. /დაბადებიდან მინიმუმ 30 დღე ცხოველ(ებ)ი იმყოფებოდ(ნენ)ა I.10. პუნქტში აღწერილ სადგომ(ებ)ში, სადაც და რომელთა გარშემო 150 კმ რადიუსით არ აღმოჩენილა III.1.(ა) პუნქტში ჩამოთვლილი დაავადებები ბოლო 60 დღის განმავლობაში.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="201" width="555" height="48" uuid="fd40e0f4-5e8c-42cc-94e3-436ffa95d9ac"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[V.3. The animals to be exported have been vaccinated against Foot and Mouth Disease with inactivated vaccine used inthe republic of Georgia maximum90 days before dispatchon date.......................(2)/ საექსპორტო ცხოველ(ებ)ი ვაქცინირებულ იქნენ თურქულის დაავადებაზე ინაქტივირებული ვაქცინით, რომელიც გამოიყენება საქართველოში, მაქსიმუმ 90 დღით ადრე გაგზავნამდე. გაგზავნის თარიღი .................]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="249" width="555" height="48" uuid="61a7d92b-2af9-4f3b-b468-b541032ffca0"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[V.4. The animals to be exported have been tested for the following animal diseases with negative results within the isolation period/ საექსპორტო ცხოველ(ებ)ი კარანტინის პერიოდში შემოწმებულ იქნენ და აღმოჩნდა უარყოფითი შედეგები ცხოველთა შემდეგ დაავადებებზე:
+Foot and Mouth Disease; using 3ABC test on the date ......................... (on second week of the isolation period). The results has shown that the animals do not have antibody due to the disease. თურქულის დაავადებაზე 3ABC ტესტის გამოყენებით ....................................................................
+Brucellosis; using the Rose Bengal Test, serum agglutination or complement fixation test. / ბრუცელოზი - როზ-ბენგალის ტესტის გამოყენებით, შრატის აგლუტინაციის ან კომპლემენტის ფიქსაციის ტესტით]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="297" width="555" height="30" uuid="b46f3b1a-9ac0-4df0-b4cd-2cc8f8ba349c"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[V.5.The animals to be exported have been found to be clinically free from ringworm, warts, scabies and pox. საექსპორტო ცხოველ(ებ)ი კლინიკურად თავისუფალი არიან მკრეჭავი მუნისაგან, ჰელმინთებისაგან, მუნისა და ყვავილისაგან.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="327" width="555" height="30" uuid="60990457-ce51-46eb-8157-e731a4cf5615"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[V.6.The animals to be exported were treated against endo and ectoparasites using approved antiparasitic drugs at least 10 days prior to export. /საექსპორტო ცხოველ(ებ)ი დამუშავდნენ ენდო და ექტოპარაზიტების წინააღმდეგ საქართველოში რეგისტრირებული ანტიპარაზიტული საშუალებებით გაგზავნამდე 10 დღით ადრე.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="357" width="555" height="30" uuid="f272caa3-a72d-47a2-8b17-4df66ce88e3d"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[V.7.The animals to be exported have been examined clinically before shipped and they are free from any infectious or contagious disease. /საექსპორტო ცხოველ(ებ)ი გაგზავნამდე კლინიკურად შემოწმდნენ და არიან თავისუფალნი ინფექციური და გადამდები დაავადებისაგან.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="387" width="555" height="30" uuid="c7148b89-2852-4a56-9d72-a1268b0faecb"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[V.8.Moreover, the animal owner or his representative has made the following statement/ ამასთან, ცხოველების მფლობელმა ან მისმა წარმომადგენელმა განაცხადა შემდეგი:]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="485" width="555" height="34" uuid="de4cb060-2428-4238-835d-86f9ee3f28f9"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[VI. Animal transport attestation ცხოველთა ტრანსპორტირების შემოწმება]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="519" width="555" height="83" uuid="0bf70353-01ac-4bc7-829b-f9ddf5ef6118"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[I, the undersigned official veterinarian, hereby certify, that the animals described above have been treated before and at the time of loading in accordance with the relevant provisions of Implementing Regulation on protection and welfare of animals during transportation (OJ, 24.12.2011‐28152) in particular as regards watering and feeding, and they are fit for the intended transport. / მე, ქვემორე ხელის მომწერი უფლებამოსილი პირი ( ვეტერინარი) ვადასტურებ, რომ ზემოთ ჩამოთვლილი ცხოველები დამუშავებულ იქნენ ჩატვირთვის წინ და ჩატვირთვის დროს ცხოველთა კეთილდღეობასთან დაკავშირებული კანონმდებლობის დაცვით (OJ, 24.12.2011‐28152), მიეცათ საკვები, წყალი და მზად არიან ტრანსპორტირებისათვის.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="602" width="555" height="16" uuid="965f5013-801b-4ed0-920f-0146647406c2"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[.......................................................................................................................................................................................]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="618" width="555" height="30" uuid="7994679f-89aa-4261-8c27-7c2135aa7566"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[(Signature of the competent official veterinarian) უფლებამოსილი პირის(ვეტერინარის) ხელმოწერა]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="648" width="555" height="16" uuid="c62d681b-17af-447b-a8a6-73b226125994"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[.......................................................................................................................................................................................]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="664" width="555" height="20" uuid="47885e7a-f82a-4a70-9630-155033e3c61c"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[(Name and position of the official veterinarian in block letters უფლებამოსილი პირის(ვეტერინარის) სახელი და თანამდებობა ბეჭდური ასოებით.]]></text>
+			</staticText>
+		</band>
+		<band height="371">
+			<staticText>
+				<reportElement x="0" y="64" width="555" height="29" uuid="a56799f3-ef7f-4176-9c24-e8a15ea71a92"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[(2)   The animals shall be exported within 3 months after acquired immunity following the vaccination of Foot and Mouth Disease/ ცხოველები ექსპორტირებულ იქნებიან თურქულის საწინააღმდეგო ვაქცინაციიდან 3 თვის განმავლობაში]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="16" width="555" height="21" uuid="26c3df4d-7523-4872-a275-420c3c95abd7"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[Notes /შენიშვნები]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="37" width="555" height="27" uuid="e982e5d5-ab65-4930-addf-b048ca6da61e"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[(1)   The animals shall be exported within 3 months after acquired immunity following the vaccination of Foot and Mouth Disease/ ცხოველები ექსპორტირებულ იქნებიან თურქულის საწინააღმდეგო ვაქცინაციიდან 3 თვის განმავლობაში]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="93" width="555" height="20" uuid="c4bd8dbb-2f60-4c33-9c3b-9648fd610358"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[უფლებამოსილი პირი (ვეტერინარი) / Official Veterinarian]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="140" width="277" height="20" uuid="6f8ada2f-6d66-43dc-b219-29f4c451f299"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სახელი / Name (in capitals) :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="277" y="140" width="278" height="20" uuid="63c87432-b164-47c3-a075-0cd605a97cc3"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[კვალიფიკაცია და თანამდებობა / Qualification and title :]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="160" width="277" height="42" uuid="98217e5f-68dc-4c5d-a100-251e5d68edfc"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{user_to_sign}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="277" y="160" width="278" height="42" uuid="d9156327-5276-4d11-8723-5dd5b404fdf6"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="222" width="277" height="42" uuid="d5385f02-e966-4302-b25a-78176a8406cb"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="277" y="222" width="278" height="42" uuid="edc7edd1-2d6b-436c-abbf-73374d9da4eb"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<staticText>
+				<reportElement x="277" y="202" width="278" height="20" uuid="96af5bff-73b5-473d-8fe5-0bfa3d92ff5b"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ხელმოწერა / Signature :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="202" width="277" height="20" uuid="24538f80-c50a-402c-af19-41761d18ba6d"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[თარიღი / Date :]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="264" width="555" height="23" uuid="c28d04ea-89ec-4503-b39f-145aae3cdf36"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ბეჭედი / Stamp :]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="113" width="555" height="27" uuid="5be8a4e9-d85f-4ab9-bbf4-5d3d7da672f0"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="287" width="555" height="60" uuid="8ae1a097-3f09-4b85-9530-c19275dcd2b2"/>
+				<box topPadding="2" leftPadding="2" bottomPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+			</textField>
+			<staticText>
+				<reportElement x="63" y="356" width="433" height="15" uuid="568bfbc1-8551-4b10-9f1b-694dd7f96b0b"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[გვერდი / Page / Sayfa 5 / 5]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="18" y="222" width="29" height="12" uuid="4db59921-d990-46c5-9a41-ce0fdc24f605"/>
+				<box leftPadding="0">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dd}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="51" y="222" width="77" height="12" uuid="3973fa90-b48b-41bd-b2b7-2127f2dbccbf"/>
+				<box leftPadding="0">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{mm}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="133" y="222" width="40" height="12" uuid="a2a31720-98f1-407a-9904-b3b8cef1e2b5"/>
+				<box leftPadding="0">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{yyyy}]]></textFieldExpression>
+			</textField>
+			<break>
+				<reportElement x="0" y="362" width="100" height="1" uuid="d8b32baa-33fa-4866-a53d-40485f32736c"/>
+			</break>
+			<staticText>
+				<reportElement x="537" y="356" width="18" height="15" uuid="de1f5d4d-2a8c-485b-94f6-94a30ee07627"/>
+				<textElement textAlignment="Right" markup="none">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[5]]></text>
+			</staticText>
+		</band>
+	</detail>
+	<noData>
+		<band height="50"/>
+	</noData>
+</jasperReport>

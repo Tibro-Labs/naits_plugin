@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="EC_wrapper" language="groovy" pageWidth="595" pageHeight="842" whenNoDataType="NoDataSection" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="9cb582ee-4d85-438c-90c9-70842f753d3b">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.String"/>
+	<parameter name="path" class="java.lang.String"/>
+	<parameter name="USER_ID" class="java.lang.Integer"/>
+	<queryString>
+		<![CDATA[-- EC3 = '88990000'
+-- EC1 = '223305001'
+SELECT distinct
+--vexport_cert.exp_certificate_id,
+vexport_cert.imp_country
+--naits.translateCodeValue(vexport_cert.imp_country, 'COUNTRIES', 'en_US') imp_country_txt
+FROM
+naits.vexport_cert vexport_cert
+where
+now() between vexport_cert.dt_insert and vexport_cert.dt_delete
+and vexport_cert.exp_certificate_id = $P{OBJ_ID}]]>
+	</queryString>
+	<field name="imp_country" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="5" splitType="Stretch">
+			<printWhenExpression><![CDATA[($F{imp_country} != 'SA') &&
+($F{imp_country} != 'KW') &&
+($F{imp_country} != 'AM') &&
+($F{imp_country} != 'BY') &&
+($F{imp_country} != 'KZ') &&
+($F{imp_country} != 'KG') &&
+($F{imp_country} != 'RU') &&
+(1==1)]]></printWhenExpression>
+			<subreport>
+				<reportElement uuid="c2f2829b-731f-45f4-b8bb-98b77c47b2bd" x="0" y="0" width="86" height="5"/>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="USER_ID">
+					<subreportParameterExpression><![CDATA[$P{USER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "EC_main.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="5">
+			<printWhenExpression><![CDATA[$F{imp_country} == 'SA']]></printWhenExpression>
+			<subreport>
+				<reportElement uuid="75d392eb-bdae-42f4-8a8f-6338880ec395" x="0" y="0" width="86" height="5"/>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="USER_ID">
+					<subreportParameterExpression><![CDATA[$P{USER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "EC2_main.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="5">
+			<printWhenExpression><![CDATA[($F{imp_country} == 'AM') ||
+($F{imp_country} == 'BY') ||
+($F{imp_country} == 'KZ') ||
+($F{imp_country} == 'KG') ||
+($F{imp_country} == 'RU')]]></printWhenExpression>
+			<subreport>
+				<reportElement uuid="e76f698d-e697-4372-bac2-770208a406f7" x="0" y="0" width="86" height="5"/>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="USER_ID">
+					<subreportParameterExpression><![CDATA[$P{USER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "EC3_main.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="5">
+			<printWhenExpression><![CDATA[$F{imp_country} == 'KW']]></printWhenExpression>
+			<subreport>
+				<reportElement uuid="0151ac1e-3a84-4675-a7d9-91ff77f95822" x="0" y="0" width="86" height="5"/>
+				<subreportParameter name="SUBREPORT_DIR">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="USER_ID">
+					<subreportParameterExpression><![CDATA[$P{USER_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "EC4_main.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+	<noData>
+		<band height="39">
+			<staticText>
+				<reportElement uuid="f203b5ad-0459-4b49-9466-f9a6c25a378d" x="19" y="2" width="555" height="17"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="11" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Export certificates (4 in 1) version 0.01. Report has no data.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="4db40dee-6291-4a29-beae-e4f195844f38" x="19" y="19" width="112" height="17"/>
+				<textElement textAlignment="Center">
+					<font fontName="DejaVu Sans" size="11" isBold="false"/>
+				</textElement>
+				<text><![CDATA[Input parameters:]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="8f74da4d-b305-4df9-9def-8ba8229ab8f2" x="131" y="18" width="443" height="18"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0"/>
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font fontName="DejaVu Sans" size="11"/>
+				</textElement>
+				<textFieldExpression><![CDATA["object(cert.id): " + $P{OBJ_ID}+"; user id: " + $P{USER_ID}]]></textFieldExpression>
+			</textField>
+		</band>
+	</noData>
+</jasperReport>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="disease_found" language="groovy" pageWidth="142" pageHeight="842" columnWidth="142" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="5c6c3ca0-8f2e-494c-9c75-324c20cb7bc5">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select naits.translateCodeValue(vd.disease_name,'DISEASE_NAME','en_US')disease
+from naits.vsvarog_link vsl join naits.vdisease vd on vsl.link_obj_id_1=vd.object_id
+where now() between vd.dt_insert and vd.dt_delete
+and now() between vsl.dt_insert and vsl.dt_delete
+and link_obj_id_2=$P{OBJ_ID}]]>
+	</queryString>
+	<field name="disease" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="15" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="c5912fd4-064f-4111-bbd3-57d8471181bc" x="0" y="0" width="141" height="15"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Diseases found:]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField>
+				<reportElement uuid="fc009239-2cc5-4cd3-aa65-fbc35b88bc4f" x="0" y="0" width="141" height="15"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{disease}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

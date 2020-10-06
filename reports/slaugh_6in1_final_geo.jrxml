@@ -1,0 +1,1021 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="slaugh_final" language="groovy" pageWidth="521" pageHeight="840" columnWidth="501" leftMargin="10" rightMargin="10" topMargin="10" bottomMargin="10" uuid="b506392e-717e-497a-b110-b7e56e395029">
+	<property name="ireport.zoom" value="1.1269722013523664"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="298"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[/*2520068*/
+select distinct
+	va.animal_id,
+	va.old_animal_id,
+	(date_part('year', now()) - date_part('year', va.birth_date))animal_age,
+	now()::date - va.birth_date::date animal_day_diff,
+	case when va.country_old_id is NULL
+	 then 'GE'
+	 else case when ((now()::date - va.birth_date::date) <= 30)
+	  then concat(country_old_id, ' ', old_animal_id)
+	  else concat(country_old_id, ' ', old_animal_id, ', GE ', animal_id)
+	 end
+	end as ids,
+	naits.translateCodeValue(va.animal_class,'ANIMAL_CLASS','en_US')animal_breed,
+	va.country_old_id,
+	va.country,
+	va.birth_date,
+	va.registration_date,
+	/*vsf.slaughter_date,*/
+		'__:'||to_char(COALESCE(vsf.manufacture_date,vsf.slaughter_date,va.death_date),'DD')||'/'||to_char(vsf.slaughter_date,'MM') as slaughter_date,
+	'__:'||(extract(day from (COALESCE(vsf.manufacture_date,vsf.slaughter_date,va.death_date)+ interval '2' day)))||'/'||to_char(vsf.slaughter_date,'MM') as shelf_life,
+
+
+	vhr.full_name,
+	vh.name,
+	vh.approval_num
+from
+	naits.vanimal va
+	join naits.vpost_slaught_form vsf on vsf.parent_id = va.object_id
+	left join naits.vholding vh on (
+		va.parent_id=vh.object_id
+		and now() between vh.dt_insert and vh.dt_delete)
+	left join naits.vsvarog_link vsl on (
+		vsl.link_obj_id_1=vh.object_id
+		and now() between vsl.dt_insert and vsl.dt_delete)
+	left join naits.vholding_responsible vhr on (
+		vsl.link_obj_id_2=vhr.object_id
+		and now() between vhr.dt_insert and vhr.dt_delete)
+	left join naits.vsvarog_link_type vlt on (
+		vsl.link_type_id = vlt.object_id
+		and now() between vlt.dt_insert and vlt.dt_delete
+		and vlt.link_type='HOLDING_KEEPER')
+where now() between va.dt_insert and va.dt_delete
+		and now() between vsf.dt_insert and vsf.dt_delete
+		and (va.status='POSTMORTEM' OR va.status='SLAUGHTRD')
+		and va.object_id=$P{OBJ_ID};]]>
+	</queryString>
+	<field name="animal_id" class="java.lang.String"/>
+	<field name="old_animal_id" class="java.lang.String"/>
+	<field name="animal_age" class="java.lang.Double"/>
+	<field name="animal_day_diff" class="java.lang.Integer"/>
+	<field name="ids" class="java.lang.String"/>
+	<field name="animal_breed" class="java.lang.String"/>
+	<field name="country_old_id" class="java.lang.String"/>
+	<field name="country" class="java.lang.String"/>
+	<field name="birth_date" class="java.sql.Date"/>
+	<field name="registration_date" class="java.sql.Date"/>
+	<field name="slaughter_date" class="java.lang.String"/>
+	<field name="shelf_life" class="java.lang.String"/>
+	<field name="full_name" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="approval_num" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="820" splitType="Stretch">
+			<textField>
+				<reportElement mode="Opaque" x="0" y="69" width="249" height="23" backcolor="#FFFFFF" uuid="98ebf10f-8b69-48ed-b428-b4283fe0d959"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["პირუტყვის საყურე #: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="0" y="0" width="249" height="23" backcolor="#FFFFFF" uuid="b98b5303-a80e-4144-959c-337da7b8d47c"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სურსათის დასახელება: " + (($F{animal_breed}) == "Sheep" ? "ცხვარის ხორრცი" : ($F{animal_breed}) == "Pig" ? "ღორის ხორცი" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"საქონლის ხორცი": "ხბოს ხორცი") : "N/A")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="92" width="87" height="23" backcolor="#FFFFFF" uuid="c3a5640b-3181-46e4-b1b1-f7e13f758aef"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[დაბადების ადგილი: ]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="87" y="92" width="162" height="23" backcolor="#FFFFFF" uuid="3791db01-49dd-4512-8052-ba25a3936e22"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="115" width="249" height="23" backcolor="#FFFFFF" uuid="d2c6e760-e4ac-47c4-8105-d52eafe2a002"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გაზრდის ადგილი: " + $F{ids}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="138" width="249" height="23" backcolor="#FFFFFF" uuid="74470be2-25b0-4344-adc1-28e490d3847e"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დაკვლის ადგილი: GE"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="184" width="249" height="22" backcolor="#FFFFFF" uuid="859e4499-d710-4795-a3b2-87635c20dacb"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ფორმა #2: __________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="206" width="249" height="22" backcolor="#FFFFFF" uuid="c6f049e3-fe87-496b-9298-5417aa40ee2f"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სუფთა წონა: _________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="228" width="249" height="21" backcolor="#FFFFFF" uuid="79d0d6b1-b89d-42c5-b0e8-fbc38b96a280"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[შენახვის პირობები: მაქს. ტემპერატურა +6 C° ]]></text>
+			</staticText>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement mode="Opaque" x="0" y="161" width="249" height="23" backcolor="#FFFFFF" uuid="44dbbea6-521b-42a4-addf-289bba4ac8f5"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დამზადების თარიღი.: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="23" width="249" height="23" backcolor="#FFFFFF" uuid="493fbc61-edff-4a1c-a89c-6934c526f07e"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორის დასახელება: " + (($F{full_name}) != null ? $F{full_name} : $F{name})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="46" width="249" height="23" backcolor="#FFFFFF" uuid="285c1063-0da7-4c70-bbf3-eed6baeda18d"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორი აღიარების კოდით #: " + $F{approval_num}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement mode="Opaque" x="0" y="249" width="249" height="23" backcolor="#FFFFFF" uuid="264cc6e2-c562-4365-a5a7-e3cf1e65999c"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გამოიყენება: " + $F{shelf_life} + "-მდე"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="366" width="87" height="23" backcolor="#FFFFFF" uuid="a6f4429d-1872-4c54-9d6a-efda47adeba9"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[დაბადების ადგილი: ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="458" width="249" height="22" backcolor="#FFFFFF" uuid="9f677035-8ffa-4f07-a5c9-d9ccca83174b"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ფორმა #2: __________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="87" y="366" width="162" height="23" backcolor="#FFFFFF" uuid="41ca9d59-2145-47f4-b008-3e2fd868ca8e"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="343" width="249" height="23" backcolor="#FFFFFF" uuid="27ead831-c0fe-4960-afbb-2327d1d8ba7b"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["პირუტყვის საყურე #: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="297" width="249" height="23" backcolor="#FFFFFF" uuid="994f1ea7-227d-4b2c-b8c7-34c399b9fc1b"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორის დასახელება: " + (($F{full_name}) != null ? $F{full_name} : $F{name})]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement mode="Opaque" x="0" y="435" width="249" height="23" backcolor="#FFFFFF" uuid="6432add3-ad56-4786-9ecd-000a1319a6fe"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დამზადების თარიღი.: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="389" width="249" height="23" backcolor="#FFFFFF" uuid="571d7fc7-0569-47a5-b337-3687f9b16924"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გაზრდის ადგილი: " + $F{ids}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement mode="Opaque" x="0" y="523" width="249" height="22" backcolor="#FFFFFF" uuid="2a24d03b-f891-4814-b576-5bd910432901"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გამოიყენება: " + $F{shelf_life} + "-მდე"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="502" width="249" height="21" backcolor="#FFFFFF" uuid="046a0e14-7717-4d84-83f7-319a220e6de9"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[შენახვის პირობები: მაქს. ტემპერატურა +6 C° ]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="412" width="249" height="23" backcolor="#FFFFFF" uuid="60b88af4-6078-41cf-bc11-3bcc53797cc9"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დაკვლის ადგილი: GE"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="320" width="249" height="23" backcolor="#FFFFFF" uuid="45a18f7c-2108-46cb-971d-6b6e9e2a7194"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორი აღიარების კოდით #: " + $F{approval_num}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="480" width="249" height="22" backcolor="#FFFFFF" uuid="786e5b17-8dd7-44ca-b6b2-0c6804203e57"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სუფთა წონა: _________________]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="0" y="274" width="249" height="23" backcolor="#FFFFFF" uuid="93938b48-ae8d-41e2-a0c5-eafb21526efa"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სურსათის დასახელება: " + (($F{animal_breed}) == "Sheep" ? "ცხვარის ხორრცი" : ($F{animal_breed}) == "Pig" ? "ღორის ხორცი" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"საქონლის ხორცი": "ხბოს ხორცი") : "N/A")]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="0" y="547" width="249" height="23" backcolor="#FFFFFF" uuid="ffaaa464-2165-41de-8979-d7a8528321cf"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სურსათის დასახელება: " + (($F{animal_breed}) == "Sheep" ? "ცხვარის ხორრცი" : ($F{animal_breed}) == "Pig" ? "ღორის ხორცი" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"საქონლის ხორცი": "ხბოს ხორცი") : "N/A")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="753" width="249" height="22" backcolor="#FFFFFF" uuid="163928d2-c3ac-4c86-b8d8-57ee66382764"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სუფთა წონა: _________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="593" width="249" height="23" backcolor="#FFFFFF" uuid="7e222bef-7320-408c-ae43-16506e6ffdaf"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორი აღიარების კოდით #: " + $F{approval_num}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="639" width="87" height="23" backcolor="#FFFFFF" uuid="e67a3d1e-7ad9-4df0-a0a1-e1ccd07465b4"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[დაბადების ადგილი: ]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="662" width="249" height="23" backcolor="#FFFFFF" uuid="473b49dd-5185-495a-b90f-0ad3df313de8"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გაზრდის ადგილი: " + $F{ids}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement mode="Opaque" x="0" y="708" width="249" height="23" backcolor="#FFFFFF" uuid="c17882d0-72a0-45f0-a149-9bc07400b0dc"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დამზადების თარიღი.: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="570" width="249" height="23" backcolor="#FFFFFF" uuid="3a27dd15-e72d-4fca-a4f2-3ea19c8681e0"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორის დასახელება: " + (($F{full_name}) != null ? $F{full_name} : $F{name})]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="731" width="249" height="22" backcolor="#FFFFFF" uuid="bcf1d4f3-5429-47d7-aa76-68becd5d476e"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ფორმა #2: __________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="0" y="775" width="249" height="21" backcolor="#FFFFFF" uuid="3c264ba0-7ebc-435a-bcc8-811303c58199"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[შენახვის პირობები: მაქს. ტემპერატურა +6 C° ]]></text>
+			</staticText>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement mode="Opaque" x="0" y="796" width="249" height="23" backcolor="#FFFFFF" uuid="947990af-079e-4164-9d62-e1d6a3302727"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გამოიყენება: " + $F{shelf_life} + "-მდე"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="87" y="639" width="162" height="23" backcolor="#FFFFFF" uuid="4ef9b87e-d095-4812-8030-4e4c37f04707"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="616" width="249" height="23" backcolor="#FFFFFF" uuid="4bcff2bb-2227-4f1d-b713-18951f1ddca7"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["პირუტყვის საყურე #: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="0" y="685" width="249" height="23" backcolor="#FFFFFF" uuid="2e5bb0c5-384e-41ab-a29c-c8b855d7a104"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დაკვლის ადგილი: GE"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="252" y="92" width="87" height="23" backcolor="#FFFFFF" uuid="69616bc9-074a-4ec8-ac75-f41b60bb0a59"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[დაბადების ადგილი: ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="252" y="184" width="249" height="22" backcolor="#FFFFFF" uuid="03da7216-d360-4d11-a98c-14b27511ce02"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ფორმა #2: __________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement mode="Opaque" x="252" y="775" width="249" height="21" backcolor="#FFFFFF" uuid="2acca2aa-62a2-4b74-ba75-ce74e43b3394"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[შენახვის პირობები: მაქს. ტემპერატურა +6 C° ]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="389" width="249" height="23" backcolor="#FFFFFF" uuid="e84ec21c-679f-4d41-91ef-86482b8ea138"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გაზრდის ადგილი: " + $F{ids}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="69" width="249" height="23" backcolor="#FFFFFF" uuid="632c45ec-9edf-4ee2-80d3-16b73e171a1e"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["პირუტყვის საყურე #: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement mode="Opaque" x="252" y="435" width="249" height="23" backcolor="#FFFFFF" uuid="a977c238-a9fd-4907-aa63-c390f12e190f"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დამზადების თარიღი.: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement mode="Opaque" x="252" y="708" width="249" height="23" backcolor="#FFFFFF" uuid="7471a24c-5ead-4546-8253-e9160a5d024f"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დამზადების თარიღი.: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="297" width="249" height="23" backcolor="#FFFFFF" uuid="809b0e51-680e-4576-858d-6e20b0e5fb53"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორის დასახელება: " + (($F{full_name}) != null ? $F{full_name} : $F{name})]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="252" y="458" width="249" height="22" backcolor="#FFFFFF" uuid="5276274a-80f3-4bdd-9864-fbc0b8f5574e"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ფორმა #2: __________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="23" width="249" height="23" backcolor="#FFFFFF" uuid="eed0bde9-9a96-41cf-ad33-52026132028e"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორის დასახელება: " + (($F{full_name}) != null ? $F{full_name} : $F{name})]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="115" width="249" height="23" backcolor="#FFFFFF" uuid="39d40cb4-12d2-4c42-9f87-c3da6c1d296c"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გაზრდის ადგილი: " + $F{ids}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="252" y="502" width="249" height="21" backcolor="#FFFFFF" uuid="6e7ae61e-70b1-469a-84f9-d47882ddbe8a"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[შენახვის პირობები: მაქს. ტემპერატურა +6 C° ]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="570" width="249" height="23" backcolor="#FFFFFF" uuid="8feb2cd2-f2fb-4a59-849e-7ecd08b89f11"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორის დასახელება: " + (($F{full_name}) != null ? $F{full_name} : $F{name})]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="252" y="731" width="249" height="22" backcolor="#FFFFFF" uuid="f9f008fa-ef11-4ed8-806c-167fd1e08410"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ფორმა #2: __________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="662" width="249" height="23" backcolor="#FFFFFF" uuid="882111db-d0ca-41e1-a95c-8d22a37f52c7"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გაზრდის ადგილი: " + $F{ids}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="252" y="228" width="249" height="21" backcolor="#FFFFFF" uuid="d521cd7d-91fc-4ef3-9816-5662ec62fca6"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[შენახვის პირობები: მაქს. ტემპერატურა +6 C° ]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="343" width="249" height="23" backcolor="#FFFFFF" uuid="526e4e25-2fc2-4993-8c0a-05b11ba4ed79"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["პირუტყვის საყურე #: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="252" y="753" width="249" height="22" backcolor="#FFFFFF" uuid="69e91fe4-c6a7-40d5-9045-774978b1b5ba"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სუფთა წონა: _________________]]></text>
+			</staticText>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement mode="Opaque" x="252" y="796" width="249" height="23" backcolor="#FFFFFF" uuid="ea93cb2e-8ce1-4c61-beac-8f1a46d6cc48"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გამოიყენება: " + $F{shelf_life} + "-მდე"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="412" width="249" height="23" backcolor="#FFFFFF" uuid="0c832d5f-5d5c-4ef7-bcd0-b8dd8e1ccc89"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დაკვლის ადგილი: GE"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="252" y="0" width="249" height="23" backcolor="#FFFFFF" uuid="67f85ce0-0c56-4aad-be35-1ad22ec42712"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სურსათის დასახელება: " + (($F{animal_breed}) == "Sheep" ? "ცხვარის ხორრცი" : ($F{animal_breed}) == "Pig" ? "ღორის ხორცი" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"საქონლის ხორცი": "ხბოს ხორცი") : "N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="685" width="249" height="23" backcolor="#FFFFFF" uuid="68f50886-4fff-43a9-9f51-31622e1ffb6d"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დაკვლის ადგილი: GE"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="252" y="547" width="249" height="23" backcolor="#FFFFFF" uuid="90bd621a-c6cd-47c4-804b-4899f70822dd"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სურსათის დასახელება: " + (($F{animal_breed}) == "Sheep" ? "ცხვარის ხორრცი" : ($F{animal_breed}) == "Pig" ? "ღორის ხორცი" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"საქონლის ხორცი": "ხბოს ხორცი") : "N/A")]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement mode="Opaque" x="252" y="274" width="249" height="23" backcolor="#FFFFFF" uuid="b84f95e2-df79-49a5-9bf7-6fbfb5f6f17e"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სურსათის დასახელება: " + (($F{animal_breed}) == "Sheep" ? "ცხვარის ხორრცი" : ($F{animal_breed}) == "Pig" ? "ღორის ხორცი" : ($F{animal_breed}) == "Cattle" ? (($F{animal_age}) >= 1 ?"საქონლის ხორცი": "ხბოს ხორცი") : "N/A")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="252" y="480" width="249" height="22" backcolor="#FFFFFF" uuid="1ae4f531-89a9-4b5b-a435-8b1df8413a2d"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სუფთა წონა: _________________]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="320" width="249" height="23" backcolor="#FFFFFF" uuid="0db40e6e-cb96-4758-99ee-fe24d135fe2c"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორი აღიარების კოდით #: " + $F{approval_num}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="339" y="92" width="162" height="23" backcolor="#FFFFFF" uuid="a56fd20c-e3df-4213-b541-210f94bcaf58"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="252" y="366" width="87" height="23" backcolor="#FFFFFF" uuid="86b18a52-0bef-4214-accb-e84455f886a8"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[დაბადების ადგილი: ]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="616" width="249" height="23" backcolor="#FFFFFF" uuid="927bcd17-3779-463c-a273-27ba933a5cd5"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["პირუტყვის საყურე #: " + $F{animal_id}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="339" y="639" width="162" height="23" backcolor="#FFFFFF" uuid="c7038c63-ab4e-46e4-905e-4d9cb04c6649"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="252" y="639" width="87" height="23" backcolor="#FFFFFF" uuid="027eb630-3ce0-4365-a8a2-9e6097be8984"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+					<rightPen lineWidth="0.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[დაბადების ადგილი: ]]></text>
+			</staticText>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="593" width="249" height="23" backcolor="#FFFFFF" uuid="9730a59f-98ce-4ccf-84e7-f7c60f277910"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორი აღიარების კოდით #: " + $F{approval_num}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement mode="Opaque" x="252" y="161" width="249" height="23" backcolor="#FFFFFF" uuid="246f32aa-2e26-4904-b05c-c887780f9cb5"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დამზადების თარიღი.: " + $F{slaughter_date}]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement mode="Opaque" x="252" y="523" width="249" height="22" backcolor="#FFFFFF" uuid="6c40e6db-7cc0-43e9-aba2-8b3e483023b9"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გამოიყენება: " + $F{shelf_life} + "-მდე"]]></textFieldExpression>
+			</textField>
+			<textField pattern="yyyy-MM-dd">
+				<reportElement mode="Opaque" x="252" y="249" width="249" height="23" backcolor="#FFFFFF" uuid="b284f3e5-eab6-4d5c-beeb-1ae43f70e2e6"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.5" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["გამოიყენება: " + $F{shelf_life} + "-მდე"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="339" y="366" width="162" height="23" backcolor="#FFFFFF" uuid="dd9c1570-f3f8-40e6-a0e9-9a0ef5a89ff3"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<leftPen lineWidth="0.0"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[($F{old_animal_id}) != null ? ($F{country} + ", " + $F{country_old_id}):$F{country}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="138" width="249" height="23" backcolor="#FFFFFF" uuid="2d2330ac-dc41-4016-888b-5e09439908e1"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დაკვლის ადგილი: GE"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="252" y="46" width="249" height="23" backcolor="#FFFFFF" uuid="dcc8875d-32a1-4b92-8c83-8c079e16c50d"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ბიზნესოპერატორი აღიარების კოდით #: " + $F{approval_num}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement mode="Opaque" x="252" y="206" width="249" height="22" backcolor="#FFFFFF" uuid="5d4200dc-0c19-478a-b1f6-3344d8d7f545"/>
+				<box topPadding="2" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.0" lineColor="#FF9999"/>
+					<bottomPen lineWidth="0.0" lineColor="#FF9999"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სუფთა წონა: _________________]]></text>
+			</staticText>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="quarantine_blacklist" language="groovy" pageWidth="595" pageHeight="842" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="ab4ea2db-3f02-40a6-b632-fee2d3ccdc38">
+	<property name="ireport.zoom" value="1.0881456789507433"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select count(*) as BROJ from naits.vsvarog_link vsl join naits.vquarantine vq on vsl.link_obj_id_2=vq.object_id join naits.vdisease vd on vsl.link_obj_id_1=vd.object_id
+where  now() between vq.dt_insert and vq.dt_delete
+and now() between vsl.dt_insert and vsl.dt_delete
+and now() between vd.dt_insert and vd.dt_delete
+and vq.object_id=$P{OBJ_ID}]]>
+	</queryString>
+	<field name="broj" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<subreport>
+				<reportElement uuid="7a73dcd4-253a-49d5-87fc-d7892eb39767" x="0" y="0" width="595" height="10"/>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "blacklist_disease.jasper"]]></subreportExpression>
+			</subreport>
+			<subreport>
+				<reportElement uuid="6d583e0a-1ea0-46f8-9024-a8ac9f39a817" x="0" y="10" width="595" height="10">
+					<printWhenExpression><![CDATA[$F{broj} < 1]]></printWhenExpression>
+				</reportElement>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "blacklist_nondisease.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="quarantine_export" language="groovy" pageWidth="575" pageHeight="802" columnWidth="575" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="914fa840-5320-48b2-af12-78beba761894">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/daut/Desktop/iReports 22/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select count(*) as BROJ from naits.vsvarog_link vsl
+join naits.vanimal va on va.object_id=vsl.link_obj_id_1
+join naits.vexport_cert vec on vec.object_id=vsl.link_obj_id_2
+where  now() between vec.dt_insert and vec.dt_delete
+and now() between va.dt_insert and va.dt_delete
+and now() between vsl.dt_insert and vsl.dt_delete
+and vec.parent_id=$P{OBJ_ID}]]>
+	</queryString>
+	<field name="broj" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="60">
+			<textField>
+				<reportElement uuid="ad7d6fc9-9732-47cb-b121-45e227db960e" x="0" y="16" width="152" height="15"/>
+				<box topPadding="2" leftPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Number of certified animals: "]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement uuid="2e572580-125a-4346-9de4-bb611a95fc81" x="0" y="31" width="216" height="20"/>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "count_certificate.jasper"]]></subreportExpression>
+			</subreport>
+			<textField>
+				<reportElement uuid="142d479c-a2f4-4773-91bf-e2bf09ccec32" x="152" y="16" width="45" height="15"/>
+				<box topPadding="2" leftPadding="4">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{broj}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<detail>
+		<band height="25">
+			<subreport>
+				<reportElement uuid="d6e253bd-4350-434d-9b00-77d1df227e3e" x="0" y="0" width="575" height="20"/>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "export_cert_info.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="15" splitType="Stretch">
+			<subreport>
+				<reportElement uuid="0fca2b0d-11f6-4743-9792-3b3d59d6299c" x="0" y="0" width="575" height="10"/>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "quarantine_animal_activity.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="15">
+			<subreport>
+				<reportElement uuid="f2eb886e-0110-4d60-894b-b04f044b16d1" x="0" y="0" width="575" height="10"/>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "quarantine_animal_origin.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="20">
+			<subreport>
+				<reportElement uuid="68fce3d3-377a-443f-93fc-669ded1b3f1a" x="0" y="0" width="575" height="20"/>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "quarantine_cert_animals.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</detail>
+</jasperReport>
