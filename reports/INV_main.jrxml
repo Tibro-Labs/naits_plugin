@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AS_main" language="groovy" pageWidth="792" pageHeight="612" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryWithPageHeaderAndFooter="true" uuid="242dcb76-a031-467a-a173-dad46531f42c">
-	<property name="ireport.zoom" value="3.0"/>
-	<property name="ireport.x" value="1188"/>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="INV_main" language="groovy" pageWidth="792" pageHeight="612" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryWithPageHeaderAndFooter="true" uuid="242dcb76-a031-467a-a173-dad46531f42c">
+	<property name="ireport.zoom" value="1.2722928551174544"/>
+	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<parameter name="path" class="java.lang.String">
 		<property name="/Users/DmitrijsRassohins/Documents/_FAO/ireports" value=""/>
 		<defaultValueExpression><![CDATA["/home/ristepejov/projects/NAITS2018/Release1/AFR05/"]]></defaultValueExpression>
 	</parameter>
-	<parameter name="user_name" class="java.lang.String"/>
+	<parameter name="USER_NAME" class="java.lang.String"/>
 	<parameter name="fromdate" class="java.lang.String"/>
 	<parameter name="todate" class="java.lang.String"/>
 	<parameter name="terr_code" class="java.lang.String"/>
@@ -15,7 +15,7 @@
 		<![CDATA[select
   (select concat(last_name, ' ', first_name) spname
    from naits.vsvarog_users vu
-   where vu.user_name = $P{user_name}
+   where vu.USER_NAME = $P{USER_NAME}
   	and now() between vu.dt_insert and vu.dt_delete) as spname,
   to_date($P{fromdate}, 'DD.MM.YYYY') as fromdate,
   to_date($P{todate}, 'DD.MM.YYYY') as todate,
@@ -49,24 +49,24 @@ where
 		<band splitType="Stretch"/>
 	</background>
 	<title>
-		<band height="60" splitType="Stretch">
+		<band height="70" splitType="Stretch">
 			<staticText>
-				<reportElement x="180" y="0" width="409" height="20" uuid="05ead065-1608-4280-973f-80ad662e712f"/>
+				<reportElement x="0" y="0" width="703" height="20" uuid="05ead065-1608-4280-973f-80ad662e712f"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="14" isBold="true"/>
 				</textElement>
-				<text><![CDATA[ACTIVITY REPORT and INVOICE]]></text>
+				<text><![CDATA[აქტივობების საერთო ანგარიში / SUMMARY ACTIVITY REPORT]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="0" y="21" width="77" height="15" forecolor="#0099CC" uuid="2e1cf9a9-e84b-443a-a1b5-56707aa11ad8"/>
+				<reportElement x="0" y="21" width="131" height="14" forecolor="#0099CC" uuid="2e1cf9a9-e84b-443a-a1b5-56707aa11ad8"/>
 				<box leftPadding="2" rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Name of SP]]></text>
+				<text><![CDATA[მომხმარებელი / Name of SP]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="77" y="21" width="169" height="15" forecolor="#000000" uuid="4b7cb097-d709-49ac-9cfc-1393add49b48"/>
+				<reportElement x="131" y="21" width="169" height="15" forecolor="#000000" uuid="4b7cb097-d709-49ac-9cfc-1393add49b48"/>
 				<box>
 					<bottomPen lineWidth="1.0"/>
 				</box>
@@ -80,10 +80,10 @@ where
 				<textElement textAlignment="Right" verticalAlignment="Bottom">
 					<font fontName="DejaVu Sans" size="6"/>
 				</textElement>
-				<text><![CDATA[v.1.02]]></text>
+				<text><![CDATA[v.4.0]]></text>
 			</staticText>
-			<textField pattern="dd MMMMM yyyy" isBlankWhenNull="true">
-				<reportElement x="77" y="36" width="103" height="15" forecolor="#000000" uuid="9e3afdb6-25c9-43aa-a7d0-dea1b9bbb7dc"/>
+			<textField pattern="d/M/yyyy" isBlankWhenNull="true">
+				<reportElement x="290" y="55" width="90" height="15" forecolor="#000000" uuid="9e3afdb6-25c9-43aa-a7d0-dea1b9bbb7dc"/>
 				<box>
 					<bottomPen lineWidth="1.0"/>
 				</box>
@@ -93,23 +93,23 @@ where
 				<textFieldExpression><![CDATA[$F{fromdate}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="0" y="36" width="77" height="15" forecolor="#0099CC" uuid="0e33caea-f554-4831-b13a-1dd1921ffb3d"/>
+				<reportElement x="213" y="55" width="77" height="15" forecolor="#0099CC" uuid="0e33caea-f554-4831-b13a-1dd1921ffb3d"/>
 				<box leftPadding="2" rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Period of report]]></text>
+				<text><![CDATA[პერიოდი / Period of report]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="180" y="36" width="21" height="15" forecolor="#0099CC" uuid="1fa11b80-ee51-4861-9593-e73e6ed2460e"/>
+				<reportElement x="380" y="55" width="76" height="15" forecolor="#0099CC" uuid="1fa11b80-ee51-4861-9593-e73e6ed2460e"/>
 				<box leftPadding="2" rightPadding="2"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[to]]></text>
+				<text><![CDATA[-დან(ჩათვ.) / to]]></text>
 			</staticText>
-			<textField pattern="dd MMMMM yyyy" isBlankWhenNull="true">
-				<reportElement x="201" y="36" width="103" height="15" forecolor="#000000" uuid="f29702de-7f24-4948-9b32-a08d1190b1de"/>
+			<textField pattern="d/M/yyyy" isBlankWhenNull="true">
+				<reportElement x="456" y="55" width="90" height="15" forecolor="#000000" uuid="f29702de-7f24-4948-9b32-a08d1190b1de"/>
 				<box>
 					<bottomPen lineWidth="1.0"/>
 				</box>
@@ -119,25 +119,25 @@ where
 				<textFieldExpression><![CDATA[$F{todate}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="295" y="20" width="146" height="15" forecolor="#000000" uuid="ea3da329-b3e9-430c-bec9-57800965faf9"/>
+				<reportElement x="131" y="36" width="169" height="15" forecolor="#000000" uuid="ea3da329-b3e9-430c-bec9-57800965faf9"/>
 				<box>
 					<bottomPen lineWidth="1.0"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8" isBold="false"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$P{user_name}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{USER_NAME}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="246" y="20" width="49" height="15" forecolor="#0099CC" uuid="3e19ad21-13f9-48be-847a-1f700f88eb2e"/>
+				<reportElement x="0" y="36" width="131" height="15" forecolor="#0099CC" uuid="3e19ad21-13f9-48be-847a-1f700f88eb2e"/>
 				<box leftPadding="2" rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[# of SP]]></text>
+				<text><![CDATA[მომხმარებლის სახელი / # of SP]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="565" y="20" width="187" height="15" forecolor="#000000" uuid="be204e5a-914a-41c0-831b-7509b54c9724"/>
+				<reportElement x="533" y="20" width="219" height="15" forecolor="#000000" uuid="be204e5a-914a-41c0-831b-7509b54c9724"/>
 				<box>
 					<bottomPen lineWidth="1.0"/>
 				</box>
@@ -146,23 +146,23 @@ where
 				</textElement>
 			</textField>
 			<staticText>
-				<reportElement x="441" y="20" width="124" height="15" forecolor="#0099CC" uuid="83685033-bb65-4e7d-b0d4-293a5e7e5395"/>
+				<reportElement x="383" y="21" width="150" height="15" forecolor="#0099CC" uuid="83685033-bb65-4e7d-b0d4-293a5e7e5395"/>
 				<box leftPadding="2" rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Address of SP]]></text>
+				<text><![CDATA[მომხმ. მისამართი / Address of SP]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="441" y="36" width="124" height="15" forecolor="#0099CC" uuid="bdc787dc-121e-46ff-b82c-c8af4bfc1b75"/>
+				<reportElement x="383" y="36" width="150" height="15" forecolor="#0099CC" uuid="bdc787dc-121e-46ff-b82c-c8af4bfc1b75"/>
 				<box leftPadding="2" rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[      Territory for service provision]]></text>
+				<text><![CDATA[    ტერიტორია / Territory for service provision]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="565" y="36" width="187" height="15" forecolor="#000000" uuid="40e2bc1a-f2e3-4db3-9311-be8c1a6ea27d"/>
+				<reportElement x="533" y="36" width="219" height="15" forecolor="#000000" uuid="40e2bc1a-f2e3-4db3-9311-be8c1a6ea27d"/>
 				<box>
 					<bottomPen lineWidth="1.0"/>
 				</box>
@@ -171,6 +171,14 @@ where
 				</textElement>
 				<textFieldExpression><![CDATA[$F{region} + ", " + ($F{munic} == null ? '*' : $F{munic}) + ", " + ($F{comm} == null ? '*' : $F{comm}) + ", " + ($F{vill} == null ? '*' : $F{vill})]]></textFieldExpression>
 			</textField>
+			<staticText>
+				<reportElement x="546" y="55" width="50" height="15" forecolor="#0099CC" uuid="5b2d3312-6882-4772-9243-5bb49224684d"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[-მდე(ჩათვ.)]]></text>
+			</staticText>
 		</band>
 	</title>
 	<pageHeader>
@@ -180,8 +188,8 @@ where
 		<band height="22" splitType="Stretch">
 			<subreport>
 				<reportElement x="0" y="0" width="752" height="22" uuid="df63550e-c3bd-4dae-b29a-bd77ea8fbf08"/>
-				<subreportParameter name="user_name">
-					<subreportParameterExpression><![CDATA[$P{user_name}]]></subreportParameterExpression>
+				<subreportParameter name="USER_NAME">
+					<subreportParameterExpression><![CDATA[$P{USER_NAME}]]></subreportParameterExpression>
 				</subreportParameter>
 				<subreportParameter name="path">
 					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
@@ -196,7 +204,139 @@ where
 					<subreportParameterExpression><![CDATA[$P{terr_code}]]></subreportParameterExpression>
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA[$P{path} + "INV_subreport1.jasper"]]></subreportExpression>
+				<subreportExpression><![CDATA[$P{path} + "INV1_subreport_spt.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="22">
+			<subreport>
+				<reportElement x="0" y="0" width="752" height="22" uuid="1df91ca8-8ca4-4069-85ab-46271910c637"/>
+				<subreportParameter name="USER_NAME">
+					<subreportParameterExpression><![CDATA[$P{USER_NAME}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="fromdate">
+					<subreportParameterExpression><![CDATA[$P{fromdate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="todate">
+					<subreportParameterExpression><![CDATA[$P{todate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="terr_code">
+					<subreportParameterExpression><![CDATA[$P{terr_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "INV1_subreport_reg.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="22">
+			<subreport>
+				<reportElement x="0" y="0" width="752" height="22" uuid="b4acb68c-0fce-4c3c-9700-5d093694feaf"/>
+				<subreportParameter name="USER_NAME">
+					<subreportParameterExpression><![CDATA[$P{USER_NAME}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="fromdate">
+					<subreportParameterExpression><![CDATA[$P{fromdate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="todate">
+					<subreportParameterExpression><![CDATA[$P{todate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="terr_code">
+					<subreportParameterExpression><![CDATA[$P{terr_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "INV1_subreport_vac.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="22">
+			<subreport>
+				<reportElement x="0" y="0" width="752" height="22" uuid="7f8020e0-7687-485b-8c2e-25cfaf70c422"/>
+				<subreportParameter name="USER_NAME">
+					<subreportParameterExpression><![CDATA[$P{USER_NAME}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="fromdate">
+					<subreportParameterExpression><![CDATA[$P{fromdate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="todate">
+					<subreportParameterExpression><![CDATA[$P{todate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="terr_code">
+					<subreportParameterExpression><![CDATA[$P{terr_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "INV1_subreport_prs.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="22">
+			<subreport>
+				<reportElement x="0" y="0" width="752" height="22" uuid="3cdb59e7-d42e-4d2e-afbb-84ebb582b1ef"/>
+				<subreportParameter name="USER_NAME">
+					<subreportParameterExpression><![CDATA[$P{USER_NAME}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="fromdate">
+					<subreportParameterExpression><![CDATA[$P{fromdate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="todate">
+					<subreportParameterExpression><![CDATA[$P{todate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="terr_code">
+					<subreportParameterExpression><![CDATA[$P{terr_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "INV1_subreport_anm.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="22">
+			<subreport>
+				<reportElement x="0" y="0" width="752" height="22" uuid="79ecbd42-7f13-4783-bdfc-85fc5b4ac62f"/>
+				<subreportParameter name="USER_NAME">
+					<subreportParameterExpression><![CDATA[$P{USER_NAME}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="fromdate">
+					<subreportParameterExpression><![CDATA[$P{fromdate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="todate">
+					<subreportParameterExpression><![CDATA[$P{todate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="terr_code">
+					<subreportParameterExpression><![CDATA[$P{terr_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "INV1_subreport_sts.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+		<band height="22">
+			<subreport>
+				<reportElement x="0" y="0" width="752" height="22" uuid="deae410c-fd55-495f-aa06-d7e9935ef4d0"/>
+				<subreportParameter name="USER_NAME">
+					<subreportParameterExpression><![CDATA[$P{USER_NAME}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="fromdate">
+					<subreportParameterExpression><![CDATA[$P{fromdate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="todate">
+					<subreportParameterExpression><![CDATA[$P{todate}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="terr_code">
+					<subreportParameterExpression><![CDATA[$P{terr_code}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "INV1_subreport_mov.jasper"]]></subreportExpression>
 			</subreport>
 		</band>
 	</detail>
@@ -204,6 +344,6 @@ where
 		<band/>
 	</pageFooter>
 	<lastPageFooter>
-		<band height="10"/>
+		<band height="5"/>
 	</lastPageFooter>
 </jasperReport>

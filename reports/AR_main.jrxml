@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AR_main" language="groovy" pageWidth="700" pageHeight="990" columnWidth="660" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="242dcb76-a031-467a-a173-dad46531f42c">
-	<property name="ireport.zoom" value="2.0"/>
-	<property name="ireport.x" value="400"/>
-	<property name="ireport.y" value="0"/>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AR_main" language="groovy" pageWidth="700" pageHeight="612" whenNoDataType="BlankPage" columnWidth="660" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="242dcb76-a031-467a-a173-dad46531f42c">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="12"/>
 	<subDataset name="Table Dataset 1" uuid="8410b86c-ad19-4f9c-976e-69dbcc3137a4">
 		<queryString language="SQL">
 			<![CDATA[]]>
@@ -17,20 +17,32 @@
 	<queryString>
 		<![CDATA[select
  vanimal.animal_id 	as animalid,
-  case when (vanimal.status = 'VALID' or vanimal.status = 'TRANSITION')
+  /*case when (vanimal.status = 'VALID' or vanimal.status = 'TRANSITION')
 	then vanimal.status
 	else ''
-	end as status,
+	end as */
+ vanimal.status as status,
  case when (vanimal.status != 'VALID' and vanimal.status != 'TRANSITION' and vanimal.status != 'NULL')
 	then vanimal.status
 	else ''
 	end as deathreason,
+
  vanimal.mother_tag_id as motherid,
+ (select naits.translateCodeValue(va.animal_race, 'ANIMAL_RACE', 'ka_GE') from naits.vanimal va
+  where  va.animal_id = vanimal.mother_tag_id and dt_delete > now()) as motherbreed,
  vanimal.father_tag_id as fatherid,
+ (select naits.translateCodeValue(va.animal_race, 'ANIMAL_RACE', 'ka_GE') from naits.vanimal va
+  where  va.animal_id = vanimal.father_tag_id and dt_delete > now()) as fatherbreed,
  vhold.pic as holdingid,
- vperson.first_name as keeperName,
- vperson.last_name 	as keeperSurname,
+
+ vperson.first_name as keepername,
+ vperson.last_name 	as keepersurname,
+ vperson.full_name as keeperfullname,
+ naits.translateCodeValue(vperson.holder_type,'HOLDER_TYPE', 'ka_GE') keepertype,
  vperson.nat_reg_number as keeperid,
+ to_char(vperson.birth_date, 'dd/mm/yyyy')as keeperbirthdate,
+ vperson.address as keeperaddress,
+
  vanimal.animal_class 	as spec,
  vanimal.gender 		as gendcode,
  naits.translateCodeValue(vanimal.gender, 'GENDER', 'ka_GE')  gend,
@@ -38,55 +50,70 @@
  naits.translateCodeValue(vanimal.animal_race, 'ANIMAL_RACE', 'ka_GE')  as breed,
  vanimal.color 		as acolorcode,
  naits.translateCodeValue(vanimal.color, 'COLOR', 'ka_GE')  as acolor,
+
  CASE WHEN (vanimal.birth_date is not null)
 	THEN to_char(vanimal.birth_date, 'dd/mm/yyyy')
 	ELSE ''
  END as birthdate,
- naits.get_age_custom_format(vanimal.birth_date)::varchar as age,
+  concat(to_char(age(now(), vanimal.birth_date), 'yy'),'წ, ',
+ to_char(age(now(), vanimal.birth_date), 'mm'),'თ, ',
+ to_char(age(now(), vanimal.birth_date), 'dd'),'დ') as age,
+
  CASE WHEN (vanimal.registration_date is not null)
 	THEN to_char(vanimal.registration_date, 'dd/mm/yyyy')
 	ELSE ''
  END as regdate,
- CASE WHEN (vanimal.death_date is not null)
+
+ CASE WHEN (vanimal.status = 'DIED')
 	THEN to_char(vanimal.death_date, 'dd/mm/yyyy')
 	ELSE ''
- END  as deathdate
+ END  as deathdate,
+
+ case when (vanimal.status = 'SLAUGHTRD')
+	then to_char(vanimal.death_date, 'dd/mm/yyyy')
+	else ''
+ end as sladate,
+
+ case when (vanimal.status = 'DESTROYED')
+	then to_char(vanimal.death_date, 'dd/mm/yyyy')
+	else ''
+ end as destrdate,
+
+ case when (vanimal.status = 'EXPORTED')
+	then to_char(vanimal.dt_insert, 'dd/mm/yyyy')
+	else ''
+ end as expdate
+
 from
-	naits.vanimal vanimal
-join naits.vholding as vhold on
-	(vhold.object_id = vanimal.parent_id)
-left outer join naits.vsvarog_link as vsl on
-	(vhold.object_id = vsl.link_obj_id_1
-	and now() between vsl.dt_insert and vsl.dt_delete
-	and vsl.link_type_id in (
-	select
-		vslt.object_id
-	from
-		naits.vsvarog_link_type vslt
-		join naits.vsvarog_link vsl2 on vslt.object_id=vsl2.link_type_id
-	where
-		now() < vslt.dt_delete
-		and now() < vsl2.dt_delete
-		and vsl2.object_id=vsl.object_id
-		and vslt.link_type = 'HOLDING_KEEPER'))
-left outer join naits.vholding_responsible as vperson on
-	(vsl.link_obj_id_2 = vperson.object_id
-	and now() < vperson.dt_delete)
+ naits.vanimal as vanimal
+ join naits.vholding as vhold on (vanimal.parent_id = vhold.object_id)
+ left join naits.vsvarog_link as vsl on
+ 	(vhold.object_id = vsl.link_obj_id_1
+	and now() between vsl.dt_insert and vsl.dt_delete)
+ left join naits.vholding_responsible as vperson on
+ 	(vsl.link_obj_id_2 = vperson.object_id
+	and now() between vperson.dt_insert and vperson.dt_delete)
 where
    now() between vanimal.dt_insert and vanimal.dt_delete
 	and now() between vhold.dt_insert and vhold.dt_delete
 and vanimal.object_id = $P{OBJ_ID}
-;]]>
+limit 1]]>
 	</queryString>
 	<field name="animalid" class="java.lang.String"/>
 	<field name="status" class="java.lang.String"/>
 	<field name="deathreason" class="java.lang.String"/>
 	<field name="motherid" class="java.lang.String"/>
+	<field name="motherbreed" class="java.lang.String"/>
 	<field name="fatherid" class="java.lang.String"/>
+	<field name="fatherbreed" class="java.lang.String"/>
 	<field name="holdingid" class="java.lang.String"/>
 	<field name="keepername" class="java.lang.String"/>
 	<field name="keepersurname" class="java.lang.String"/>
+	<field name="keeperfullname" class="java.lang.String"/>
+	<field name="keepertype" class="java.lang.String"/>
 	<field name="keeperid" class="java.lang.String"/>
+	<field name="keeperbirthdate" class="java.lang.String"/>
+	<field name="keeperaddress" class="java.lang.String"/>
 	<field name="spec" class="java.lang.String"/>
 	<field name="gendcode" class="java.lang.String"/>
 	<field name="gend" class="java.lang.String"/>
@@ -98,66 +125,22 @@ and vanimal.object_id = $P{OBJ_ID}
 	<field name="age" class="java.lang.String"/>
 	<field name="regdate" class="java.lang.String"/>
 	<field name="deathdate" class="java.lang.String"/>
-	<variable name="age_ymd_list" class="java.util.List" resetType="None">
-		<variableExpression><![CDATA[$F{age}.split(",")]]></variableExpression>
-	</variable>
+	<field name="sladate" class="java.lang.String"/>
+	<field name="destrdate" class="java.lang.String"/>
+	<field name="expdate" class="java.lang.String"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
 	<title>
-		<band height="157" splitType="Stretch">
-			<staticText>
-				<reportElement uuid="05ead065-1608-4280-973f-80ad662e712f" x="1" y="0" width="254" height="25"/>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="16" isBold="true"/>
-				</textElement>
-				<text><![CDATA[ცხოველის ჩანაწერი]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="7bb5bff9-4308-4062-835f-f518030a5cc0" x="35" y="45" width="60" height="15" forecolor="#0099CC"/>
-				<textElement textAlignment="Center" verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[სადგომის №]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="2e1cf9a9-e84b-443a-a1b5-56707aa11ad8" x="245" y="25" width="95" height="15" forecolor="#0099CC"/>
-				<textElement textAlignment="Center" verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[პასუხისმგებლის სახელი]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="5124d9e1-9053-4023-8234-bc7a81fa2627" x="436" y="25" width="27" height="15" forecolor="#0099CC"/>
-				<textElement textAlignment="Center" verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[გვარი]]></text>
-			</staticText>
+		<band height="302" splitType="Stretch">
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="0822e4d0-83d9-4562-b594-2c874e92ccdd" x="340" y="25" width="96" height="15" forecolor="#000000"/>
-				<box>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8" isBold="false"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{keepername}]]></textFieldExpression>
-			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement uuid="1ecb049b-31dd-49f4-a48d-9307df850d22" x="463" y="25" width="96" height="15" forecolor="#000000"/>
-				<box>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8" isBold="false"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{keepersurname}]]></textFieldExpression>
-			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement uuid="4b7cb097-d709-49ac-9cfc-1393add49b48" x="95" y="45" width="139" height="15" forecolor="#000000"/>
-				<box>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+				<reportElement x="530" y="48" width="130" height="21" forecolor="#000000" uuid="4b7cb097-d709-49ac-9cfc-1393add49b48"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -165,100 +148,41 @@ and vanimal.object_id = $P{OBJ_ID}
 				<textFieldExpression><![CDATA[$F{holdingid}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="6095ddac-7ed4-4455-b099-ee1ca7505261" x="559" y="25" width="26" height="15" forecolor="#0099CC"/>
-				<textElement textAlignment="Center" verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[პ.ნ.]]></text>
-			</staticText>
-			<textField isBlankWhenNull="true">
-				<reportElement uuid="104aa4ea-ac23-490d-a7a5-28e6620c3e09" x="585" y="25" width="71" height="15" forecolor="#000000"/>
-				<box>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+				<reportElement x="0" y="69" width="130" height="20" forecolor="#0099CC" uuid="a08b617e-3b5e-4711-89f4-a3ab7498ab3d"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{keeperid}]]></textFieldExpression>
-			</textField>
-			<textField pattern="dd/MM/yyyy">
-				<reportElement uuid="6b6c1480-34d7-4900-a570-b274f611897e" x="582" y="0" width="50" height="15" forecolor="#990000"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
-			</textField>
-			<staticText>
-				<reportElement uuid="a08b617e-3b5e-4711-89f4-a3ab7498ab3d" x="1" y="25" width="94" height="20" forecolor="#0099CC"/>
-				<textElement textAlignment="Center" verticalAlignment="Bottom">
+				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<text><![CDATA[ცხოველის ნომერი №]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="5f667e1a-e57c-4a5b-a2d3-fc5975041f37" x="95" y="25" width="139" height="20" forecolor="#006633"/>
-				<box>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+				<reportElement x="130" y="69" width="130" height="20" forecolor="#006633" uuid="5f667e1a-e57c-4a5b-a2d3-fc5975041f37"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="14"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{animalid}]]></textFieldExpression>
 			</textField>
-			<staticText>
-				<reportElement uuid="87a2bd6f-088a-4ffc-99ac-69ebdc1491a2" x="357" y="0" width="225" height="15" forecolor="#990000"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8" isItalic="true"/>
-				</textElement>
-				<text><![CDATA[დოკუმენტი ძალაშია 15 დღის განმავლობაში]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="deb3e2fc-8adf-4422-a726-838180ec2f33" x="-15" y="-65" width="90" height="17"/>
-				<box>
+			<textField isBlankWhenNull="true">
+				<reportElement x="130" y="89" width="130" height="20" uuid="8c1ec490-4c6b-4bc9-b9ee-70c6a65b41f2"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
 					<topPen lineWidth="1.0"/>
-					<leftPen lineWidth="0.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="0.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
 					<rightPen lineWidth="1.0"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8" isBold="false"/>
-				</textElement>
-				<text><![CDATA[სახეობა.]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="961f47a1-6e6d-42dd-b924-7db75dbdf53c" x="-15" y="-65" width="90" height="17"/>
-				<box>
-					<topPen lineWidth="1.0"/>
-					<leftPen lineWidth="0.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="0.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8" isBold="false"/>
-				</textElement>
-				<text><![CDATA[სახეობა.]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="9fa525b1-19df-4d3e-9a8f-5ce7f61c5086" x="-15" y="-65" width="90" height="17"/>
-				<box>
-					<topPen lineWidth="1.0"/>
-					<leftPen lineWidth="0.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="0.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8" isBold="false"/>
-				</textElement>
-				<text><![CDATA[სახეობა.]]></text>
-			</staticText>
-			<textField>
-				<reportElement uuid="8c1ec490-4c6b-4bc9-b9ee-70c6a65b41f2" x="112" y="62" width="100" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
 				</box>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -266,13 +190,13 @@ and vanimal.object_id = $P{OBJ_ID}
 				<textFieldExpression><![CDATA[$F{spec}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="53620f92-c89c-429f-a206-cac894628a71" x="62" y="62" width="50" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				<reportElement x="0" y="89" width="130" height="20" uuid="53620f92-c89c-429f-a206-cac894628a71"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -280,27 +204,27 @@ and vanimal.object_id = $P{OBJ_ID}
 				<text><![CDATA[სახეობა]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="c34b3548-4057-4ad8-9c55-5234afa5f7c6" x="62" y="77" width="50" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				<reportElement x="0" y="109" width="130" height="20" uuid="c34b3548-4057-4ad8-9c55-5234afa5f7c6"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<text><![CDATA[სქესი]]></text>
 			</staticText>
-			<textField>
-				<reportElement uuid="64faa425-c00b-492e-927c-3b6e573dee8b" x="112" y="77" width="100" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+			<textField isBlankWhenNull="true">
+				<reportElement x="130" y="109" width="130" height="20" uuid="64faa425-c00b-492e-927c-3b6e573dee8b"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -308,27 +232,27 @@ and vanimal.object_id = $P{OBJ_ID}
 				<textFieldExpression><![CDATA[$F{gend}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="c678d93a-dc4c-4f07-832e-b726c49faca5" x="62" y="92" width="50" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				<reportElement x="0" y="129" width="130" height="20" uuid="c678d93a-dc4c-4f07-832e-b726c49faca5"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<text><![CDATA[ჯიში]]></text>
 			</staticText>
-			<textField>
-				<reportElement uuid="100172e4-54de-42df-a6a6-f98301068f5f" x="112" y="92" width="100" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+			<textField isBlankWhenNull="true">
+				<reportElement x="130" y="129" width="130" height="20" uuid="100172e4-54de-42df-a6a6-f98301068f5f"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -336,222 +260,41 @@ and vanimal.object_id = $P{OBJ_ID}
 				<textFieldExpression><![CDATA[$F{breed}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="e178b766-7c58-4a02-87fe-5245d376f732" x="62" y="107" width="50" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				<reportElement x="0" y="149" width="130" height="20" uuid="e178b766-7c58-4a02-87fe-5245d376f732"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<text><![CDATA[ფერი]]></text>
 			</staticText>
-			<textField>
-				<reportElement uuid="63bf8761-100b-4e99-8df4-637e8ea725fc" x="112" y="107" width="100" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+			<textField isBlankWhenNull="true">
+				<reportElement x="130" y="149" width="130" height="20" uuid="63bf8761-100b-4e99-8df4-637e8ea725fc"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{acolor}]]></textFieldExpression>
 			</textField>
-			<staticText>
-				<reportElement uuid="ffa5c99c-691c-4220-9753-257f84844b62" x="6" y="62" width="56" height="60"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8" isBold="true"/>
-				</textElement>
-				<text><![CDATA[აღწერა]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="0d40c8b5-f192-46ea-8fd5-9b4f9d158859" x="291" y="62" width="85" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[დაბადების თარიღი]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="831e38fa-685e-4f25-94d1-21c001655712" x="291" y="77" width="85" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[რეგისტრაციის დღე]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="d7c2a481-3a98-4a35-8fd9-9e73547e55b3" x="291" y="92" width="85" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[სიკვდილის თარიღი]]></text>
-			</staticText>
-			<textField>
-				<reportElement uuid="c812f487-b923-4255-9143-ade3f1dd3ba2" x="376" y="62" width="100" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{birthdate}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement uuid="03cf4754-1188-42e7-8b4f-0894c5281fa6" x="376" y="77" width="100" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{regdate}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement uuid="1502205d-fae1-41db-871f-549bb7ac512b" x="376" y="92" width="100" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{deathdate}]]></textFieldExpression>
-			</textField>
-			<staticText>
-				<reportElement uuid="a2058ade-df95-4495-8832-f604045071e2" x="-129" y="-12" width="100" height="60"/>
-				<box leftPadding="1" rightPadding="1"/>
-				<textElement verticalAlignment="Top"/>
-				<text><![CDATA[აღწერა]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="cf120eec-94f8-4727-863f-605cc687d26a" x="234" y="62" width="57" height="45" forecolor="#000000"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8" isBold="true"/>
-				</textElement>
-				<text><![CDATA[თარიღი]]></text>
-			</staticText>
-			<textField>
-				<reportElement uuid="59950828-b8a1-443b-87a8-75c03b4bcb9d" x="540" y="92" width="116" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{deathreason}]]></textFieldExpression>
-			</textField>
-			<staticText>
-				<reportElement uuid="d65fd1d0-137d-438e-a661-3f180d84a51a" x="502" y="92" width="38" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[მიზეზი]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="def1a197-0ce8-4fa6-91be-6fa7b5c591eb" x="502" y="62" width="38" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[ასაკი]]></text>
-			</staticText>
-			<textField pattern="">
-				<reportElement uuid="8f383da3-017f-4c71-937a-542131ad6e7f" x="540" y="62" width="116" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{birthdate} != null ? $V{age_ymd_list}.get(0) + "წ, " + $V{age_ymd_list}.get(1)  + "თ, " + $V{age_ymd_list}.get(2) + "დ" : ""]]></textFieldExpression>
-			</textField>
-			<staticText>
-				<reportElement uuid="c179bf9d-8fc3-4b8b-a76f-2bfc75ced3f1" x="632" y="0" width="26" height="15" forecolor="#990000"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8" isItalic="true"/>
-				</textElement>
-				<text><![CDATA[-დან. ]]></text>
-			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="cd5ece98-45c5-46b3-9d77-d1a6fb159baa" x="212" y="140" width="79" height="15" forecolor="#000000"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				<reportElement x="400" y="124" width="130" height="20" forecolor="#000000" uuid="cd5ece98-45c5-46b3-9d77-d1a6fb159baa"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8" isBold="false"/>
@@ -559,27 +302,27 @@ and vanimal.object_id = $P{OBJ_ID}
 				<textFieldExpression><![CDATA[$F{fatherid}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="e86f9fdb-fc11-456d-bf80-529927334663" x="112" y="125" width="100" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				<reportElement x="300" y="104" width="100" height="20" uuid="e86f9fdb-fc11-456d-bf80-529927334663"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
 					<font fontName="DejaVu Sans" size="8" isBold="false"/>
 				</textElement>
-				<text><![CDATA[დედის ნომერი#]]></text>
+				<text><![CDATA[დედა]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="b12f69e6-6602-421a-a622-9fec8bea5c6d" x="212" y="125" width="79" height="15" forecolor="#000000"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				<reportElement x="400" y="104" width="130" height="20" forecolor="#000000" uuid="b12f69e6-6602-421a-a622-9fec8bea5c6d"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8" isBold="false"/>
@@ -587,42 +330,119 @@ and vanimal.object_id = $P{OBJ_ID}
 				<textFieldExpression><![CDATA[$F{motherid}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="dae311a0-91ff-4e5b-a67f-effd6fb787a0" x="112" y="140" width="100" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				<reportElement x="300" y="124" width="100" height="20" uuid="dae311a0-91ff-4e5b-a67f-effd6fb787a0"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
 					<font fontName="DejaVu Sans" size="8" isBold="false"/>
 				</textElement>
-				<text><![CDATA[მამის ნომერი#]]></text>
+				<text><![CDATA[მამა]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="190f335c-fa18-4fc8-a0cb-fd8aee4d924c" x="6" y="125" width="106" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
+				<reportElement x="300" y="84" width="100" height="20" uuid="190f335c-fa18-4fc8-a0cb-fd8aee4d924c"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
 					<font fontName="DejaVu Sans" size="8" isBold="true"/>
 				</textElement>
-				<text><![CDATA[დედის ნომერი#]]></text>
+				<text><![CDATA[მშობლები]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="5528c654-50c5-4d1a-87c0-7b85c94aef18" x="609" y="15" width="49" height="10" forecolor="#CCCCCC"/>
-				<textElement textAlignment="Right" verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans" size="6"/>
+				<reportElement x="400" y="48" width="130" height="21" forecolor="#0099CC" uuid="1e8376bc-e8cd-494d-9502-fca4aba44381"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isItalic="true"/>
 				</textElement>
-				<text><![CDATA[v.5.01]]></text>
+				<text><![CDATA[სადგომის ნომერი ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="48" width="130" height="21" forecolor="#0099CC" uuid="27913a26-beda-483a-b461-1bc58964b563"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ცხოველი]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="530" y="104" width="130" height="20" forecolor="#000000" uuid="1a3d3ecf-28f2-433a-b086-21d944bfc4e5"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{motherbreed}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="530" y="124" width="130" height="20" forecolor="#000000" uuid="039ecf1e-795e-4d12-80fd-49667ae94f82"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fatherbreed}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="400" y="84" width="130" height="20" uuid="089310b1-a634-4e09-9f91-d823446a7d16"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[საიდენტიფიკაციო ნომერი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="530" y="84" width="130" height="20" uuid="7bfc329c-d3d1-4826-96e3-f99c198ffd96"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ჯიში]]></text>
 			</staticText>
 			<textField>
-				<reportElement uuid="84e94b38-401b-4f53-953f-0be1694ead58" x="540" y="77" width="116" height="15"/>
+				<reportElement x="175" y="48" width="85" height="15" uuid="84e94b38-401b-4f53-953f-0be1694ead58"/>
 				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
 					<pen lineStyle="Dotted"/>
 					<topPen lineWidth="1.0" lineStyle="Dotted"/>
@@ -635,39 +455,426 @@ and vanimal.object_id = $P{OBJ_ID}
 				</textElement>
 				<textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
 			</textField>
+			<image>
+				<reportElement x="0" y="0" width="111" height="36" uuid="3a95c199-722a-4e9e-bddc-0ec692d3c25b"/>
+				<imageExpression><![CDATA["nfa_logo.png"]]></imageExpression>
+			</image>
 			<staticText>
-				<reportElement uuid="35aad9e9-899d-48e4-97e2-dffcd83e327c" x="502" y="77" width="38" height="15"/>
-				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
-					<pen lineStyle="Dotted"/>
-					<topPen lineWidth="1.0" lineStyle="Dotted"/>
-					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
-					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
-					<rightPen lineWidth="1.0" lineStyle="Dotted"/>
-				</box>
-				<textElement verticalAlignment="Middle">
+				<reportElement x="425" y="20" width="26" height="15" forecolor="#990000" uuid="b1fbefb8-7d3b-4ee2-8019-e28106f36bff"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[-დან. ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="111" y="0" width="428" height="20" uuid="922da666-ccc6-4bd1-bb71-782f3de3f12b"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[ცხოველის იდენტიფიკაციის დოკუმენტი]]></text>
+			</staticText>
+			<image>
+				<reportElement x="541" y="10" width="118" height="29" uuid="26f0cd90-548e-4a5b-a715-31f985a0192c"/>
+				<imageExpression><![CDATA["naits_logo_tr.png"]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="584" y="0" width="76" height="10" forecolor="#0099CC" uuid="ce38b43e-7816-4abe-a761-e6ca0fbf0039"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[დანართი	]]></text>
+			</staticText>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement x="375" y="20" width="50" height="15" forecolor="#990000" uuid="ad76106d-77d9-43f1-bc50-d020b2e224a2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[]]></text>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="150" y="20" width="225" height="15" forecolor="#990000" uuid="d2c4b0f4-77df-49df-b737-88d9d5f9c84f"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[დოკუმენტი ძალაშია 15 დღის განმავლობაში]]></text>
 			</staticText>
+			<staticText>
+				<reportElement x="501" y="20" width="38" height="16" forecolor="#CCCCCC" uuid="0e062618-287a-475f-9d49-337bb9fe31a4"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<text><![CDATA[AIC v.1.0]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="568" y="251" width="92" height="20" forecolor="#0099CC" uuid="38d5dece-a9dc-4bb5-aa19-777864aded90"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ფაქტობრივი მისამართი  /registration address			]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="363" y="271" width="85" height="20" forecolor="#000000" uuid="eb16e42c-5122-4cb0-b8ab-b6c3d079bee7"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keeperbirthdate}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="236" y="251" width="127" height="20" forecolor="#0099CC" uuid="12de4aaa-97f5-4039-bb68-25c95dba7bad"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[პირადი ნომერი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="448" y="251" width="120" height="20" forecolor="#0099CC" uuid="2f8cf3a7-1c6d-42d2-967f-25ce290c53cc"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ რეგისტრაციის მისამართი /registration address]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="363" y="214" width="85" height="20" forecolor="#000000" uuid="dfb6c005-8161-4dee-9c60-088692edbf63"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keeperbirthdate}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="194" width="163" height="20" forecolor="#0099CC" uuid="68e3e590-9635-4b64-b31b-fce7bab97bb5"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სახელი, გვარი / კომპანიის დასახელება]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="163" y="194" width="73" height="20" forecolor="#0099CC" uuid="c21aad92-a70e-4167-bf56-c8db35b3b234"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[იურიდიული პირი]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="448" y="271" width="120" height="20" forecolor="#000000" uuid="43268ca8-9682-4bda-bcf0-8b444eb197c8"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keeperaddress}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="251" width="111" height="20" forecolor="#0099CC" uuid="90a6ae3a-1c3e-4912-ae13-def34a66a9a7"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სახელი]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="271" width="111" height="20" forecolor="#000000" uuid="1ab7f581-40d0-4d6b-be8a-2a738507f274"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keepername}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="163" y="214" width="73" height="20" forecolor="#000000" uuid="45e1dfe4-9d19-429d-aa13-60cc96f74319"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keepertype}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="111" y="271" width="125" height="20" forecolor="#000000" uuid="b34a0906-3271-4583-870e-a4cd24d4ec0a"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keepersurname}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="236" y="214" width="127" height="20" forecolor="#000000" uuid="c3ad03e6-faf3-4ba3-a491-28643e95874c"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keeperid}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="448" y="214" width="120" height="20" forecolor="#000000" uuid="c0b04efa-80d6-4c77-9ef5-389d3ce5c282"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keeperaddress}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="568" y="194" width="92" height="20" forecolor="#0099CC" uuid="52598736-60bb-4457-9693-ad9c3fa38a18"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ფაქტობრივი მისამართი  /registration address			]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="363" y="251" width="85" height="20" forecolor="#0099CC" uuid="7eb25b8e-395d-41e1-a2a6-6fbbc7b9a571"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[დაბ. თარიღი / birth date]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="363" y="194" width="85" height="20" forecolor="#0099CC" uuid="ad58a4d5-f9a3-4b08-8d15-aacdd1b167e8"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[დაბ. თარიღი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="448" y="194" width="120" height="20" forecolor="#0099CC" uuid="571e298a-cf47-4887-a53c-c847e76fffd5"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ რეგისტრაციის მისამართი ]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="236" y="271" width="127" height="20" forecolor="#000000" uuid="bcc27416-d87b-4f73-a955-283d40b6d2fd"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keeperid}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="0" y="214" width="163" height="20" forecolor="#000000" uuid="5453a10f-190e-4760-966f-9831d6211b14"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keeperfullname}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="568" y="214" width="92" height="20" forecolor="#000000" uuid="018b802c-b872-4259-8d12-4055dc5f6df2"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keeperaddress}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="236" y="194" width="127" height="20" forecolor="#0099CC" uuid="48f4520d-a63b-41a1-8729-bc0ce3f7e362"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[პირადი / სარეგისტრაციო ნომერი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="177" width="185" height="15" forecolor="#000000" uuid="4d5c0a03-c02c-4a1e-a646-2e1049838504"/>
+				<box>
+					<pen lineColor="#000000"/>
+					<topPen lineColor="#000000"/>
+					<leftPen lineColor="#000000"/>
+					<bottomPen lineColor="#000000"/>
+					<rightPen lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[პასუხისმგებელი პირი (მფლობელი)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="2" y="234" width="506" height="15" forecolor="#000000" uuid="b383d405-fa0c-45f3-a4eb-6f066aca2a2c"/>
+				<box>
+					<pen lineColor="#000000"/>
+					<topPen lineColor="#000000"/>
+					<leftPen lineColor="#000000"/>
+					<bottomPen lineColor="#000000"/>
+					<rightPen lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[მომვლელი (პასუხისმგებელი პირის მიერ განსაზღვრული უფლებამოსილი პირი)]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="111" y="251" width="125" height="20" forecolor="#0099CC" uuid="ab6f0d9d-8d3c-4cb2-9901-a6f2c0139c58"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[გვარი]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="568" y="271" width="92" height="20" forecolor="#000000" uuid="ef768aa2-d12d-48f8-b56f-cc412e570ee1"/>
+				<box topPadding="0" leftPadding="1" bottomPadding="0" rightPadding="0">
+					<pen lineWidth="1.0" lineColor="#000000"/>
+					<topPen lineWidth="1.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{keeperaddress}]]></textFieldExpression>
+			</textField>
 		</band>
 	</title>
 	<detail>
-		<band height="10" splitType="Stretch">
+		<band height="10">
 			<subreport runToBottom="false">
-				<reportElement uuid="748a649f-b83e-4d26-a373-0204b26cefdb" x="0" y="0" width="660" height="10" isRemoveLineWhenBlank="true"/>
-				<subreportParameter name="OBJ_ID">
-					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
-				</subreportParameter>
-				<subreportParameter name="path">
-					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
-				</subreportParameter>
-				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-				<subreportExpression><![CDATA[$P{path} + "AR_offsprings.jasper"]]></subreportExpression>
-			</subreport>
-		</band>
-		<band height="11">
-			<subreport runToBottom="false">
-				<reportElement uuid="89925d90-bee3-40e6-8873-14b9ac449708" x="0" y="1" width="660" height="10" isRemoveLineWhenBlank="true"/>
+				<reportElement x="0" y="0" width="660" height="5" isRemoveLineWhenBlank="true" uuid="714868d6-5f0c-44e1-b842-d320e4058b89"/>
 				<subreportParameter name="holding_rownum">
 					<subreportParameterExpression><![CDATA[$P{holding_rownum}]]></subreportParameterExpression>
 				</subreportParameter>
@@ -680,13 +887,222 @@ and vanimal.object_id = $P{OBJ_ID}
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<subreportExpression><![CDATA[$P{path} + "AR_movement.jasper"]]></subreportExpression>
 			</subreport>
-			<line>
-				<reportElement uuid="1031fdf5-e410-4afd-957a-73cfbed82387" x="0" y="0" width="660" height="1"/>
-			</line>
 		</band>
-		<band height="11">
+		<band height="50">
+			<staticText>
+				<reportElement x="557" y="0" width="102" height="20" uuid="8d9c6bfd-8ee4-466a-995d-914e9c81a700"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ასაკი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="217" y="0" width="85" height="20" uuid="84893cfd-af40-4be8-9f5a-abed2cc86790"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[დაკვლა]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="47" y="0" width="85" height="20" uuid="74cbdfa1-2d15-4d9e-9951-d9e1931a5a49"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[დაბადება]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="132" y="0" width="85" height="20" uuid="dfe3162f-333f-4a5b-bd4c-ed7e3dd12711"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[რეგისტრაციის]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="302" y="0" width="85" height="20" uuid="ad95dc50-cff4-4a32-a0dc-0f7c316dce18"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სიკვდილი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="472" y="0" width="85" height="20" uuid="5fc7f9f3-1e2f-4437-ab42-191638e85a1a"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ექსპორტი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="387" y="0" width="85" height="20" uuid="27f5165d-3adb-4650-a42a-768b055b2dc0"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[განადგურება]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="47" height="40" forecolor="#000000" uuid="26b07c21-357a-4d7c-80c3-210689e1af27"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[თარიღი]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="47" y="20" width="85" height="20" uuid="89737533-b13f-428a-80d1-78190189ac5b"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{birthdate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="132" y="20" width="85" height="20" uuid="4655ceaa-1faf-4bd5-a773-a3644c07fe23"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{regdate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="217" y="20" width="85" height="20" uuid="ff06595f-e03d-4e3c-8ade-cf4a69f76453"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{sladate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="302" y="20" width="85" height="20" uuid="9f59f985-4eb0-4b72-a2ba-8c1d0906ef48"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{deathdate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="387" y="20" width="85" height="20" uuid="08e547e3-303b-4e3b-bc53-45e35bae5926"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{destrdate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="472" y="20" width="85" height="20" uuid="a9676c79-b4a9-4899-bf57-3a2df12b58b6"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{expdate}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="557" y="20" width="102" height="20" uuid="02c10b18-d48d-4d1f-af73-6a83071ec4cc"/>
+				<box topPadding="1" leftPadding="2" bottomPadding="1" rightPadding="2">
+					<pen lineWidth="1.0" lineStyle="Solid"/>
+					<topPen lineWidth="1.0" lineStyle="Solid"/>
+					<leftPen lineWidth="1.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{age}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="10">
 			<subreport runToBottom="false">
-				<reportElement uuid="ae9ed0e7-9d5e-4b4d-9c20-4c35f7e29fe0" x="0" y="1" width="659" height="10" isRemoveLineWhenBlank="true"/>
+				<reportElement x="0" y="0" width="660" height="5" isRemoveLineWhenBlank="true" uuid="a5dd09e6-12ce-4da3-9b18-6f2c8a7a5a8b"/>
 				<subreportParameter name="holding_rownum">
 					<subreportParameterExpression><![CDATA[$P{holding_rownum}]]></subreportParameterExpression>
 				</subreportParameter>
@@ -699,12 +1115,19 @@ and vanimal.object_id = $P{OBJ_ID}
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<subreportExpression><![CDATA[$P{path} + "AR_health.jasper"]]></subreportExpression>
 			</subreport>
-			<line>
-				<reportElement uuid="20b5ba3d-b085-443a-904a-e2b31eb07c64" x="0" y="0" width="660" height="1"/>
-			</line>
+		</band>
+		<band height="10">
+			<subreport runToBottom="false">
+				<reportElement x="0" y="0" width="660" height="5" isRemoveLineWhenBlank="true" uuid="17ce4c5a-a30b-4240-ba99-1073a91363a4"/>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
+				</subreportParameter>
+				<subreportParameter name="path">
+					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "AR_offsprings.jasper"]]></subreportExpression>
+			</subreport>
 		</band>
 	</detail>
-	<pageFooter>
-		<band height="3"/>
-	</pageFooter>
 </jasperReport>

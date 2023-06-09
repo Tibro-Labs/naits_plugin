@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AHC_subreport1" language="groovy" pageWidth="780" pageHeight="610" orientation="Landscape" columnWidth="780" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="0e3d1ce5-54b9-4676-8053-29c780a28060">
+	<property name="ireport.zoom" value="1.5026296018031582"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/meagain/Desktop/NAITS/StatusUpdatePrintout/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String">
+		<defaultValueExpression><![CDATA["/home/meagain/Desktop/NAITS/StatusUpdatePrintout/"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+animal_id id,
+naits.translateCodeValue(animal_class, 'ANIMAL_CLASS', 'ka_GE')  spec
+from naits.vanimal
+where parent_id = $P{OBJ_ID}
+	and dt_delete > now()
+order by 1 asc;]]>
+	</queryString>
+	<field name="id" class="java.lang.String"/>
+	<field name="spec" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="16">
+			<staticText>
+				<reportElement x="129" y="0" width="279" height="15" uuid="2a3a54d4-05fb-43ee-a61a-206c5bf4419b"/>
+				<box leftPadding="0">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[საიდენტიფიკაციო ნომერი/ animal ID]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="23" y="0" width="106" height="15" uuid="fbcc1124-ca65-4c28-aded-0a8a46eebbf2"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[სახეობა/species ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="0" width="23" height="15" uuid="68a4aeb9-6369-4867-9521-4d893b19a8eb"/>
+				<box leftPadding="0">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<text><![CDATA[#]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement x="23" y="0" width="106" height="15" forecolor="#009933" uuid="3cc11c0a-beec-44dd-beeb-e36b64033a6d"/>
+				<box>
+					<pen lineColor="#000000"/>
+					<topPen lineColor="#000000"/>
+					<leftPen lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{spec}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="0" width="23" height="15" uuid="9261e4ef-8a13-4005-b62e-0e42bf6fa584"/>
+				<box leftPadding="0">
+					<topPen lineWidth="0.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="129" y="0" width="279" height="15" forecolor="#009933" uuid="31ddadae-f2ae-41ae-9a62-c7cfb58b3d0f"/>
+				<box>
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<leftPen lineWidth="1.0" lineColor="#000000"/>
+					<bottomPen lineWidth="1.0" lineColor="#000000"/>
+					<rightPen lineWidth="1.0" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{id}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

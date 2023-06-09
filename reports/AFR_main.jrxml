@@ -13,22 +13,30 @@
 	<parameter name="holding_rownum" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
 		<![CDATA[select
-vhold.pic holdingId,
-naits.translateCodeValue(vhold.munic_code, 'MUNICIPALITIES', 'ka_GE') munic,
-naits.translateCodeValue(vhold.commun_code, 'COMMUNITIES', 'ka_GE') commun,
-naits.translateCodeValue(vhold.village_code, 'VILLAGES', 'ka_GE') vilage,
-vhold.physical_address address, (vhold.gps_north::text ||'N,' || vhold.gps_east::text||'E' ) gps,
-vperson.first_name as keeperName,
-vperson.last_name as keeperSurname,
-vperson.birth_date as birthDate,
-vperson.phone_number as phone,
-vperson.nat_reg_number as keeper_id
-from naits.vholding vhold join naits.vsvarog_link vsl on vhold.object_id = vsl.link_obj_id_1 join naits.vholding_responsible vperson on vsl.link_obj_id_2 = vperson.object_id
+	vhold.pic holdingId,
+	naits.translateCodeValue(vhold.munic_code, 'MUNICIPALITIES', 'ka_GE') munic,
+	naits.translateCodeValue(vhold.commun_code, 'COMMUNITIES', 'ka_GE') commun,
+	naits.translateCodeValue(vhold.village_code, 'VILLAGES', 'ka_GE') vilage,
+	vhold.physical_address address, (vhold.gps_north::text ||'N,' || vhold.gps_east::text||'E' ) gps,
+	keeperName,
+	keeperSurname,
+	birthDate,
+	phone,
+	tbl1.keeper_id
+from naits.vholding vhold
+	left join (select vsl.link_obj_id_1 as left_obj_id,
+	vperson.first_name as keeperName,
+	vperson.last_name as keeperSurname,
+	vperson.birth_date as birthDate,
+	vperson.phone_number as phone,
+	vperson.nat_reg_number as keeper_id
+	from  naits.vsvarog_link vsl
+	join naits.vholding_responsible vperson on vsl.link_obj_id_2 = vperson.object_id
+	where current_timestamp between vsl.dt_insert and vsl.dt_delete
+	and current_timestamp between vperson.dt_insert and vperson.dt_delete) as tbl1 on tbl1.left_obj_id = object_id
 where
-now() between vhold.dt_insert and vhold.dt_delete and
-now() between vsl.dt_insert and vsl.dt_delete and
-now() between vperson.dt_insert and vperson.dt_delete and
-vhold.object_id = $P{OBJ_ID}]]>
+	current_timestamp between vhold.dt_insert and vhold.dt_delete and
+	vhold.object_id = $P{OBJ_ID};]]>
 	</queryString>
 	<field name="holdingid" class="java.lang.String"/>
 	<field name="munic" class="java.lang.String"/>

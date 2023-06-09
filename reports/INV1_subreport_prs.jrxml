@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="INV_subreport1" language="groovy" pageWidth="752" pageHeight="610" orientation="Landscape" columnWidth="752" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="0e3d1ce5-54b9-4676-8053-29c780a28060">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="path" class="java.lang.String"/>
+	<parameter name="USER_NAME" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="fromdate" class="java.lang.String"/>
+	<parameter name="todate" class="java.lang.String"/>
+	<parameter name="terr_code" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select * from naits.selectinvoice2_prs_sum($P{USER_NAME},$P{terr_code},$P{fromdate},$P{todate});]]>
+	</queryString>
+	<field name="username" class="java.lang.String"/>
+	<field name="code" class="java.lang.String"/>
+	<field name="event_date" class="java.lang.String"/>
+	<field name="date_reg" class="java.lang.String"/>
+	<field name="village" class="java.lang.String"/>
+	<field name="activity_count" class="java.lang.Long"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="21">
+			<staticText>
+				<reportElement x="400" y="5" width="155" height="16" uuid="d3dd0936-7f99-4d97-9b17-cbcdb3b9944f"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="7" isBold="false"/>
+				</textElement>
+				<text><![CDATA[დას. პუნქტი - Village ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="200" y="5" width="200" height="16" uuid="57e769db-bf77-49fe-9e61-41120d71fef2"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="7" isBold="false"/>
+				</textElement>
+				<text><![CDATA[მომხმარებელი - Username]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="0" y="5" width="200" height="16" uuid="53e91d4d-d9f3-40f1-8097-9f3dbeb4a4fb"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="7" isBold="false"/>
+				</textElement>
+				<text><![CDATA[ქმედება - Activity]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="555" y="5" width="197" height="16" uuid="20d97325-726d-412c-a411-736efbbb00ca"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0" lineStyle="Dotted"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle" markup="none">
+					<font fontName="DejaVu Sans" size="7" isBold="false"/>
+				</textElement>
+				<text><![CDATA[პიროვნებაზე ინფ. - Person data entry]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="0" width="200" height="15" uuid="0b7b5605-a236-47d2-a4b4-72dfecea24bc"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{code}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="555" y="0" width="197" height="15" forecolor="#000000" uuid="8c9c98d4-ee29-4c3d-8b36-5a1a63ccad49"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0" lineStyle="Dotted"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{activity_count}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="200" y="0" width="200" height="15" uuid="a5b561ff-715d-4d25-8d89-9c78c576b9b1"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{username}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="400" y="0" width="155" height="15" forecolor="#000000" uuid="bebdbe0d-9f55-4cc0-b21e-f1cbb1236323"/>
+				<box leftPadding="2" rightPadding="2">
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0" lineStyle="Dotted"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="6" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{village}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

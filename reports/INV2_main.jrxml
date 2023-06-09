@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="INV_main" language="groovy" pageWidth="792" pageHeight="612" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryWithPageHeaderAndFooter="true" uuid="242dcb76-a031-467a-a173-dad46531f42c">
 	<property name="ireport.zoom" value="1.2722928551174544"/>
-	<property name="ireport.x" value="0"/>
+	<property name="ireport.x" value="143"/>
 	<property name="ireport.y" value="0"/>
 	<parameter name="path" class="java.lang.String">
 		<property name="/Users/DmitrijsRassohins/Documents/_FAO/ireports" value=""/>
@@ -49,41 +49,41 @@ where
 		<band splitType="Stretch"/>
 	</background>
 	<title>
-		<band height="52" splitType="Stretch">
+		<band height="69" splitType="Stretch">
 			<staticText>
-				<reportElement x="180" y="0" width="409" height="20" uuid="05ead065-1608-4280-973f-80ad662e712f"/>
+				<reportElement x="0" y="0" width="703" height="20" uuid="05ead065-1608-4280-973f-80ad662e712f"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="14" isBold="true"/>
 				</textElement>
-				<text><![CDATA[DETAILED ACTIVITY REPORT]]></text>
+				<text><![CDATA[აქტივობების დეტალური ანგარიში - DETAILED ACTIVITY REPORT]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="0" y="21" width="77" height="15" forecolor="#0099CC" uuid="2e1cf9a9-e84b-443a-a1b5-56707aa11ad8"/>
+				<reportElement x="703" y="0" width="49" height="19" forecolor="#CCCCCC" uuid="32cbd704-6ac6-441f-8c80-132b749da598"/>
+				<textElement textAlignment="Right" verticalAlignment="Bottom">
+					<font fontName="DejaVu Sans" size="6"/>
+				</textElement>
+				<text><![CDATA[v.2.5]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="383" y="20" width="150" height="15" forecolor="#0099CC" uuid="f84fc90d-5d67-444d-bbb9-5a36a3981f9d"/>
 				<box leftPadding="2" rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Name of SP]]></text>
+				<text><![CDATA[მომხმ. მისამართი / Address of SP]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="77" y="21" width="169" height="15" forecolor="#000000" uuid="4b7cb097-d709-49ac-9cfc-1393add49b48"/>
+				<reportElement x="131" y="35" width="169" height="15" forecolor="#000000" uuid="5f23abef-9ea4-4df7-954d-aea230d1345c"/>
 				<box>
 					<bottomPen lineWidth="1.0"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8" isBold="false"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{spname}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$P{USER_NAME}]]></textFieldExpression>
 			</textField>
-			<staticText>
-				<reportElement x="703" y="0" width="49" height="10" forecolor="#CCCCCC" uuid="32cbd704-6ac6-441f-8c80-132b749da598"/>
-				<textElement textAlignment="Right" verticalAlignment="Bottom">
-					<font fontName="DejaVu Sans" size="6"/>
-				</textElement>
-				<text><![CDATA[v.2.2]]></text>
-			</staticText>
-			<textField pattern="dd MMMMM yyyy" isBlankWhenNull="true">
-				<reportElement x="77" y="36" width="103" height="15" forecolor="#000000" uuid="9e3afdb6-25c9-43aa-a7d0-dea1b9bbb7dc"/>
+			<textField pattern="d/M/yyyy" isBlankWhenNull="true">
+				<reportElement x="290" y="54" width="90" height="15" forecolor="#000000" uuid="607b5688-ad5a-4786-b004-bf7a8202ecce"/>
 				<box>
 					<bottomPen lineWidth="1.0"/>
 				</box>
@@ -93,76 +93,33 @@ where
 				<textFieldExpression><![CDATA[$F{fromdate}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="0" y="36" width="77" height="15" forecolor="#0099CC" uuid="0e33caea-f554-4831-b13a-1dd1921ffb3d"/>
+				<reportElement x="0" y="20" width="131" height="14" forecolor="#0099CC" uuid="0bad1d2c-fc25-4389-a5d0-1fa1ad16ded0"/>
 				<box leftPadding="2" rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Period of report]]></text>
+				<text><![CDATA[მომხმარებელი / Name of SP]]></text>
 			</staticText>
-			<staticText>
-				<reportElement x="180" y="36" width="21" height="15" forecolor="#0099CC" uuid="1fa11b80-ee51-4861-9593-e73e6ed2460e"/>
-				<box leftPadding="2" rightPadding="2"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[to]]></text>
-			</staticText>
-			<textField pattern="dd MMMMM yyyy" isBlankWhenNull="true">
-				<reportElement x="201" y="36" width="103" height="15" forecolor="#000000" uuid="f29702de-7f24-4948-9b32-a08d1190b1de"/>
+			<textField isBlankWhenNull="true">
+				<reportElement x="131" y="20" width="169" height="15" forecolor="#000000" uuid="68a55b72-78ef-4802-a0a5-346a5217bab1"/>
 				<box>
 					<bottomPen lineWidth="1.0"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8" isBold="false"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{todate}]]></textFieldExpression>
-			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="295" y="20" width="146" height="15" forecolor="#000000" uuid="ea3da329-b3e9-430c-bec9-57800965faf9"/>
-				<box>
-					<bottomPen lineWidth="1.0"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8" isBold="false"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$P{USER_NAME}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{spname}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="246" y="20" width="49" height="15" forecolor="#0099CC" uuid="3e19ad21-13f9-48be-847a-1f700f88eb2e"/>
+				<reportElement x="383" y="35" width="150" height="15" forecolor="#0099CC" uuid="cdea63d9-9b74-4891-ab92-b10e5edd5f3f"/>
 				<box leftPadding="2" rightPadding="2"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[# of SP]]></text>
+				<text><![CDATA[    ტერიტორია / Territory for service provision]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="565" y="20" width="187" height="15" forecolor="#000000" uuid="be204e5a-914a-41c0-831b-7509b54c9724"/>
-				<box>
-					<bottomPen lineWidth="1.0"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8" isBold="false"/>
-				</textElement>
-			</textField>
-			<staticText>
-				<reportElement x="441" y="20" width="124" height="15" forecolor="#0099CC" uuid="83685033-bb65-4e7d-b0d4-293a5e7e5395"/>
-				<box leftPadding="2" rightPadding="2"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[Address of SP]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="441" y="36" width="124" height="15" forecolor="#0099CC" uuid="bdc787dc-121e-46ff-b82c-c8af4bfc1b75"/>
-				<box leftPadding="2" rightPadding="2"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[      Territory for service provision]]></text>
-			</staticText>
-			<textField isBlankWhenNull="true">
-				<reportElement x="565" y="36" width="187" height="15" forecolor="#000000" uuid="40e2bc1a-f2e3-4db3-9311-be8c1a6ea27d"/>
+				<reportElement x="533" y="35" width="219" height="15" forecolor="#000000" uuid="71603d87-8a0b-4684-9dae-6135c8898482"/>
 				<box>
 					<bottomPen lineWidth="1.0"/>
 				</box>
@@ -170,6 +127,57 @@ where
 					<font fontName="DejaVu Sans" size="8" isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{region} + ", " + ($F{munic} == null ? '*' : $F{munic}) + ", " + ($F{comm} == null ? '*' : $F{comm}) + ", " + ($F{vill} == null ? '*' : $F{vill})]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="533" y="19" width="219" height="15" forecolor="#000000" uuid="ba6fbc02-0002-45ff-a3a1-c0d181e67bc1"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="35" width="131" height="15" forecolor="#0099CC" uuid="2e01ce7b-f9cf-45b8-b620-d461fd38cb6b"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[მომხმარებლის სახელი / # of SP]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="380" y="54" width="76" height="15" forecolor="#0099CC" uuid="b4ef33cd-6d33-4cdd-980b-1f82f9a92c5a"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[-დან(ჩათვ.) / to]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="213" y="54" width="77" height="15" forecolor="#0099CC" uuid="ab826bec-6f33-4e6e-807b-e0aad6fd5a49"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[პერიოდი / Period of report]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="546" y="54" width="50" height="15" forecolor="#0099CC" uuid="c9fef368-c622-447d-8d34-3521e36c74d5"/>
+				<box leftPadding="2" rightPadding="2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[-მდე(ჩათვ.)]]></text>
+			</staticText>
+			<textField pattern="d/M/yyyy" isBlankWhenNull="true">
+				<reportElement x="456" y="54" width="90" height="15" forecolor="#000000" uuid="999d62f0-a755-4b70-a5b2-9f205f7170b3"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{todate}]]></textFieldExpression>
 			</textField>
 		</band>
 	</title>

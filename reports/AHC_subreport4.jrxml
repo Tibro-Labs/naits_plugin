@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AHC_subreport2" language="groovy" pageWidth="802" pageHeight="555" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="61860756-6baa-40ec-bf17-4a9e0daf7847">
+	<property name="ireport.zoom" value="1.5394743546921197"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String">
+		<defaultValueExpression><![CDATA["/home/meagain/Desktop/NAITS/StatusUpdatePrintout/"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[select
+	cats as cats,
+	dogs as dogs,
+	equids as equids,
+	beehives as bees
+from
+	naits.vholding vhold
+	left join naits.vother_animals as voa on (
+		voa.parent_id = vhold.object_id
+		and now() between voa.dt_insert and voa.dt_delete)
+where
+	now() < vhold.dt_delete
+	and vhold.object_id = $P{OBJ_ID};]]>
+	</queryString>
+	<field name="cats" class="java.math.BigDecimal"/>
+	<field name="dogs" class="java.math.BigDecimal"/>
+	<field name="equids" class="java.math.BigDecimal"/>
+	<field name="bees" class="java.math.BigDecimal"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="15">
+			<textField isBlankWhenNull="true">
+				<reportElement x="267" y="0" width="65" height="15" forecolor="#000000" uuid="df2631cc-fba8-4f5b-aba8-7a336eeec7fd"/>
+				<box leftPadding="1" rightPadding="1">
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cats}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="173" y="0" width="65" height="15" forecolor="#000000" uuid="71948fc7-ae76-47b6-a80a-58a99a245761"/>
+				<box leftPadding="1" rightPadding="1">
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dogs}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="131" y="0" width="42" height="15" forecolor="#0099CC" uuid="dac8ea8f-08b8-48c9-8f3e-f5576789f9a5"/>
+				<box leftPadding="1" rightPadding="1"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ძაღლი]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="238" y="0" width="29" height="15" forecolor="#0099CC" uuid="183cdea1-d687-43f7-a6c2-86cf3ced9020"/>
+				<box leftPadding="1" rightPadding="1"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[კატა]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="66" y="0" width="65" height="15" forecolor="#000000" uuid="79fc7e61-1b1d-4ec5-aad9-9e1afbffb9c8"/>
+				<box leftPadding="1" rightPadding="1">
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{equids}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="66" height="15" forecolor="#0099CC" uuid="77b2e5b5-ff59-4017-80e9-14eb978829e7"/>
+				<box leftPadding="1" rightPadding="1"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ცხენი/ვირი]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="465" y="0" width="65" height="15" forecolor="#000000" uuid="fd6b5a38-37bb-40ab-be7a-1dfd50119101"/>
+				<box leftPadding="1" rightPadding="1">
+					<bottomPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{bees}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="332" y="0" width="133" height="15" forecolor="#0099CC" uuid="d80078ad-c677-420e-9c6b-cf3501e5c67b"/>
+				<box leftPadding="1" rightPadding="1"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ფუტკრის ოჯახების რაოდენობა]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+</jasperReport>

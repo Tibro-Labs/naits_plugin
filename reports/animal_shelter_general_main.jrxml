@@ -25,7 +25,7 @@ vperson.birth_date as birthDate,
 vperson.phone_number as phone,
 vperson.nat_reg_number as keeper_id,
 naits.get_label_text_per_value(vp.status, 'OBJ_STATUS','en_US')as status,
-pet_id,
+PET_TAG_ID,
 pet_name,
 pet_breed,
 pet_color,
@@ -64,7 +64,7 @@ vhold.object_id = $P{OBJ_ID};]]>
 	<field name="phone" class="java.lang.String"/>
 	<field name="keeper_id" class="java.lang.String"/>
 	<field name="status" class="java.lang.String"/>
-	<field name="pet_id" class="java.lang.String"/>
+	<field name="PET_TAG_ID" class="java.lang.String"/>
 	<field name="pet_name" class="java.lang.String"/>
 	<field name="pet_breed" class="java.lang.String"/>
 	<field name="pet_color" class="java.lang.String"/>
@@ -478,7 +478,7 @@ vhold.object_id = $P{OBJ_ID};]]>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{pet_id}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{PET_TAG_ID}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement uuid="0301f284-8bd0-4113-983d-c45af793c1fc" x="132" y="0" width="66" height="20"/>
