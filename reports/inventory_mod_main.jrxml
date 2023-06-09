@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="inventory_mod_main" language="groovy" pageWidth="707" pageHeight="595" orientation="Landscape" columnWidth="647" leftMargin="30" rightMargin="30" topMargin="30" bottomMargin="30" uuid="03537f8d-0985-4ff1-9394-1e9fd711d230">
-	<property name="ireport.zoom" value="1.4641000000000008"/>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="inventory_mod_main" language="groovy" pageWidth="707" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="687" leftMargin="10" rightMargin="10" topMargin="30" bottomMargin="30" uuid="03537f8d-0985-4ff1-9394-1e9fd711d230">
+	<property name="ireport.zoom" value="1.0000000000000004"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<parameter name="OBJ_ID" class="java.lang.Long">
@@ -34,7 +34,8 @@ from
 where
 	vou.dt_delete > now()
 	and vt.dt_delete >now()
-	and vt.status != 'CANCELED'
+	--and vt.status != 'CANCELED'
+	and vt.status = 'RELEASED'
 	and vou.object_id = $P{OBJ_ID}
 order by
 	case
@@ -56,41 +57,20 @@ order by
 	<field name="end_tag_id" class="java.math.BigDecimal"/>
 	<field name="date_created" class="java.sql.Date"/>
 	<field name="date_received" class="java.sql.Date"/>
-	<group name="transfer_type">
-		<groupExpression><![CDATA[$F{status}]]></groupExpression>
-		<groupHeader>
-			<band height="30" splitType="Prevent">
-				<rectangle radius="0">
-					<reportElement mode="Opaque" x="0" y="5" width="646" height="20" backcolor="#FFFF99" uuid="624ad417-cd67-4099-86a2-b4afeb2f6e35"/>
-					<graphicElement>
-						<pen lineWidth="0.0"/>
-					</graphicElement>
-				</rectangle>
-				<textField>
-					<reportElement mode="Transparent" x="0" y="5" width="647" height="20" uuid="cc84467a-e9a4-4bbb-a681-e3214b5ccb90"/>
-					<box leftPadding="3"/>
-					<textElement verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" isBold="true"/>
-					</textElement>
-					<textFieldExpression><![CDATA[$F{status} == "DRAFT" ? "Draft transfer/s. Waits for acceptance of inventory item/s" : $F{status} == "DELIVERED" ? "Delivered inventory item transfer/s.  Waits for release" : $F{status} == "RELEASED" ? "Delivered and released inventory item transfer/s" : null]]></textFieldExpression>
-				</textField>
-			</band>
-		</groupHeader>
-	</group>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
 	<title>
 		<band height="74" splitType="Stretch">
 			<textField>
-				<reportElement x="119" y="0" width="342" height="30" uuid="ef89ccf0-e20a-493d-afe5-d2aa4e1f0c75"/>
+				<reportElement uuid="ef89ccf0-e20a-493d-afe5-d2aa4e1f0c75" x="119" y="0" width="342" height="30"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="16" isBold="true"/>
 				</textElement>
 				<textFieldExpression><![CDATA["Inventory module report"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="461" y="23" width="105" height="15" isPrintWhenDetailOverflows="true" uuid="8ac84314-26cb-48fd-9b00-9721f3a9c787"/>
+				<reportElement uuid="8ac84314-26cb-48fd-9b00-9721f3a9c787" stretchType="RelativeToTallestObject" x="461" y="23" width="105" height="15" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.0" lineStyle="Dashed" lineColor="#000000"/>
 					<topPen lineWidth="0.0"/>
@@ -104,7 +84,7 @@ order by
 				<textFieldExpression><![CDATA["Organisational unit"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="566" y="23" width="81" height="15" isPrintWhenDetailOverflows="true" uuid="71b74265-80e8-4cb9-a7d2-775ca415fdc8"/>
+				<reportElement uuid="71b74265-80e8-4cb9-a7d2-775ca415fdc8" stretchType="RelativeToTallestObject" x="566" y="23" width="81" height="15" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.0" lineStyle="Dashed" lineColor="#000000"/>
 					<topPen lineWidth="0.0"/>
@@ -115,10 +95,10 @@ order by
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{name} != "HEADQUARTER" ? $F{org_unit} : "Headquarter"]]></textFieldExpression>
+				<textFieldExpression><![CDATA[!"HEADQUARTER".equals($F{name}) ? $F{org_unit} : "Headquarter"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="461" y="8" width="105" height="15" isPrintWhenDetailOverflows="true" uuid="a278777e-f505-495c-90f3-9175727ba196"/>
+				<reportElement uuid="a278777e-f505-495c-90f3-9175727ba196" stretchType="RelativeToTallestObject" x="461" y="8" width="105" height="15" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.0" lineStyle="Dashed" lineColor="#000000"/>
 					<topPen lineWidth="0.0"/>
@@ -132,7 +112,7 @@ order by
 				<textFieldExpression><![CDATA["Date: "]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="566" y="8" width="81" height="15" isPrintWhenDetailOverflows="true" uuid="7588cbe6-48a7-4b0d-83d1-ec87cc01df49"/>
+				<reportElement uuid="7588cbe6-48a7-4b0d-83d1-ec87cc01df49" stretchType="RelativeToTallestObject" x="566" y="8" width="81" height="15" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.0" lineStyle="Dashed" lineColor="#000000"/>
 					<topPen lineWidth="0.0"/>
@@ -146,7 +126,7 @@ order by
 				<textFieldExpression><![CDATA[new SimpleDateFormat("dd/MM/yy").format(new Date())]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="461" y="38" width="105" height="15" isPrintWhenDetailOverflows="true" uuid="5e8afa43-f936-4eeb-ad68-ec47a6a12e52"/>
+				<reportElement uuid="5e8afa43-f936-4eeb-ad68-ec47a6a12e52" stretchType="RelativeToTallestObject" x="461" y="38" width="105" height="15" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.0" lineStyle="Dashed" lineColor="#000000"/>
 					<topPen lineWidth="0.0"/>
@@ -160,7 +140,7 @@ order by
 				<textFieldExpression><![CDATA["Geostat code: "]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="461" y="53" width="105" height="15" isPrintWhenDetailOverflows="true" uuid="b192650f-cdbf-4d63-9088-2591ce69078a"/>
+				<reportElement uuid="b192650f-cdbf-4d63-9088-2591ce69078a" stretchType="RelativeToTallestObject" x="461" y="53" width="105" height="15" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.0" lineStyle="Dashed" lineColor="#000000"/>
 					<topPen lineWidth="0.0"/>
@@ -174,7 +154,7 @@ order by
 				<textFieldExpression><![CDATA["Printed by: "]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="566" y="53" width="81" height="15" isPrintWhenDetailOverflows="true" uuid="85c28d8a-f788-49e2-b890-b1a13b05d9e7"/>
+				<reportElement uuid="85c28d8a-f788-49e2-b890-b1a13b05d9e7" stretchType="RelativeToTallestObject" x="566" y="53" width="81" height="15" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.0" lineStyle="Dashed" lineColor="#000000"/>
 					<topPen lineWidth="0.0"/>
@@ -188,7 +168,7 @@ order by
 				<textFieldExpression><![CDATA[$P{USER_NAME}]]></textFieldExpression>
 			</textField>
 			<textField>
-				<reportElement mode="Transparent" x="72" y="51" width="118" height="20" uuid="7d35f217-2a92-4804-a588-ea12a99b567c"/>
+				<reportElement uuid="7d35f217-2a92-4804-a588-ea12a99b567c" mode="Transparent" x="72" y="51" width="118" height="20"/>
 				<box leftPadding="3"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" isBold="true"/>
@@ -196,7 +176,7 @@ order by
 				<textFieldExpression><![CDATA["Outgoing transfer/s"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="566" y="38" width="81" height="15" isPrintWhenDetailOverflows="true" uuid="ae8a7811-65ba-4e23-a4ff-1d997111de8b"/>
+				<reportElement uuid="ae8a7811-65ba-4e23-a4ff-1d997111de8b" stretchType="RelativeToTallestObject" x="566" y="38" width="81" height="15" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.0" lineStyle="Dashed" lineColor="#000000"/>
 					<topPen lineWidth="0.0"/>
@@ -210,13 +190,13 @@ order by
 				<textFieldExpression><![CDATA[$F{name} != "HEADQUARTER" ? $F{geostat_code} : "N/A"]]></textFieldExpression>
 			</textField>
 			<rectangle>
-				<reportElement mode="Opaque" x="190" y="60" width="266" height="2" backcolor="#000000" uuid="346ea349-3768-4ec1-9034-30bfae0c039a"/>
+				<reportElement uuid="346ea349-3768-4ec1-9034-30bfae0c039a" mode="Opaque" x="190" y="60" width="266" height="2" backcolor="#000000"/>
 			</rectangle>
 			<rectangle>
-				<reportElement mode="Opaque" x="0" y="60" width="72" height="2" backcolor="#000000" uuid="cce60c03-ba5c-457f-a8e8-76f4c7262e43"/>
+				<reportElement uuid="cce60c03-ba5c-457f-a8e8-76f4c7262e43" mode="Opaque" x="0" y="60" width="72" height="2" backcolor="#000000"/>
 			</rectangle>
 			<staticText>
-				<reportElement x="598" y="0" width="49" height="8" forecolor="#CCCCCC" uuid="d9ec17e5-438a-443c-a8c6-4352472a737a"/>
+				<reportElement uuid="d9ec17e5-438a-443c-a8c6-4352472a737a" x="598" y="0" width="49" height="8" forecolor="#CCCCCC"/>
 				<textElement textAlignment="Right" verticalAlignment="Bottom">
 					<font fontName="DejaVu Sans" size="6"/>
 				</textElement>
@@ -227,7 +207,7 @@ order by
 	<pageHeader>
 		<band height="21">
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="386" y="0" width="70" height="20" isPrintWhenDetailOverflows="true" uuid="e94418dc-c4f5-4e87-981d-0812beca62b1"/>
+				<reportElement uuid="e94418dc-c4f5-4e87-981d-0812beca62b1" stretchType="RelativeToTallestObject" x="425" y="1" width="70" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -241,7 +221,7 @@ order by
 				<textFieldExpression><![CDATA["Start tag ID"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="80" height="20" isPrintWhenDetailOverflows="true" uuid="f9c85c01-4227-4ded-9e5b-3be0a571c337"/>
+				<reportElement uuid="f9c85c01-4227-4ded-9e5b-3be0a571c337" stretchType="RelativeToTallestObject" x="61" y="1" width="80" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -255,7 +235,7 @@ order by
 				<textFieldExpression><![CDATA["Transfer ID"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="526" y="0" width="60" height="20" isPrintWhenDetailOverflows="true" uuid="ecfbe24f-26db-49f2-afa9-d3a6f1517565"/>
+				<reportElement uuid="ecfbe24f-26db-49f2-afa9-d3a6f1517565" stretchType="RelativeToTallestObject" x="565" y="1" width="60" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -269,7 +249,7 @@ order by
 				<textFieldExpression><![CDATA["Date created"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="236" y="0" width="75" height="20" isPrintWhenDetailOverflows="true" uuid="6ebe3520-ab49-4830-948f-6d5bdff3cc57"/>
+				<reportElement uuid="6ebe3520-ab49-4830-948f-6d5bdff3cc57" stretchType="RelativeToTallestObject" x="275" y="1" width="75" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -283,7 +263,7 @@ order by
 				<textFieldExpression><![CDATA["Issiued by"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="456" y="0" width="70" height="20" isPrintWhenDetailOverflows="true" uuid="27d7773a-a074-47ec-bef5-414662605117"/>
+				<reportElement uuid="27d7773a-a074-47ec-bef5-414662605117" stretchType="RelativeToTallestObject" x="495" y="1" width="70" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -297,7 +277,7 @@ order by
 				<textFieldExpression><![CDATA["End tag ID"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="586" y="0" width="61" height="20" isPrintWhenDetailOverflows="true" uuid="941f2766-e709-48bd-862d-b4027e64b725"/>
+				<reportElement uuid="941f2766-e709-48bd-862d-b4027e64b725" stretchType="RelativeToTallestObject" x="625" y="1" width="61" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -311,7 +291,7 @@ order by
 				<textFieldExpression><![CDATA["Date received"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="311" y="0" width="75" height="20" isPrintWhenDetailOverflows="true" uuid="541459d2-df06-463e-ae5c-13ec1927c27b"/>
+				<reportElement uuid="541459d2-df06-463e-ae5c-13ec1927c27b" stretchType="RelativeToTallestObject" x="350" y="1" width="75" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -325,7 +305,7 @@ order by
 				<textFieldExpression><![CDATA["Received by"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="80" y="0" width="78" height="20" isPrintWhenDetailOverflows="true" uuid="3d290d22-6501-4a4b-9f4f-d93ec8d13d8a"/>
+				<reportElement uuid="3d290d22-6501-4a4b-9f4f-d93ec8d13d8a" stretchType="RelativeToTallestObject" x="141" y="1" width="56" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -339,7 +319,7 @@ order by
 				<textFieldExpression><![CDATA["Departure place"]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="158" y="0" width="78" height="20" isPrintWhenDetailOverflows="true" uuid="a46a6866-65e2-4663-8852-2bbbddcf153a"/>
+				<reportElement uuid="a46a6866-65e2-4663-8852-2bbbddcf153a" stretchType="RelativeToTallestObject" x="197" y="1" width="78" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -352,12 +332,26 @@ order by
 				</textElement>
 				<textFieldExpression><![CDATA["Arrival place"]]></textFieldExpression>
 			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="df896b0f-e594-4be9-9ff4-1c1958172a21" stretchType="RelativeToTallestObject" x="0" y="1" width="61" height="20" isPrintWhenDetailOverflows="true"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Status"]]></textFieldExpression>
+			</textField>
 		</band>
 	</pageHeader>
 	<detail>
 		<band height="20" splitType="Stretch">
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="0" y="0" width="80" height="20" isPrintWhenDetailOverflows="true" uuid="0a680476-27d8-49e5-8764-f199288a01f5"/>
+				<reportElement uuid="0a680476-27d8-49e5-8764-f199288a01f5" stretchType="RelativeToTallestObject" x="61" y="0" width="80" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -371,7 +365,7 @@ order by
 				<textFieldExpression><![CDATA[$F{transfer_id}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="311" y="0" width="75" height="20" isPrintWhenDetailOverflows="true" uuid="36209adb-f622-4aa8-95ff-30ebc399efa9"/>
+				<reportElement uuid="36209adb-f622-4aa8-95ff-30ebc399efa9" stretchType="RelativeToTallestObject" x="351" y="0" width="75" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -385,7 +379,7 @@ order by
 				<textFieldExpression><![CDATA[$F{received_by}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="80" y="0" width="78" height="20" isPrintWhenDetailOverflows="true" uuid="1e0bad27-e66c-43d3-94a7-db52dc0ec011"/>
+				<reportElement uuid="1e0bad27-e66c-43d3-94a7-db52dc0ec011" stretchType="RelativeToTallestObject" x="141" y="0" width="57" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -399,7 +393,7 @@ order by
 				<textFieldExpression><![CDATA[$F{subject_from}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="526" y="0" width="60" height="20" isPrintWhenDetailOverflows="true" uuid="2fc5ac06-9b74-46c8-bfdd-50cf8bb0982d"/>
+				<reportElement uuid="2fc5ac06-9b74-46c8-bfdd-50cf8bb0982d" stretchType="RelativeToTallestObject" x="566" y="0" width="60" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -413,7 +407,7 @@ order by
 				<textFieldExpression><![CDATA[$F{date_created}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="158" y="0" width="78" height="20" isPrintWhenDetailOverflows="true" uuid="e7b21ee4-6f58-4293-88f0-e4f9286d7a58"/>
+				<reportElement uuid="e7b21ee4-6f58-4293-88f0-e4f9286d7a58" stretchType="RelativeToTallestObject" x="198" y="0" width="78" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -427,7 +421,7 @@ order by
 				<textFieldExpression><![CDATA[$F{subject_to}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="456" y="0" width="70" height="20" isPrintWhenDetailOverflows="true" uuid="7e06cdea-f6d6-4511-b5c3-a5b31a44ba12"/>
+				<reportElement uuid="7e06cdea-f6d6-4511-b5c3-a5b31a44ba12" stretchType="RelativeToTallestObject" x="496" y="0" width="70" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -441,7 +435,7 @@ order by
 				<textFieldExpression><![CDATA[$F{end_tag_id}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" pattern="dd/MM/yyyy" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="586" y="0" width="60" height="20" isPrintWhenDetailOverflows="true" uuid="0574ed93-0db6-4be2-8b57-97aa621902a0"/>
+				<reportElement uuid="0574ed93-0db6-4be2-8b57-97aa621902a0" stretchType="RelativeToTallestObject" x="626" y="0" width="60" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -455,7 +449,7 @@ order by
 				<textFieldExpression><![CDATA[$F{date_received}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="236" y="0" width="75" height="20" isPrintWhenDetailOverflows="true" uuid="bf37316a-c429-47b2-9206-6896906598eb"/>
+				<reportElement uuid="bf37316a-c429-47b2-9206-6896906598eb" stretchType="RelativeToTallestObject" x="276" y="0" width="75" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -469,7 +463,7 @@ order by
 				<textFieldExpression><![CDATA[$F{sent_by}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-				<reportElement stretchType="RelativeToTallestObject" x="386" y="0" width="70" height="20" isPrintWhenDetailOverflows="true" uuid="e44bf6fe-5f12-4e09-8c24-1c321f1ff6bb"/>
+				<reportElement uuid="e44bf6fe-5f12-4e09-8c24-1c321f1ff6bb" stretchType="RelativeToTallestObject" x="426" y="0" width="70" height="20" isPrintWhenDetailOverflows="true"/>
 				<box leftPadding="3">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -482,12 +476,26 @@ order by
 				</textElement>
 				<textFieldExpression><![CDATA[$F{start_tag_id}]]></textFieldExpression>
 			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement uuid="1c4eeb3a-f8ad-46a7-b3a3-64f3d6518b47" stretchType="RelativeToTallestObject" x="0" y="0" width="61" height="20" isPrintWhenDetailOverflows="true"/>
+				<box leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
+			</textField>
 		</band>
 	</detail>
 	<summary>
 		<band height="40">
 			<subreport>
-				<reportElement x="0" y="0" width="647" height="40" uuid="f0360116-dc55-4210-9a72-f2e94bd1f349"/>
+				<reportElement uuid="f0360116-dc55-4210-9a72-f2e94bd1f349" x="0" y="0" width="687" height="40"/>
 				<subreportParameter name="OBJ_ID">
 					<subreportParameterExpression><![CDATA[$P{OBJ_ID}]]></subreportParameterExpression>
 				</subreportParameter>

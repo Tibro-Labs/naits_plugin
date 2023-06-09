@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="KC_main" language="groovy" pageWidth="700" pageHeight="990" columnWidth="660" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="242dcb76-a031-467a-a173-dad46531f42c">
-	<property name="ireport.zoom" value="2.0"/>
-	<property name="ireport.x" value="656"/>
+	<property name="ireport.zoom" value="1.366026910730141"/>
+	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<parameter name="path" class="java.lang.String">
 		<property name="/Users/DmitrijsRassohins/Documents/_FAO/ireports" value=""/>
@@ -27,15 +27,27 @@
  vperson.fax_number as fax,
  vperson.mobile_number as mob,
  vperson.email as email,
- CASE WHEN (vperson.holder_type is null OR vperson.holder_type = '0')
+ CASE WHEN (vperson.holder_type is null OR vperson.holder_type = '1')
   THEN '0'
   ELSE '1'
  END
- as keepertype
+ as keepertype,
+v.pic as keeper,
+ vv.pic as holding_asssos,
+ vvv.pic as herder,
+ case when v.pic is not null then 'Keeper'
+      when vv.pic is not null then 'Holding Assosiated'
+      when vvv.pic is not null then 'Herder' end as holder_role
 from
  naits.vholding_responsible as vperson
+ left  join naits.vsvarog_link l on l.link_obj_id_2=vperson.object_id and l.dt_delete>now() and l.link_type_id=50090
+ left join naits.vholding v on v.object_id=l.link_obj_id_1 and v.dt_delete>now()
+  left  join naits.vsvarog_link ll on ll.link_obj_id_2=vperson.object_id and ll.dt_delete>now() and ll.link_type_id=50091
+ left join naits.vholding vv on vv.object_id=ll.link_obj_id_1 and vv.dt_delete>now()
+  left  join naits.vsvarog_link lll on lll.link_obj_id_2=vperson.object_id and lll.dt_delete>now() and lll.link_type_id=50092
+ left join naits.vholding vvv on vvv.object_id=lll.link_obj_id_1 and vvv.dt_delete>now()
 where now() between vperson.dt_insert and vperson.dt_delete
- and vperson.status = 'VALID'
+ --and vperson.status = 'VALID'
  and vperson.object_id = $P{OBJ_ID}]]>
 	</queryString>
 	<field name="keepername" class="java.lang.String"/>
@@ -53,6 +65,10 @@ where now() between vperson.dt_insert and vperson.dt_delete
 	<field name="mob" class="java.lang.String"/>
 	<field name="email" class="java.lang.String"/>
 	<field name="keepertype" class="java.lang.String"/>
+	<field name="keeper" class="java.lang.String"/>
+	<field name="holding_asssos" class="java.lang.String"/>
+	<field name="herder" class="java.lang.String"/>
+	<field name="holder_role" class="java.lang.String"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -68,28 +84,28 @@ where now() between vperson.dt_insert and vperson.dt_delete
 					<rightPen lineWidth="0.0"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="24" isBold="true"/>
+					<font fontName="DejaVu Sans" size="14" isBold="true"/>
 				</textElement>
-				<text><![CDATA[მომვლელის სერთიფიკატი - ჩანაწერი]]></text>
+				<text><![CDATA[პასუხისმგებელი პირის/მომვლელის ამონაწერი]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="185" y="130" width="66" height="15" forecolor="#0099CC" uuid="1d3b637c-ccf6-4a92-93c8-cb9e0b31949c"/>
+				<reportElement x="3" y="130" width="66" height="15" forecolor="#0099CC" uuid="1d3b637c-ccf6-4a92-93c8-cb9e0b31949c"/>
 				<box leftPadding="1" rightPadding="1"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
+				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<text><![CDATA[მუნიც./ქალაქი]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="120" y="55" width="131" height="15" forecolor="#0099CC" uuid="2e1cf9a9-e84b-443a-a1b5-56707aa11ad8"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
+				<reportElement x="3" y="55" width="131" height="15" forecolor="#0099CC" uuid="2e1cf9a9-e84b-443a-a1b5-56707aa11ad8"/>
+				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<text><![CDATA[სახელი/კომპანიის დასახელება]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="224" y="70" width="27" height="15" forecolor="#0099CC" uuid="5124d9e1-9053-4023-8234-bc7a81fa2627"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
+				<reportElement x="3" y="70" width="27" height="15" forecolor="#0099CC" uuid="5124d9e1-9053-4023-8234-bc7a81fa2627"/>
+				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<text><![CDATA[გვარი]]></text>
@@ -102,18 +118,18 @@ where now() between vperson.dt_insert and vperson.dt_delete
 				<text><![CDATA[იურიდიული პირი]]></text>
 			</staticText>
 			<staticText>
-				<reportElement x="174" y="85" width="77" height="15" forecolor="#0099CC" uuid="6095ddac-7ed4-4455-b099-ee1ca7505261"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
+				<reportElement x="3" y="85" width="131" height="15" forecolor="#0099CC" uuid="6095ddac-7ed4-4455-b099-ee1ca7505261"/>
+				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[პირადი ნომერი]]></text>
+				<text><![CDATA[პირადი ნომერი/საიდენტ. კოდი]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="518" y="30" width="74" height="20" forecolor="#0099CC" uuid="d55b10d6-162b-4c44-8903-2753535626e2"/>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8" isItalic="true"/>
 				</textElement>
-				<text><![CDATA[ბეჭდვის თარიღი]]></text>
+				<text><![CDATA[გაცემის თარიღი]]></text>
 			</staticText>
 			<textField pattern="dd/MM/yyyy">
 				<reportElement x="592" y="30" width="66" height="20" forecolor="#0099CC" uuid="a3abba3b-e5ae-488e-9a8d-2f3cd0b1f200"/>
@@ -123,25 +139,11 @@ where now() between vperson.dt_insert and vperson.dt_delete
 				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="368" y="30" width="150" height="20" forecolor="#990000" uuid="f7d16c58-0aaf-454c-846b-552763459d6d"/>
+				<reportElement x="94" y="29" width="150" height="20" forecolor="#990000" uuid="f7d16c58-0aaf-454c-846b-552763459d6d"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8" isItalic="true"/>
 				</textElement>
-				<text><![CDATA[Validity of document: 15 days from ]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="0" y="125" width="660" height="0" uuid="daea8670-d069-4d19-b3a6-0ef478042dd3"/>
-				<box leftPadding="1" rightPadding="1">
-					<pen lineWidth="1.0" lineStyle="Solid"/>
-					<topPen lineWidth="1.0" lineStyle="Solid"/>
-					<leftPen lineWidth="1.0" lineStyle="Solid"/>
-					<bottomPen lineWidth="1.0" lineStyle="Solid"/>
-					<rightPen lineWidth="1.0" lineStyle="Solid"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="14" isBold="true"/>
-				</textElement>
-				<text><![CDATA[]]></text>
+				<text><![CDATA[მოქმედების ვადა 15 დღე]]></text>
 			</staticText>
 			<staticText>
 				<reportElement x="397" y="145" width="66" height="15" forecolor="#0099CC" uuid="c7be79fe-172b-497b-b57a-ac7f29d5cfa6"/>
@@ -150,14 +152,6 @@ where now() between vperson.dt_insert and vperson.dt_delete
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<text><![CDATA[მისამარ]]></text>
-			</staticText>
-			<staticText>
-				<reportElement x="3" y="130" width="137" height="15" forecolor="#000000" uuid="7ba05d76-55b2-40a3-bf57-db18f5150920"/>
-				<box leftPadding="1" rightPadding="1"/>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="10" isBold="true"/>
-				</textElement>
-				<text><![CDATA[მომვლელის საკონტაქტო]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
 				<reportElement x="463" y="145" width="185" height="15" forecolor="#000000" uuid="e546e3a0-c31d-47b2-b421-b6ae92f1bf43"/>
@@ -168,7 +162,7 @@ where now() between vperson.dt_insert and vperson.dt_delete
 				<textFieldExpression><![CDATA[$F{address}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="251" y="130" width="136" height="15" forecolor="#000000" uuid="c0527da9-9f0a-4cf1-bc3b-ce7d0ef18b40"/>
+				<reportElement x="149" y="130" width="136" height="15" forecolor="#000000" uuid="c0527da9-9f0a-4cf1-bc3b-ce7d0ef18b40"/>
 				<box leftPadding="2" rightPadding="1"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -192,7 +186,7 @@ where now() between vperson.dt_insert and vperson.dt_delete
 				<textFieldExpression><![CDATA[$F{commun}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="251" y="145" width="136" height="15" forecolor="#000000" uuid="1e6e4526-4944-4b46-a23c-5a9a9c224042"/>
+				<reportElement x="149" y="145" width="136" height="15" forecolor="#000000" uuid="1e6e4526-4944-4b46-a23c-5a9a9c224042"/>
 				<box leftPadding="2" rightPadding="1"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -200,23 +194,15 @@ where now() between vperson.dt_insert and vperson.dt_delete
 				<textFieldExpression><![CDATA[$F{vilage}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="211" y="145" width="40" height="15" forecolor="#0099CC" uuid="5e7b014d-1d2b-449b-b7a4-0b73a8398b7a"/>
+				<reportElement x="3" y="145" width="40" height="15" forecolor="#0099CC" uuid="5e7b014d-1d2b-449b-b7a4-0b73a8398b7a"/>
 				<box leftPadding="1" rightPadding="1"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
+				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<text><![CDATA[სოფელი]]></text>
 			</staticText>
-			<staticText>
-				<reportElement x="3" y="55" width="117" height="15" forecolor="#000000" uuid="bc283c3b-9b25-4978-82ba-6bd0890c7df8"/>
-				<box leftPadding="1" rightPadding="1"/>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="10" isBold="true"/>
-				</textElement>
-				<text><![CDATA[პასუხისმგებლის]]></text>
-			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="251" y="55" width="136" height="15" forecolor="#000000" uuid="4361aadb-b932-49fb-ac16-92cee00b5c28"/>
+				<reportElement x="149" y="55" width="443" height="15" forecolor="#000000" uuid="4361aadb-b932-49fb-ac16-92cee00b5c28"/>
 				<box leftPadding="2" rightPadding="1"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -224,7 +210,7 @@ where now() between vperson.dt_insert and vperson.dt_delete
 				<textFieldExpression><![CDATA[$F{keepername}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="251" y="70" width="136" height="15" forecolor="#000000" uuid="10f13159-be59-454f-8368-cc8647ba7cd5"/>
+				<reportElement x="149" y="70" width="136" height="15" forecolor="#000000" uuid="10f13159-be59-454f-8368-cc8647ba7cd5"/>
 				<box leftPadding="2" rightPadding="1"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -256,14 +242,14 @@ where now() between vperson.dt_insert and vperson.dt_delete
 				<textFieldExpression><![CDATA["☐"]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="113" y="100" width="138" height="15" forecolor="#0099CC" uuid="b54cd852-092e-4084-874b-97cf02bc6b40"/>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
+				<reportElement x="3" y="100" width="138" height="15" forecolor="#0099CC" uuid="b54cd852-092e-4084-874b-97cf02bc6b40"/>
+				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<text><![CDATA[დაბადების/რეგისტრაციის თარიღი]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="251" y="85" width="77" height="15" forecolor="#000000" uuid="a6abdc63-4893-4a78-8249-c20b313a2784"/>
+				<reportElement x="149" y="85" width="136" height="15" forecolor="#000000" uuid="a6abdc63-4893-4a78-8249-c20b313a2784"/>
 				<box leftPadding="2" rightPadding="1"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -271,30 +257,15 @@ where now() between vperson.dt_insert and vperson.dt_delete
 				<textFieldExpression><![CDATA[$F{keeperid}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="251" y="100" width="77" height="15" forecolor="#000000" uuid="4a4fd995-fa94-4170-b5ea-b13d1cfbc073"/>
+				<reportElement x="149" y="100" width="136" height="15" forecolor="#000000" uuid="4a4fd995-fa94-4170-b5ea-b13d1cfbc073"/>
 				<box leftPadding="2" rightPadding="1"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$F{birthdate}]]></textFieldExpression>
 			</textField>
-			<staticText>
-				<reportElement x="431" y="100" width="32" height="15" forecolor="#0099CC" uuid="39743176-914b-4571-8bbc-34ff897db431"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[სქესი]]></text>
-			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="463" y="100" width="77" height="15" forecolor="#000000" uuid="90cc0a77-e604-4e82-9b35-6db6d590f295"/>
-				<box leftPadding="2" rightPadding="1"/>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<textFieldExpression><![CDATA[$F{gender}]]></textFieldExpression>
-			</textField>
-			<textField isBlankWhenNull="true">
-				<reportElement x="251" y="160" width="86" height="15" forecolor="#000000" uuid="f832f9f5-f2ac-4a44-afbd-7baad80a9600"/>
+				<reportElement x="149" y="160" width="136" height="15" forecolor="#000000" uuid="f832f9f5-f2ac-4a44-afbd-7baad80a9600"/>
 				<box leftPadding="2" rightPadding="1"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -302,9 +273,9 @@ where now() between vperson.dt_insert and vperson.dt_delete
 				<textFieldExpression><![CDATA[$F{phone}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="185" y="160" width="66" height="15" forecolor="#0099CC" uuid="a10a4861-2a54-4625-89f1-35470bcb81c2"/>
+				<reportElement x="3" y="160" width="66" height="15" forecolor="#0099CC" uuid="a10a4861-2a54-4625-89f1-35470bcb81c2"/>
 				<box leftPadding="1" rightPadding="1"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
+				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<text><![CDATA[ტელეფონი]]></text>
@@ -333,6 +304,14 @@ where now() between vperson.dt_insert and vperson.dt_delete
 				</textElement>
 				<textFieldExpression><![CDATA[$F{mob}]]></textFieldExpression>
 			</textField>
+			<image>
+				<reportElement x="0" y="0" width="153" height="36" uuid="3a95c199-722a-4e9e-bddc-0ec692d3c25b"/>
+				<imageExpression><![CDATA["nfa_logo.png"]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="541" y="0" width="118" height="29" uuid="26f0cd90-548e-4a5b-a715-31f985a0192c"/>
+				<imageExpression><![CDATA["naits_logo_tr.png"]]></imageExpression>
+			</image>
 			<staticText>
 				<reportElement x="397" y="160" width="66" height="15" forecolor="#0099CC" uuid="f5af6454-a09c-4f33-ba6d-faba7f7fe173"/>
 				<box leftPadding="1" rightPadding="1"/>
@@ -342,7 +321,7 @@ where now() between vperson.dt_insert and vperson.dt_delete
 				<text><![CDATA[მობ ტელეფონი]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="251" y="175" width="86" height="15" forecolor="#000000" uuid="8841a35b-319e-4dba-8d66-be31f02af8a7"/>
+				<reportElement x="149" y="175" width="136" height="15" forecolor="#000000" uuid="8841a35b-319e-4dba-8d66-be31f02af8a7"/>
 				<box leftPadding="2" rightPadding="1"/>
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -350,9 +329,9 @@ where now() between vperson.dt_insert and vperson.dt_delete
 				<textFieldExpression><![CDATA[$F{fax}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement x="185" y="175" width="66" height="15" forecolor="#0099CC" uuid="696ef980-ca36-4043-a4dc-c8070e7b4d35"/>
+				<reportElement x="3" y="175" width="66" height="15" forecolor="#0099CC" uuid="696ef980-ca36-4043-a4dc-c8070e7b4d35"/>
 				<box leftPadding="1" rightPadding="1"/>
-				<textElement textAlignment="Right" verticalAlignment="Middle">
+				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
 				<text><![CDATA[ფაქსი]]></text>
@@ -410,14 +389,14 @@ where now() between vperson.dt_insert and vperson.dt_delete
 				<textElement textAlignment="Right" verticalAlignment="Top">
 					<font fontName="DejaVu Sans" size="6" isItalic="true"/>
 				</textElement>
-				<text><![CDATA[v.2.1]]></text>
+				<text><![CDATA[v.2.6]]></text>
 			</staticText>
 		</band>
 	</title>
 	<detail>
 		<band height="18" splitType="Stretch">
 			<subreport runToBottom="false">
-				<reportElement x="113" y="0" width="547" height="18" uuid="928a3278-b89c-4013-85f4-dc72e694668f"/>
+				<reportElement x="25" y="0" width="635" height="18" uuid="928a3278-b89c-4013-85f4-dc72e694668f"/>
 				<subreportParameter name="holding_rownum">
 					<subreportParameterExpression><![CDATA[$P{holding_rownum}]]></subreportParameterExpression>
 				</subreportParameter>

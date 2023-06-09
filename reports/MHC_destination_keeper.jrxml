@@ -6,47 +6,39 @@
 	<parameter name="path" class="java.lang.String"/>
 	<parameter name="OBJ_ID" class="java.lang.Long"/>
 	<queryString>
-		<![CDATA[--DESTINATION KEEPERS
- select
-	/*person 2*/
-	case
-		when vp2.first_name is null then vp2.full_name
-		else vp2.first_name end as name2,
-		vp2.last_name as surn2,
-		vp2.nat_reg_number as pers_id2,
-		case
-			when vp2.mobile_number is null then vp2.phone_number
-			else vp2.mobile_number end as pers_phone2
-		from
-			naits.vholding dest_vh /*keeper dest*/
-		join naits.vsvarog_link vsl1 on
-			vsl1.link_obj_id_1 = dest_vh.object_id
-			and vsl1.link_type_id = (
-			select
-				object_id
-			from
-				naits.vsvarog_link_type vslt
-			where
-				now() between vslt.dt_insert and vslt.dt_delete
-				and vslt.link_type = 'HOLDING_KEEPER')
-		join naits.vholding_responsible vp2 on
-			vsl1.link_obj_id_2 = vp2.object_id
-		join naits.vanimal_movement vam on
-			dest_vh.pic = vam.destination_holding_id
-		where
-			now() between vam.dt_insert and vam.dt_delete
-			and now() between dest_vh.dt_insert and dest_vh.dt_delete
-			and now() between vsl1.dt_insert and vsl1.dt_delete
-			and now() between vp2.dt_insert and vp2.dt_delete
-			and vam.movement_doc_id in (
-			select
-				vmd.movement_doc_id
-			from
-				naits.vmovement_doc vmd
-			where
-				vmd.object_id = $P{OBJ_ID}
-				and now() between vmd.dt_insert and vmd.dt_delete)
-		limit 1;]]>
+		<![CDATA[select
+/*person 2*/
+case when vp2.first_name is null
+	then vp2.full_name
+	else vp2.first_name
+	end as name2,
+vp2.last_name as surn2,
+vp2.nat_reg_number as pers_id2,
+case when vp2.mobile_number is null
+	then vp2.phone_number
+	else vp2.mobile_number
+	end as pers_phone2
+from
+	--naits.vanimal_movement vam
+	--join naits.vholding dest_vh on dest_vh.pic=vam.destination_holding_id
+	naits.vholding dest_vh
+	/*keeper dest*/
+	join naits.vsvarog_link vsl1 on vsl1.link_obj_id_1=dest_vh.object_id
+	join naits.vholding_responsible vp2 on vsl1.link_obj_id_2=vp2.object_id
+	join naits.vsvarog_link_type vslt on vslt.object_id=vsl1.link_type_id
+
+where
+	dest_vh.pic in (select vmd.destination_holding_pic from naits.vmovement_doc vmd
+							where vmd.object_id = $P{OBJ_ID} and now() between vmd.dt_insert and vmd.dt_delete)
+	--now() between vam.dt_insert and vam.dt_delete
+	and
+	now() between dest_vh.dt_insert and dest_vh.dt_delete and
+	now() between vsl1.dt_insert and vsl1.dt_delete and
+	now() between vp2.dt_insert and vp2.dt_delete and
+	now() between vslt.dt_insert and vslt.dt_delete and
+	vslt.link_type='HOLDING_KEEPER'
+limit 1;
+]]>
 	</queryString>
 	<field name="name2" class="java.lang.String"/>
 	<field name="surn2" class="java.lang.String"/>
@@ -56,9 +48,9 @@
 		<band splitType="Stretch"/>
 	</background>
 	<detail>
-		<band height="15" splitType="Stretch">
+		<band height="20" splitType="Stretch">
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="5de6e788-9398-4b46-918e-d55eed5edf00" x="95" y="0" width="70" height="15" forecolor="#000000"/>
+				<reportElement x="111" y="0" width="70" height="20" forecolor="#000000" uuid="5de6e788-9398-4b46-918e-d55eed5edf00"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -72,7 +64,7 @@
 				<textFieldExpression><![CDATA[$F{name2}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="7b6096b1-7725-4e42-8de3-17e53baea6b0" x="240" y="0" width="150" height="15" forecolor="#000000"/>
+				<reportElement x="256" y="0" width="150" height="20" forecolor="#000000" uuid="7b6096b1-7725-4e42-8de3-17e53baea6b0"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -86,7 +78,7 @@
 				<textFieldExpression><![CDATA[$F{pers_id2}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="33988b5b-693b-4bfb-8eba-d9c0e496502d" x="0" y="0" width="95" height="15" forecolor="#0099CC"/>
+				<reportElement x="0" y="0" width="111" height="20" forecolor="#0099CC" uuid="33988b5b-693b-4bfb-8eba-d9c0e496502d"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -97,10 +89,10 @@
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Holding of destination]]></text>
+				<text><![CDATA[დანიშნულების სადგომი / Holding of destination]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="25f9ecaf-69ac-4bf6-8110-8775294733c9" x="165" y="0" width="75" height="15" forecolor="#000000"/>
+				<reportElement x="181" y="0" width="75" height="20" forecolor="#000000" uuid="25f9ecaf-69ac-4bf6-8110-8775294733c9"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -114,7 +106,7 @@
 				<textFieldExpression><![CDATA[$F{surn2}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="61856224-aeb9-493d-a443-de42f7ccc42e" x="390" y="0" width="270" height="15" forecolor="#000000"/>
+				<reportElement x="406" y="0" width="254" height="20" forecolor="#000000" uuid="61856224-aeb9-493d-a443-de42f7ccc42e"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>

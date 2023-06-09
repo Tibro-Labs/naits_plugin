@@ -14,7 +14,7 @@
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
 	</parameter>
 	<queryString>
-		<![CDATA[select vp.pet_id,naits.get_label_text_per_value(vp.gender,'GENDER','en_US')gender,vp.birth_date,
+		<![CDATA[select vp.PET_TAG_ID,naits.get_label_text_per_value(vp.gender,'GENDER','en_US')gender,vp.birth_date,
 naits.get_label_text_per_value(pet_color,'PET_COLOR','en_US')pet_color,
 naits.get_label_text_per_value(vp.pet_type,'PET_TYPE','en_US')pet_type,
 naits.get_label_text_per_value(vp.pet_breed,'PET_BREED','en_US')pet_breed,
@@ -32,7 +32,7 @@ vp.dt_delete > now()
 and vphb.action_date::varchar like '%-' || $P{month_param} || '-%'
 and vve.object_id = $P{OBJ_ID};]]>
 	</queryString>
-	<field name="pet_id" class="java.lang.String"/>
+	<field name="PET_TAG_ID" class="java.lang.String"/>
 	<field name="gender" class="java.lang.String"/>
 	<field name="birth_date" class="java.sql.Date"/>
 	<field name="pet_color" class="java.lang.String"/>
@@ -212,7 +212,7 @@ and vve.object_id = $P{OBJ_ID};]]>
 				<textElement textAlignment="Left">
 					<font fontName="DejaVu Sans" size="9"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{pet_id}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{PET_TAG_ID}]]></textFieldExpression>
 			</textField>
 			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 				<reportElement uuid="a0f65bed-553f-4810-8dcd-7ca43561161d" stretchType="RelativeToTallestObject" x="99" y="0" width="51" height="20"/>

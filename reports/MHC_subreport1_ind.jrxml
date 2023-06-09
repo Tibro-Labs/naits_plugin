@@ -14,49 +14,48 @@
 		<defaultValueExpression><![CDATA["/home/meagain/Desktop/NAITS/StatusUpdatePrintout/"]]></defaultValueExpression>
 	</parameter>
 	<queryString>
-		<![CDATA[--SUB_1
- select
+		<![CDATA[select
 	distinct /*movemement*/
 	/* ANIMALS */
 	vam.animal_ear_tag as animal_id,
 	va.status,
 	va.birth_date,
-	naits.get_age_months(va.birth_date)::varchar as age_months,
-	naits.get_label_text_per_value(va.animal_class,
+	age(now(),
+	va.birth_date) as age,
+	naits.translateCodeValue(va.animal_class,
 	'ANIMAL_CLASS',
 	'en_US') spec,
-	naits.get_label_text_per_value(va.gender,
+	naits.translateCodeValue(va.gender,
 	'GENDER',
 	'en_US') gender,
-	naits.get_label_text_per_value(va.animal_race,
+	naits.translateCodeValue(va.animal_race,
 	'ANIMAL_RACE',
 	'en_US') breed,
-	naits.get_label_text_per_value(va.color,
+	naits.translateCodeValue(va.color,
 	'COLOR',
 	'en_US') color
 from
-	naits.vanimal va
-join naits.vanimal_movement vam on
+	naits.vanimal_movement vam
+join naits.vanimal va on
 	vam.parent_id = va.object_id
 where
-	now() between va.dt_insert and va.dt_delete
-	and now() between vam.dt_insert and vam.dt_delete
-	and movement_type = 'INDIVIDUAL'
-	and vam.movement_doc_id in (
-	select
-		vmd.movement_doc_id
+	vam.movement_doc_id in (
+		select vmd.movement_doc_id
 	from
 		naits.vmovement_doc vmd
 	where
 		now() between vmd.dt_insert and vmd.dt_delete
 		and vmd.object_id = $P{OBJ_ID})/*'1203710'*/
+	and movement_type = 'INDIVIDUAL'
+	and now() between va.dt_insert and va.dt_delete
+	and now() between vam.dt_insert and vam.dt_delete
 order by
-	vam.animal_ear_tag;]]>
+	vam.animal_ear_tag]]>
 	</queryString>
 	<field name="animal_id" class="java.lang.String"/>
 	<field name="status" class="java.lang.String"/>
 	<field name="birth_date" class="java.sql.Date"/>
-	<field name="age_months" class="java.lang.String"/>
+	<field name="age" class="org.postgresql.util.PGInterval"/>
 	<field name="spec" class="java.lang.String"/>
 	<field name="gender" class="java.lang.String"/>
 	<field name="breed" class="java.lang.String"/>
@@ -65,9 +64,9 @@ order by
 		<band splitType="Stretch"/>
 	</background>
 	<columnHeader>
-		<band height="16">
+		<band height="30">
 			<staticText>
-				<reportElement uuid="86e7ee0c-8def-4217-a03f-611943d0e589" x="0" y="0" width="95" height="15" forecolor="#0099CC"/>
+				<reportElement x="0" y="0" width="111" height="30" forecolor="#0099CC" uuid="86e7ee0c-8def-4217-a03f-611943d0e589"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -78,10 +77,12 @@ order by
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Individually identified animals]]></text>
+				<text><![CDATA[ინდივიდუალურად იდენტიფიცირებული
+Individ.id.animals
+]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="4a0a547e-6a37-462c-8b88-26c2c849be4b" x="390" y="0" width="75" height="15" forecolor="#0099CC"/>
+				<reportElement x="406" y="0" width="75" height="30" forecolor="#0099CC" uuid="4a0a547e-6a37-462c-8b88-26c2c849be4b"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -92,10 +93,10 @@ order by
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Color]]></text>
+				<text><![CDATA[ფერი / Color]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="8a984fad-dbc0-46d2-9060-f583eed6a4af" x="165" y="0" width="75" height="15" forecolor="#0099CC"/>
+				<reportElement x="181" y="0" width="75" height="30" forecolor="#0099CC" uuid="8a984fad-dbc0-46d2-9060-f583eed6a4af"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -106,10 +107,10 @@ order by
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Species]]></text>
+				<text><![CDATA[სახეობა / Species]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="116db04e-e9dd-41dd-a3a6-05fd2f1dbe9c" x="315" y="0" width="75" height="15" forecolor="#0099CC"/>
+				<reportElement x="331" y="0" width="75" height="30" forecolor="#0099CC" uuid="116db04e-e9dd-41dd-a3a6-05fd2f1dbe9c"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -120,10 +121,10 @@ order by
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Gender]]></text>
+				<text><![CDATA[სქესი / Gender]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="c0b28184-08c4-4942-81c4-b37dc7490092" x="465" y="0" width="195" height="15" forecolor="#0099CC"/>
+				<reportElement x="481" y="0" width="179" height="30" forecolor="#0099CC" uuid="c0b28184-08c4-4942-81c4-b37dc7490092"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -134,10 +135,10 @@ order by
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Age (Months)]]></text>
+				<text><![CDATA[ასაკი (თვე) / Age (Months)]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="3a173cea-a1df-4cae-814b-230db363193c" x="240" y="0" width="75" height="15" forecolor="#0099CC"/>
+				<reportElement x="256" y="0" width="75" height="30" forecolor="#0099CC" uuid="3a173cea-a1df-4cae-814b-230db363193c"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -148,10 +149,10 @@ order by
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Breed]]></text>
+				<text><![CDATA[ჯიში / Breed]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="f2b1c19b-e133-44e1-a196-2bf4006b082a" x="95" y="0" width="70" height="15" forecolor="#0099CC"/>
+				<reportElement x="111" y="0" width="70" height="30" forecolor="#0099CC" uuid="f2b1c19b-e133-44e1-a196-2bf4006b082a"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -162,14 +163,14 @@ order by
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[ID #]]></text>
+				<text><![CDATA[პ.ნ. / ID#]]></text>
 			</staticText>
 		</band>
 	</columnHeader>
 	<detail>
-		<band height="15" splitType="Stretch">
+		<band height="20" splitType="Stretch">
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="c0a1c2bc-2a2b-448a-9f19-e1fbf73c1a08" x="315" y="0" width="75" height="15" forecolor="#000000"/>
+				<reportElement x="331" y="0" width="75" height="20" forecolor="#000000" uuid="c0a1c2bc-2a2b-448a-9f19-e1fbf73c1a08"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -183,7 +184,7 @@ order by
 				<textFieldExpression><![CDATA[$F{gender}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="cff90f31-ba7b-4cd3-9c45-2680719e8647" x="465" y="0" width="195" height="15" forecolor="#000000"/>
+				<reportElement x="481" y="0" width="179" height="20" forecolor="#000000" uuid="cff90f31-ba7b-4cd3-9c45-2680719e8647"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -194,10 +195,10 @@ order by
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{age_months}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{age}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="0c1baea8-4143-48f2-96a8-f13a05e7b1fe" x="390" y="0" width="75" height="15" forecolor="#000000"/>
+				<reportElement x="406" y="0" width="75" height="20" forecolor="#000000" uuid="0c1baea8-4143-48f2-96a8-f13a05e7b1fe"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -211,7 +212,7 @@ order by
 				<textFieldExpression><![CDATA[$F{color}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="41530416-3fa7-4b73-88d3-883198d50d30" x="95" y="0" width="70" height="15" forecolor="#000000"/>
+				<reportElement x="111" y="0" width="70" height="20" forecolor="#000000" uuid="41530416-3fa7-4b73-88d3-883198d50d30"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -225,7 +226,7 @@ order by
 				<textFieldExpression><![CDATA[$F{animal_id}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="2b62b50b-6a7e-4a28-99fe-9a2a73e85d14" x="165" y="0" width="75" height="15" forecolor="#000000"/>
+				<reportElement x="181" y="0" width="75" height="20" forecolor="#000000" uuid="2b62b50b-6a7e-4a28-99fe-9a2a73e85d14"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -239,7 +240,7 @@ order by
 				<textFieldExpression><![CDATA[$F{spec}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="48fb07de-551f-4376-9e48-31a652d81242" x="240" y="0" width="75" height="15" forecolor="#000000"/>
+				<reportElement x="256" y="0" width="75" height="20" forecolor="#000000" uuid="48fb07de-551f-4376-9e48-31a652d81242"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -253,7 +254,7 @@ order by
 				<textFieldExpression><![CDATA[$F{breed}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="f24c1451-47b3-4b64-a6cf-4739b6e64873" x="0" y="0" width="95" height="15" forecolor="#000000"/>
+				<reportElement x="0" y="0" width="111" height="20" forecolor="#000000" uuid="f24c1451-47b3-4b64-a6cf-4739b6e64873"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -269,9 +270,9 @@ order by
 		</band>
 	</detail>
 	<columnFooter>
-		<band height="15">
+		<band height="20">
 			<staticText>
-				<reportElement uuid="bba9ded4-326a-4a5b-b479-21745752fd5c" x="0" y="0" width="95" height="15" forecolor="#0099CC"/>
+				<reportElement x="0" y="0" width="111" height="20" forecolor="#0099CC" uuid="bba9ded4-326a-4a5b-b479-21745752fd5c"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -282,10 +283,10 @@ order by
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Total number of animals]]></text>
+				<text><![CDATA[მთლიანი სულადობა / Total number of animals]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="009dd635-b45f-4693-b2c1-557ac8e167e3" x="95" y="0" width="70" height="15" forecolor="#000000"/>
+				<reportElement x="111" y="0" width="70" height="20" forecolor="#000000" uuid="009dd635-b45f-4693-b2c1-557ac8e167e3"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>

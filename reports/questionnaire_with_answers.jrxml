@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="questionnaire_with_answers" language="groovy" pageWidth="760" pageHeight="600" orientation="Landscape" columnWidth="720" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Empty" uuid="52226279-54a3-4645-99a1-c33e8f27de82">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Crosstab Data Text" hAlign="Center"/>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/maja/Desktop/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="OBJ_ID" class="java.lang.Long"/>
+	<parameter name="path" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select vsft.object_id as param_obj_id,
+vsf.object_id,
+	vsft.label_code as qnr_label_code,
+	vsl_questionnaire.label_text as questionnaire,
+	vst.table_name as tableName,
+	vsft.dt_insert as date_of_creation,
+	vsu_qnr.user_name as qnr_creator,
+	vsl_question.label_text as question,
+	vsff.value as answer,
+	 ( CASE WHEN vst.table_name = 'ANIMAL'
+			THEN (
+				SELECT animal_id
+				from naits.vanimal va
+					join naits.vsvarog_form vsf_1 on va.object_id = vsf_1.parent_id
+				where now() < va.dt_delete
+				and now() < vsf_1.dt_delete
+				and vsf_1.object_id = vsf.object_id
+			)
+		WHEN vst.table_name = 'HOLDING'
+		THEN (
+				SELECT pic
+				from naits.vholding vh
+					join naits.vsvarog_form vsf_1 on vh.object_id = vsf_1.parent_id
+				where now() < vh.dt_delete
+				and now() < vsf_1.dt_delete
+				and vsf_1.object_id = vsf.object_id
+			)
+		ELSE ''
+		END) as parent_id,
+		vsf.dt_insert, vsu_s.user_name
+from naits.vsvarog_form_type vsft
+	JOIN naits.vsvarog_link vsl ON vsft.object_id = vsl.link_obj_id_1
+	JOIN naits.vsvarog_link_type vslt ON vsl.link_type_id = vslt.object_id
+	JOIN naits.vsvarog_form_field_type vsfft ON vsl.link_obj_id_2 = vsfft.object_id
+	JOIN naits.vsvarog_form vsf on vsf.form_type_id = vsft.object_id
+	JOIN naits.vsvarog_form_field vsff on vsff.form_object_id = vsf.object_id and vsff.field_type_id = vsfft.object_id
+	JOIN naits.vsvarog_labels vsl_questionnaire on vsft.label_code = vsl_questionnaire.label_code
+	JOIN naits.vsvarog_labels vsl_question on vsfft.label_code = vsl_question.label_code
+	JOIN naits.vsvarog_users vsu on vsff.user_id = vsu.object_id
+	JOIN naits.vsvarog_users vsu_qnr ON vsu_qnr.object_id = vsft.user_id
+	JOIN naits.vsvarog_users vsu_qq ON vsu_qq.object_id = vsfft.user_id
+	JOIN naits.vsvarog_tables vst ON vst.object_id = vsft.parent_id
+	JOIN naits.vsvarog_users vsu_s ON vsu_s.object_id = vsf.user_id
+where now() < vsft.dt_delete
+and now() < vsl.dt_delete
+and now () < vslt.dt_delete
+and now() < vsfft.dt_delete
+and now() < vsf.dt_delete
+and now() < vsff.dt_delete
+and now() < vsl_questionnaire.dt_delete
+and now() < vsl_question.dt_delete
+and now() < vsu.dt_delete
+and now() < vsu_qnr.dt_delete
+and now() < vst.dt_delete
+and now() < vsu_qq.dt_delete
+and now() < vsu_s.dt_delete
+and vsft.object_id = $P{OBJ_ID}
+group by param_obj_id,
+vsf.object_id, qnr_label_code, questionnaire, tableName, date_of_creation, qnr_creator, question, answer, vsf.dt_insert, vsu_s.user_name]]>
+	</queryString>
+	<field name="param_obj_id" class="java.math.BigDecimal"/>
+	<field name="object_id" class="java.math.BigDecimal"/>
+	<field name="qnr_label_code" class="java.lang.String"/>
+	<field name="questionnaire" class="java.lang.String"/>
+	<field name="tablename" class="java.lang.String"/>
+	<field name="date_of_creation" class="java.sql.Timestamp"/>
+	<field name="qnr_creator" class="java.lang.String"/>
+	<field name="question" class="java.lang.String"/>
+	<field name="answer" class="java.lang.String"/>
+	<field name="parent_id" class="java.lang.String"/>
+	<field name="dt_insert" class="java.sql.Timestamp"/>
+	<field name="user_name" class="java.lang.String"/>
+	<group name="questionnaire">
+		<groupExpression><![CDATA[$F{questionnaire}]]></groupExpression>
+	</group>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement x="266" y="0" width="233" height="20" uuid="d64a0944-bf62-4e52-9301-4da7f3df2388"/>
+				<textElement>
+					<font fontName="DejaVu Sans"/>
+				</textElement>
+				<textFieldExpression><![CDATA["PREVIEW OF QUESTIONNAIRE ANSWERS"]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band height="20">
+			<textField>
+				<reportElement x="620" y="0" width="100" height="20" uuid="7a9410d1-08df-42b0-9eaa-1f50f01adf00"/>
+				<textElement textAlignment="Right">
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+	<summary>
+		<band height="200" splitType="Stretch">
+			<textField>
+				<reportElement x="0" y="30" width="182" height="20" uuid="03df5e20-03f6-4c10-8f64-aac8cd3168cb"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{questionnaire}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="182" y="30" width="171" height="20" uuid="f6f1ffb5-3269-4ae0-acf7-0c5dcf8e7fd8"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{tablename}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="353" y="30" width="185" height="20" uuid="da9d9dd0-a88b-42cc-9633-60869901539b"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{date_of_creation}]]></textFieldExpression>
+				<patternExpression><![CDATA["yyyy-MM-dd"]]></patternExpression>
+			</textField>
+			<textField>
+				<reportElement x="538" y="30" width="182" height="20" uuid="3597be87-c0bc-4d49-bc8f-faa2d142cdd2"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{qnr_creator}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="10" width="182" height="20" uuid="81ada696-0f59-47af-8120-d04951238628"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["QUESTIONNAIRE"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="0" y="60" width="720" height="1" uuid="5e6a25a3-532b-4037-b632-dc016a47c607"/>
+			</line>
+			<textField>
+				<reportElement x="182" y="10" width="171" height="20" uuid="d9f9bdd6-a1d9-42ed-ad3a-3ee59afb3e99"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["SCOPE"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="353" y="10" width="185" height="20" uuid="87fb2234-3cdb-4fbc-9807-a7953536b7c5"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["DATE OF CREATION"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="538" y="10" width="182" height="20" uuid="abf05bb7-233d-436a-af13-5e9d954c9e7b"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["CREATED BY"]]></textFieldExpression>
+			</textField>
+			<crosstab>
+				<reportElement stretchType="RelativeToBandHeight" mode="Opaque" x="182" y="83" width="538" height="20" backcolor="#FFFFFF" uuid="b44ab7f1-1747-4fb5-98ff-9a2dfc3141b6"/>
+				<box topPadding="0" leftPadding="0">
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+					<topPen lineWidth="0.5" lineStyle="Solid"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid"/>
+				</box>
+				<rowGroup name="parent_id" width="70">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{parent_id}]]></bucketExpression>
+					</bucket>
+					<crosstabRowHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="0" width="70" height="25" uuid="8d5b3e93-a300-4e32-9e91-5790b2b7c286"/>
+								<box topPadding="0" leftPadding="5"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="7"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{parent_id}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabRowHeader>
+					<crosstabTotalRowHeader>
+						<cellContents/>
+					</crosstabTotalRowHeader>
+				</rowGroup>
+				<columnGroup name="question" height="30">
+					<bucket class="java.lang.String">
+						<bucketExpression><![CDATA[$F{question}]]></bucketExpression>
+					</bucket>
+					<crosstabColumnHeader>
+						<cellContents backcolor="#F0F8FF" mode="Opaque">
+							<box>
+								<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+							</box>
+							<textField>
+								<reportElement style="Crosstab Data Text" mode="Opaque" x="0" y="0" width="50" height="30" uuid="5ea3b3ee-b91a-4aca-86b7-6bd1db659275"/>
+								<box topPadding="0" leftPadding="5"/>
+								<textElement textAlignment="Left" verticalAlignment="Middle">
+									<font fontName="DejaVu Sans" size="7"/>
+								</textElement>
+								<textFieldExpression><![CDATA[$V{question}]]></textFieldExpression>
+							</textField>
+						</cellContents>
+					</crosstabColumnHeader>
+					<crosstabTotalColumnHeader>
+						<cellContents/>
+					</crosstabTotalColumnHeader>
+				</columnGroup>
+				<measure name="answerMeasure" class="java.lang.String">
+					<measureExpression><![CDATA[$F{answer}]]></measureExpression>
+				</measure>
+				<crosstabCell width="50" height="25">
+					<cellContents>
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField>
+							<reportElement style="Crosstab Data Text" stretchType="RelativeToBandHeight" mode="Opaque" x="0" y="0" width="50" height="25" uuid="1e2c4589-8b7d-4810-9129-d6c8fdd7a43a"/>
+							<box topPadding="0" leftPadding="5"/>
+							<textElement textAlignment="Left" verticalAlignment="Middle">
+								<font fontName="DejaVu Sans" size="7"/>
+							</textElement>
+							<textFieldExpression><![CDATA[$V{answerMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell height="25" rowTotalGroup="parent_id">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" uuid="420ec8f8-75a5-4693-9a74-3442f98c9823"/>
+							<textFieldExpression><![CDATA[$V{answerMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell width="50" columnTotalGroup="question">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" uuid="003a4b60-24b3-457c-904e-684977402878"/>
+							<textFieldExpression><![CDATA[$V{answerMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+				<crosstabCell rowTotalGroup="parent_id" columnTotalGroup="question">
+					<cellContents backcolor="#BFE1FF" mode="Opaque">
+						<box>
+							<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+						</box>
+						<textField>
+							<reportElement style="Crosstab Data Text" x="0" y="0" width="50" height="25" uuid="4a0646d2-ac33-4547-a7e8-7a4e532d98b0"/>
+							<textFieldExpression><![CDATA[$V{answerMeasure}]]></textFieldExpression>
+						</textField>
+					</cellContents>
+				</crosstabCell>
+			</crosstab>
+			<textField>
+				<reportElement x="182" y="93" width="50" height="10" uuid="870737d3-f26a-4da6-924f-28ccf7507882"/>
+				<box topPadding="0" leftPadding="5" bottomPadding="0"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA["SUBJECT"]]></textFieldExpression>
+			</textField>
+			<subreport>
+				<reportElement x="0" y="83" width="152" height="61" uuid="6bfd2689-9b6d-4107-a462-5550be3bc064"/>
+				<subreportParameter name="OBJ_ID">
+					<subreportParameterExpression><![CDATA[$F{param_obj_id}]]></subreportParameterExpression>
+				</subreportParameter>
+				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+				<subreportExpression><![CDATA[$P{path} + "questionnaire_with_answers_1.jasper"]]></subreportExpression>
+			</subreport>
+		</band>
+	</summary>
+</jasperReport>

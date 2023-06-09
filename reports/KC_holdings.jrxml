@@ -13,24 +13,73 @@
 		<![CDATA[select
  vhold.pic as holdingid,
  vhold.type as holdingtypecode,
- naits.translateCodeValue(vhold.type, 'HOLDING_TYPE', 'ka_GE') holdingtype,
- naits.translateCodeValue(vperson.holder_type, 'HOLDER_TYPE', 'ka_GE') holderrole
+ naits.translateCodeValue(vhold.type, 'HOLDING_MAIN_TYPE', 'ka_GE') holdingtype,
+ 'მფლობელი' as role
 from
  naits.vholding as vhold
- join naits.vsvarog_link as vsl on (vhold.object_id = vsl.link_obj_id_1)
- join naits.vholding_responsible as vperson on (vsl.link_obj_id_2 = vperson.object_id)
+inner join naits.vsvarog_link l on l.link_obj_id_1=vhold.object_id  and l.dt_delete>now()
+inner join naits.vsvarog_link_type lt on lt.object_id=l.link_type_id and lt.link_type='HOLDING_KEEPER' and lt.dt_delete>now()
+inner join naits.vholding_responsible vperson on vperson.object_id=l.link_obj_id_2 and vperson.dt_Delete>now()
 where
     now() between vhold.dt_insert and vhold.dt_delete
-and now() between vsl.dt_insert and vsl.dt_delete
-and now() between vperson.dt_insert and vperson.dt_delete
 and vperson.object_id = $P{OBJ_ID}
 and vperson.status = 'VALID'
-order by vhold.object_id]]>
+union all
+select
+ vhold.pic as holdingid,
+ vhold.type as holdingtypecode,
+ naits.translateCodeValue(vhold.type, 'HOLDING_TYPE', 'ka_GE') holdingtype,
+ 'მომვლელი/კომპანიის წარმომადგენელი'
+from
+ naits.vholding as vhold
+
+inner join naits.vsvarog_link l on l.link_obj_id_1=vhold.object_id and l.dt_delete>now()
+inner join naits.vsvarog_link_type lt on lt.object_id=l.link_type_id and lt.link_type='HOLDING_ASSOCIATED' and lt.dt_delete>now()
+
+inner join naits.vholding_responsible vperson on vperson.object_id=l.link_obj_id_2 and vperson.dt_Delete>now()
+
+where
+    now() between vhold.dt_insert
+    and vhold.dt_delete
+and vperson.object_id =  $P{OBJ_ID}
+and vperson.status = 'VALID'
+union all
+select
+ vhold.pic as holdingid,
+ vhold.type as holdingtypecode,
+ naits.translateCodeValue(vhold.type, 'HOLDING_MAIN_TYPE', 'ka_GE') holdingtype,
+ 'დროებით პასუხისმგებელი პირი'
+from
+ naits.vholding as vhold
+inner join naits.vsvarog_link l on l.link_obj_id_1=vhold.object_id  and l.dt_delete>now()
+inner join naits.vsvarog_link_type lt on lt.object_id=l.link_type_id and lt.link_type='HOLDING_HERDER' and lt.dt_delete>now()
+
+inner join naits.vholding_responsible vperson on vperson.object_id=l.link_obj_id_2 and vperson.dt_Delete>now()
+where
+    now() between vhold.dt_insert and vhold.dt_delete
+and vperson.object_id =  $P{OBJ_ID}
+and vperson.status = 'VALID'
+union all
+select
+ vhold.pic as holdingid,
+ vhold.type as holdingtypecode,
+ naits.translateCodeValue(vhold.type, 'HOLDING_MAIN_TYPE', 'ka_GE') holdingtype,
+ 'წევრი'
+from
+ naits.vholding as vhold
+inner join naits.vsvarog_link l on l.link_obj_id_1=vhold.object_id  and l.dt_delete>now()
+inner join naits.vsvarog_link_type lt on lt.object_id=l.link_type_id and lt.link_type='HOLDING_MEMBER_OF' and lt.dt_delete>now()
+
+inner join naits.vholding_responsible vperson on vperson.object_id=l.link_obj_id_2 and vperson.dt_Delete>now()
+where
+    now() between vhold.dt_insert and vhold.dt_delete
+and vperson.object_id =   $P{OBJ_ID}
+and vperson.status = 'VALID']]>
 	</queryString>
 	<field name="holdingid" class="java.lang.String"/>
 	<field name="holdingtypecode" class="java.lang.String"/>
 	<field name="holdingtype" class="java.lang.String"/>
-	<field name="holderrole" class="java.lang.String"/>
+	<field name="role" class="java.lang.String"/>
 	<background>
 		<band splitType="Stretch"/>
 	</background>
@@ -40,7 +89,7 @@ order by vhold.object_id]]>
 	<detail>
 		<band height="17" splitType="Stretch">
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="fa4c17b0-1f58-438b-b504-9f6340adc3ba" x="64" y="0" width="90" height="15" forecolor="#000000"/>
+				<reportElement x="70" y="0" width="90" height="15" forecolor="#000000" uuid="fa4c17b0-1f58-438b-b504-9f6340adc3ba"/>
 				<box leftPadding="1" rightPadding="1">
 					<bottomPen lineWidth="1.0"/>
 				</box>
@@ -50,7 +99,7 @@ order by vhold.object_id]]>
 				<textFieldExpression><![CDATA[$F{holdingid}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="03e70990-368d-4cb9-b10e-53929cee05bd" x="0" y="0" width="64" height="15" forecolor="#0099CC"/>
+				<reportElement x="0" y="0" width="64" height="15" forecolor="#0099CC" uuid="03e70990-368d-4cb9-b10e-53929cee05bd"/>
 				<box leftPadding="1" rightPadding="1"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -58,7 +107,7 @@ order by vhold.object_id]]>
 				<text><![CDATA[სადგომის №]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="75f1c243-60c4-4341-9754-99c983b360a2" x="154" y="0" width="64" height="15" forecolor="#0099CC"/>
+				<reportElement x="240" y="0" width="64" height="15" forecolor="#0099CC" uuid="75f1c243-60c4-4341-9754-99c983b360a2"/>
 				<box leftPadding="1" rightPadding="1"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -66,7 +115,7 @@ order by vhold.object_id]]>
 				<text><![CDATA[სადგომის ტიპი]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="3f54abf4-e9b4-48be-8af9-43e5f738f76f" x="218" y="0" width="90" height="15" forecolor="#000000"/>
+				<reportElement x="304" y="0" width="90" height="15" forecolor="#000000" uuid="3f54abf4-e9b4-48be-8af9-43e5f738f76f"/>
 				<box leftPadding="1" rightPadding="1">
 					<bottomPen lineWidth="1.0"/>
 				</box>
@@ -76,7 +125,7 @@ order by vhold.object_id]]>
 				<textFieldExpression><![CDATA[$F{holdingtype}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="bdf2174b-9c13-4f1a-bd74-57b8ae4da5b9" x="308" y="0" width="64" height="15" forecolor="#0099CC"/>
+				<reportElement x="448" y="0" width="64" height="15" forecolor="#0099CC" uuid="bdf2174b-9c13-4f1a-bd74-57b8ae4da5b9"/>
 				<box leftPadding="1" rightPadding="1"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
@@ -84,14 +133,14 @@ order by vhold.object_id]]>
 				<text><![CDATA[როლი]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="31a48384-b595-43ea-8d7b-08c749899a04" x="372" y="0" width="90" height="15" forecolor="#000000"/>
+				<reportElement x="512" y="0" width="90" height="15" forecolor="#000000" uuid="31a48384-b595-43ea-8d7b-08c749899a04"/>
 				<box leftPadding="1" rightPadding="1">
 					<bottomPen lineWidth="1.0"/>
 				</box>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{holderrole}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{role}]]></textFieldExpression>
 			</textField>
 		</band>
 	</detail>

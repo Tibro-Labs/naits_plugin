@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="PetOwnershipHistory" language="groovy" pageWidth="700" pageHeight="990" columnWidth="660" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="14a329e8-a24a-4213-92b5-fce93368250a">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long"/>
+	<queryString>
+		<![CDATA[select
+	vp.PET_TAG_ID,
+	vp.pet_type,
+	vp.pet_tag_type,
+	vp.gender,
+	vp.pet_color,
+	vp.birth_date,
+	vp.dt_adoption,
+	vp.is_stray_pet,
+	naits.get_label_text_per_value(vp.pet_color, 'PET_COLOR', 'en_US') petColor,
+	naits.get_label_text_per_value(vp.pet_type, 'PET_TYPE', 'en_US') petType,
+	naits.get_label_text_per_value(vp.pet_tag_type, 'PET_TAG_TYPE', 'en_US') petTagType,
+	naits.get_label_text_per_value(vp.gender, 'GENDER', 'en_US') petGender,
+	petOwnerDetails.first_name,
+	petOwnerDetails.last_name,
+	petOwnerDetails.full_name,
+	petOwnerDetails.nat_reg_number,
+	petOwnerDetails.mobile_number,
+	petOwnerDetails.dt_insert,
+	petOwnerDetails.dt_delete,
+	petOwnerDetails.status
+from naits.vpet vp
+	left join
+		( select
+		vsl.link_obj_id_1,
+		vhr.first_name,
+		vhr.last_name, vhr.full_name,
+		vhr.nat_reg_number,
+		vhr.mobile_number,
+		vsl.dt_insert,
+		vsl.dt_delete,
+		vsl.status
+		from naits.vsvarog_link vsl
+		JOIN naits.vsvarog_link_type vslt ON vsl.link_type_id = vslt.object_id AND vslt.link_type = 'PET_OWNER'
+		JOIN naits.vholding_responsible vhr ON vsl.link_obj_id_2 = vhr.object_id
+		where current_timestamp between vslt.dt_insert and vslt.dt_delete and
+		current_timestamp between vhr.dt_insert and vhr.dt_delete
+	) as petOwnerDetails on vp.object_id = petOwnerDetails.link_obj_id_1
+where current_timestamp between vp.dt_insert and vp.dt_delete
+and vp.object_id = $P{OBJ_ID}
+order by petOwnerDetails.dt_delete desc;]]>
+	</queryString>
+	<field name="PET_TAG_ID" class="java.lang.String"/>
+	<field name="pet_type" class="java.lang.String"/>
+	<field name="pet_tag_type" class="java.lang.String"/>
+	<field name="gender" class="java.lang.String"/>
+	<field name="pet_color" class="java.lang.String"/>
+	<field name="birth_date" class="java.sql.Date"/>
+	<field name="dt_adoption" class="java.sql.Date"/>
+	<field name="is_stray_pet" class="java.lang.String"/>
+	<field name="petcolor" class="java.lang.String"/>
+	<field name="pettype" class="java.lang.String"/>
+	<field name="pettagtype" class="java.lang.String"/>
+	<field name="petgender" class="java.lang.String"/>
+	<field name="first_name" class="java.lang.String"/>
+	<field name="last_name" class="java.lang.String"/>
+	<field name="full_name" class="java.lang.String"/>
+	<field name="nat_reg_number" class="java.lang.String"/>
+	<field name="mobile_number" class="java.lang.String"/>
+	<field name="dt_insert" class="java.sql.Timestamp"/>
+	<field name="dt_delete" class="java.sql.Timestamp"/>
+	<field name="status" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="79" splitType="Stretch">
+			<textField>
+				<reportElement uuid="26ec454e-8667-4808-900f-af9a34b9d9e0" x="239" y="0" width="221" height="31"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="14"/>
+				</textElement>
+				<textFieldExpression><![CDATA["PET OWNERSHIP HISTORY"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="5d7a0047-cfb6-4a01-bab8-5a1a306588bb" x="0" y="31" width="130" height="20" forecolor="#CC0000"/>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["PET DETAILS"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="cb37c66a-aad3-4830-9237-ea260ecde9f5" x="0" y="60" width="660" height="1"/>
+			</line>
+			<textField>
+				<reportElement uuid="7c4f3598-7f8a-4254-97dd-8d3a846c5511" x="509" y="0" width="87" height="20" forecolor="#CC0000"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Report generated at:"]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="6c14df52-4ce6-436b-b791-2131111aa8d8" x="596" y="0" width="75" height="20" forecolor="#CC0000"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="160" splitType="Stretch">
+			<textField>
+				<reportElement uuid="4a0a3f45-d89a-489b-809b-b863eddcb1b9" x="0" y="0" width="100" height="20" forecolor="#0099FF"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="10" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Pet ID"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="5a5ba663-be66-41ea-9b39-70a37aa4429a" x="0" y="20" width="100" height="20" forecolor="#009900"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="12"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PET_TAG_ID}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="24b5638f-ee3c-4ddb-91e3-6c7ddc21dc38" x="200" y="20" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Pet Tag Type"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="eaa02c50-6a04-4e84-8a64-5039dc922bfe" x="200" y="40" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Gender"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="fda94d3b-5ff9-45ff-9d44-b14677e27993" x="200" y="0" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Type"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="4f24ecf0-ff5d-4216-8bed-77ca5a878828" x="460" y="0" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Color"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="a3278882-9f18-4550-b43b-5bdd0486c234" x="460" y="20" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Birth date"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="55291020-d657-4d66-b834-41b68c6f9790" x="460" y="40" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Date of adoption"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="eac0027e-7898-40b1-8d76-e082c4ee3657" x="0" y="94" width="130" height="20" forecolor="#CC0000">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}!=null]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["OWNER DETAILS"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="9d3b3722-a10e-48f7-b235-e937408f5bb0" x="330" y="140" width="99" height="20">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}!=null]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["First name"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="4d8a95b6-b876-457c-acf6-f174e88686ec" x="429" y="140" width="103" height="20">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}!=null]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Last name"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="4f1d519c-c6d4-4708-9458-6cec20c75ea4" x="532" y="140" width="128" height="20">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}!=null]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Full name"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="530b53c2-64ae-485a-a1d6-b3ad29a66275" x="220" y="140" width="110" height="20">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}!=null]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Owner ID"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="2f43acba-420e-4610-bc8d-306e2834a281" x="0" y="121" width="660" height="1"/>
+			</line>
+			<textField>
+				<reportElement uuid="c26401a8-8e84-47cb-8fcd-835cb3ef72b5" x="0" y="140" width="110" height="20">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}!=null]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Ownership valid from"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="1d87dad9-3a5e-4d05-8728-ca91c504af23" x="110" y="140" width="110" height="20">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}!=null]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Ownership valid to"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="9f5935a5-2bca-4376-9dc5-f9ff1090d1f9" x="560" y="20" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{birth_date}!=null)?$F{birth_date}:"N/A")]]></textFieldExpression>
+				<patternExpression><![CDATA["yyyy/MM/dd"]]></patternExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="82ccb89e-2795-48c4-9229-3a978c4f612d" x="560" y="40" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{dt_adoption}!=null)?$F{dt_adoption}:"N/A")]]></textFieldExpression>
+				<patternExpression><![CDATA["yyyy/MM/dd"]]></patternExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="1c898f72-50ca-4e19-a603-191188e9fcac" x="300" y="0" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{pettype}!=null)?$F{pettype}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="16c138a4-6366-4f42-8961-e2ec95d3c171" x="300" y="20" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{pettagtype}!=null)?$F{pettagtype}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7b4c1e80-05de-4c9e-b5d1-fd24af6475e2" x="560" y="0" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{petcolor}!=null)?$F{petcolor}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="53bc8f67-f569-45b0-948b-1c119a58ea20" x="300" y="40" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{petgender}!=null)?$F{petgender}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7c659e4e-8356-4378-8b00-b9e14b2d2f84" x="390" y="96" width="270" height="18" forecolor="#CC0000">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}==null]]></printWhenExpression>
+				</reportElement>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Тhis animal currently has no owner and has never had an owner"]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement uuid="6f4046ee-9bdc-4788-8212-e40ed32f053e" x="0" y="0" width="110" height="20">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}!=null]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{dt_insert}!=null)?$F{dt_insert}:"")]]></textFieldExpression>
+				<patternExpression><![CDATA["yyyy/MM/dd"]]></patternExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="e50c6a87-a5d9-4d8e-8b60-dfc6fa9af29a" x="110" y="0" width="110" height="20">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}!=null]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{dt_delete}!=null)?$F{dt_delete}:"")]]></textFieldExpression>
+				<patternExpression><![CDATA["yyyy/MM/dd"]]></patternExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="279ce522-a821-4428-8ea5-e03a5c960e0b" x="220" y="0" width="110" height="20">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}!=null]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{nat_reg_number}!=null)?$F{nat_reg_number}:"")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="feccc526-0244-41fe-99ac-83c987e2d51b" x="330" y="0" width="99" height="20">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}!=null]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{first_name}!=null)?$F{first_name}:"")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="6642368c-23bf-4e2c-8137-1f0fd8a2a2df" x="429" y="0" width="103" height="20">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}!=null]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{last_name}!=null)?$F{last_name}:"")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="ca9025b2-81a6-46ec-9017-8f20653403c8" x="532" y="0" width="128" height="20">
+					<printWhenExpression><![CDATA[$F{nat_reg_number}!=null]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{full_name}!=null)?$F{full_name}:"")]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="55" splitType="Stretch">
+			<line>
+				<reportElement uuid="d9d0038f-b4ce-4d3f-b641-ab1103a92d05" x="0" y="53" width="660" height="1"/>
+			</line>
+			<textField>
+				<reportElement uuid="a9dede64-bc55-4f2b-b94d-4e19a4a9154b" x="634" y="33" width="26" height="20"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

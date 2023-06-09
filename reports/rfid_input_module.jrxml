@@ -1,0 +1,743 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="rfid_input_module" language="groovy" pageWidth="1480" pageHeight="700" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="1440" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="4d5bd8b6-d947-4c0e-9775-596355e912dd">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
+	<parameter name="SUBREPORT_DIR" class="java.lang.String" isForPrompting="false">
+		<defaultValueExpression><![CDATA["/home/slavica/Desktop/RfidReport/"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="path" class="java.lang.String">
+		<defaultValueExpression><![CDATA["/home/slavica/Desktop/RfidReport/"]]></defaultValueExpression>
+	</parameter>
+	<queryString>
+		<![CDATA[SELECT vri.object_id,
+	vsu.user_name,
+	vri.user_id,
+	vris.status,
+	vri.rfid_number,
+	vris.animal_ear_tag,
+	vri.animal_type,
+	naits.get_label_text_per_value(vri.import_type, 'IMPORT_TYPE', 'en_US') importType,
+	naits.get_label_text_per_value(vris.status, 'STATUS', 'en_US') rfidStatus,
+	naits.translatecodevalue(vris.executed_actions, 'SUBACTION_TYPE', 'en_US') actions,
+	animalDetails.*,
+	vri.dt_insert
+FROM naits.vrfid_input vri
+	join naits.vsvarog_users vsu ON vri.user_id = vsu.object_id
+	join naits.vrfid_input_state vris ON vri.object_id = vris.parent_id
+	left join (
+		select
+		animal_id,
+		va.birth_date,
+		va.registration_date,
+		DATE_PART('year', AGE(current_timestamp, va.birth_date)) as age,
+		animal_class,
+		vh.keeper_id,
+		vhr.full_name,
+		vh.keeper_mobile_num,
+		vh.pic,
+		vh.physical_address,
+		naits.get_label_text_per_value(va.gender, 'GENDER', 'en_US') animalGender,
+		naits.get_label_text_per_value(va.animal_class, 'ANIMAL_CLASS', 'en_US') animalClass,
+		naits.get_label_text_per_value(va.animal_race, 'ANIMAL_RACE', 'en_US') animalRace,
+		naits.get_label_text_per_value(va.color, 'COLOR', 'en_US') animalColor,
+		naits.get_label_text_per_value(vh.type, 'HOLDING_MAIN_TYPE', 'en_US') holdingType
+		from naits.vanimal va
+		join naits.vholding vh on va.parent_id = vh.object_id
+		left join naits.vsvarog_link vsl on vh.object_id = vsl.link_obj_id_1 and current_timestamp between vsl.dt_insert and vsl.dt_delete
+			and vsl.link_type_id = (select vslt.object_id
+			from naits.vsvarog_link_type vslt
+			where current_timestamp between vslt.dt_insert and vslt.dt_delete and vslt.link_type = 'HOLDING_KEEPER')
+		left join naits.vholding_responsible vhr on vsl.link_obj_id_2 = vhr.object_id and current_timestamp between vhr.dt_insert and vhr.dt_delete
+		where current_timestamp between va.dt_insert and va.dt_delete and
+		current_timestamp between vh.dt_insert and vh.dt_delete
+	) as animalDetails
+ON vri.animal_type = animalDetails.animal_class and vris.animal_ear_tag = animalDetails.animal_id
+WHERE current_timestamp between vri.dt_insert and vri.dt_delete AND
+current_timestamp between vris.dt_insert and vris.dt_delete AND
+current_timestamp between vsu.dt_insert and vsu.dt_delete
+and vri.object_id = $P{OBJ_ID}]]>
+	</queryString>
+	<field name="object_id" class="java.math.BigDecimal"/>
+	<field name="user_name" class="java.lang.String"/>
+	<field name="user_id" class="java.math.BigDecimal"/>
+	<field name="status" class="java.lang.String"/>
+	<field name="rfid_number" class="java.lang.String"/>
+	<field name="animal_ear_tag" class="java.lang.String"/>
+	<field name="animal_type" class="java.lang.String"/>
+	<field name="importtype" class="java.lang.String"/>
+	<field name="rfidstatus" class="java.lang.String"/>
+	<field name="actions" class="java.lang.String"/>
+	<field name="animal_id" class="java.lang.String"/>
+	<field name="birth_date" class="java.sql.Date"/>
+	<field name="registration_date" class="java.sql.Date"/>
+	<field name="age" class="java.lang.Double"/>
+	<field name="animal_class" class="java.lang.String"/>
+	<field name="keeper_id" class="java.lang.String"/>
+	<field name="full_name" class="java.lang.String"/>
+	<field name="keeper_mobile_num" class="java.lang.String"/>
+	<field name="pic" class="java.lang.String"/>
+	<field name="physical_address" class="java.lang.String"/>
+	<field name="animalgender" class="java.lang.String"/>
+	<field name="animalclass" class="java.lang.String"/>
+	<field name="animalrace" class="java.lang.String"/>
+	<field name="animalcolor" class="java.lang.String"/>
+	<field name="holdingtype" class="java.lang.String"/>
+	<field name="dt_insert" class="java.sql.Timestamp"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="38" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="a429ca6b-a42f-4df8-9514-6bb3eb5603bf" x="668" y="0" width="183" height="20"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="16"/>
+				</textElement>
+				<text><![CDATA[RFID IMPORT DETAILS]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="a1a3d537-2cf5-46a0-82fd-50817958bc1f" x="1282" y="0" width="101" height="20" forecolor="#CC0000"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Report generated at"]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="9fed81b6-686e-48e9-a70f-15aa7252f260" x="1383" y="0" width="54" height="20" forecolor="#CC0000"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				<patternExpression><![CDATA["yyyy/MM/dd"]]></patternExpression>
+			</textField>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="60" splitType="Stretch">
+			<textField>
+				<reportElement uuid="8bfe3b4f-c217-4c1d-9733-6ad7d1f3ff6a" positionType="Float" x="348" y="20" width="160" height="20" forecolor="#0099FF"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Import Type"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="40a11eec-ec96-4c14-8902-13bb86bf118d" x="129" y="20" width="154" height="20" forecolor="#009900"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{rfid_number}!=null)?$F{rfid_number}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="8b8f8f07-d8c8-4217-9ba9-63092db7bba6" positionType="Float" x="0" y="20" width="129" height="20" forecolor="#0099FF"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["RFID Number"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="6d3cba70-8b46-4697-aead-5ee6a716c30f" x="0" y="0" width="160" height="20" forecolor="#CC0000"/>
+				<box leftPadding="2"/>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["RFID DETAILS"]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="c6ba3af5-9a09-4163-a023-d28d066c4241" x="0" y="54" width="1440" height="1"/>
+			</line>
+			<textField>
+				<reportElement uuid="527625de-d12a-4906-8ffe-b33002e5f9f8" x="508" y="20" width="160" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{importtype}!=null)?$F{importtype}:"N/A")]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="70" splitType="Stretch">
+			<textField>
+				<reportElement uuid="7c1958eb-0975-47d9-8989-f840942ca122" stretchType="RelativeToBandHeight" x="239" y="31" width="60" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Gender"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="e5f404ba-1d7e-4cfa-a49e-caef0a531c63" stretchType="RelativeToBandHeight" x="299" y="31" width="72" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Birth date"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="48861fb9-191b-4617-81b8-150ac73accc9" stretchType="RelativeToBandHeight" x="371" y="31" width="79" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Registration date"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="06396fd5-1a44-4294-a1c2-55f7a07e4ae8" stretchType="RelativeToBandHeight" x="450" y="31" width="48" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Animal type"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="d5212a17-9a87-4a64-a597-b30e3e4f0deb" stretchType="RelativeToBandHeight" x="498" y="31" width="42" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Animal race"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="4ddf4727-6b05-4227-b6c2-f99523ca73fc" stretchType="RelativeToBandHeight" x="590" y="31" width="41" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Age (years)"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="51cfd2f4-6328-4800-810c-b8fd9ab59d74" stretchType="RelativeToBandHeight" x="800" y="31" width="109" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Pic"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="8f0d72d1-c144-455a-9246-48511f6f906a" stretchType="RelativeToBandHeight" x="909" y="31" width="103" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Type"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="90f50177-1c7f-4961-a160-51ec2cdba0cc" stretchType="RelativeToBandHeight" x="631" y="31" width="169" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Actions"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="e6c336d6-9e4c-401b-a51b-ce9d615adff0" x="66" y="31" width="79" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["RFID status"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="fa65ee38-e774-41e6-8a47-56b4b45b9bb4" stretchType="RelativeToBandHeight" x="1012" y="31" width="81" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Address"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="17e49d05-1c5e-4600-a497-95dbd46e316e" stretchType="RelativeToBandHeight" x="1093" y="31" width="82" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Keeper ID"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="3d4613d9-6cc3-4a68-882b-da54011292af" stretchType="RelativeToBandHeight" x="1175" y="31" width="88" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Full name"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7851cf86-2dd6-4908-b939-41a0bbefc3c3" stretchType="RelativeToBandHeight" x="145" y="31" width="94" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Animal ear tag"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="bcf90242-a22f-4d79-b808-ef775e634947" stretchType="RelativeToBandHeight" x="1263" y="31" width="91" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Mobile number"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="2bb002ac-6d44-42a8-93ff-239d5c9e01e8" x="0" y="31" width="66" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Number"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b201cde2-f537-4037-9ca5-592b1d7a31e0" x="1354" y="31" width="83" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement>
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Action date"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="bdb2ed76-d5c0-4e52-ba84-87d0ca71ed99" stretchType="RelativeToBandHeight" x="540" y="31" width="50" height="39"/>
+				<box topPadding="5" leftPadding="5" bottomPadding="1" rightPadding="1">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement verticalAlignment="Top">
+					<font isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Color"]]></textFieldExpression>
+			</textField>
+			<frame>
+				<reportElement uuid="3fccb841-0f6a-407f-b2a5-5b90bc334b99" x="145" y="0" width="655" height="31"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textField>
+					<reportElement uuid="7c08abe2-21aa-4aae-a815-ce45d37af33e" x="0" y="0" width="160" height="17" forecolor="#CC0000"/>
+					<box topPadding="5" leftPadding="2"/>
+					<textElement>
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["ANIMAL DETAILS"]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement uuid="4b16e67c-7be5-4511-9a9d-1883e736b0e8" x="0" y="0" width="145" height="31"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+			</frame>
+			<frame>
+				<reportElement uuid="3f2b07ad-79e6-4455-9d27-b9d199524a1b" x="800" y="0" width="293" height="31"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textField>
+					<reportElement uuid="1a3b5be0-edce-405b-86fe-c705fe977bc5" x="0" y="0" width="160" height="17" forecolor="#CC0000"/>
+					<box topPadding="5" leftPadding="2"/>
+					<textElement>
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["HOLDING DETAILS"]]></textFieldExpression>
+				</textField>
+			</frame>
+			<frame>
+				<reportElement uuid="0aa98192-516c-4ccf-86f1-fb26274d8825" x="1093" y="0" width="344" height="31"/>
+				<box>
+					<pen lineWidth="0.75"/>
+					<topPen lineWidth="0.75"/>
+					<leftPen lineWidth="0.75"/>
+					<bottomPen lineWidth="0.75"/>
+					<rightPen lineWidth="0.75"/>
+				</box>
+				<textField>
+					<reportElement uuid="3341b83c-1ce8-49ed-89f0-21ae4555a719" x="0" y="0" width="160" height="17" forecolor="#CC0000"/>
+					<box topPadding="5" leftPadding="2"/>
+					<textElement>
+						<font isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA["KEEPER DETAILS"]]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Immediate">
+			<textField>
+				<reportElement uuid="d2953c01-8a5a-4264-badf-6d50d9e7b92c" x="145" y="0" width="94" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{animal_ear_tag}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="a270ddd0-e3bf-4cda-b536-090be0fb7c40" x="66" y="0" width="79" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{status}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="95b20f74-98d1-4e13-875a-133cb4b91424" x="450" y="0" width="48" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{animalclass}!=null)?$F{animalclass}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="fcab30fa-8223-4958-a775-54ecd6fcdc03" x="0" y="0" width="66" height="20"/>
+				<box leftPadding="30">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b1b5d1d7-8f61-440d-8f1b-4093115f45b0" x="239" y="0" width="60" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{animalgender}!=null)?$F{animalgender}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="21b8e2e9-87fb-4501-a602-adb4cf08d85c" x="299" y="0" width="72" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{birth_date}!=null)?$F{birth_date}:"N/A")]]></textFieldExpression>
+				<patternExpression><![CDATA["yyyy/MM/dd"]]></patternExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="9a925fc7-b749-4e91-a551-0c6b5c636fe1" x="371" y="0" width="79" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{registration_date}!=null)?$F{registration_date}:"N/A")]]></textFieldExpression>
+				<patternExpression><![CDATA["yyyy/MM/dd"]]></patternExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7a41e022-62e7-48ab-a84f-88c5c2a60270" x="498" y="0" width="42" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{animalrace}!=null)?$F{animalrace}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7c5430df-f95f-4550-91a7-ce54e4cf8096" x="540" y="0" width="50" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{animalcolor}!=null)?$F{animalcolor}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="0902530f-8590-4897-8306-f7c9b251b8be" x="590" y="0" width="41" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{age}!=null)?$F{age}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="11a4b3a8-4907-45d6-bd09-9b10e2067195" positionType="Float" x="631" y="0" width="169" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{actions}!=null)?$F{actions}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="2cc711f5-0b11-4c9c-8b82-0fd3f07a7134" x="800" y="0" width="109" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{pic}!=null)?$F{pic}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="4c6a3915-6287-4b65-9a95-e3aa87f35a34" x="909" y="0" width="103" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{holdingtype}!=null)?$F{holdingtype}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="dd2c7cc0-13da-4667-a83b-ef83d9aa38f2" x="1012" y="0" width="81" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{physical_address}!=null)?$F{physical_address}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="ca256e97-11e5-4565-ab1e-bf9baa6ef0f8" x="1093" y="0" width="82" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{keeper_id}!=null)?$F{keeper_id}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7b0c959d-1aa8-4b1d-915f-110a5381e1fd" x="1175" y="0" width="88" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{full_name}!=null)?$F{full_name}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="00369d99-4639-42bc-bb56-e07ab7044115" x="1263" y="0" width="91" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{keeper_mobile_num}!=null)?$F{keeper_mobile_num}:"N/A")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="2586d61c-c082-42f9-b83a-4fba1bc9f135" x="1354" y="0" width="83" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dashed"/>
+					<topPen lineWidth="0.75" lineStyle="Dashed"/>
+					<leftPen lineWidth="0.75" lineStyle="Dashed"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dashed"/>
+					<rightPen lineWidth="0.75" lineStyle="Dashed"/>
+				</box>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[(($F{dt_insert}!=null)?$F{dt_insert}:"N/A")]]></textFieldExpression>
+				<patternExpression><![CDATA["yyyy/MM/dd"]]></patternExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="41">
+			<line>
+				<reportElement uuid="69bdcb07-77df-48a3-87a0-05933de1d89b" x="0" y="15" width="1437" height="1"/>
+			</line>
+			<textField>
+				<reportElement uuid="a6dacd59-67e6-4265-977e-7c94101e23ba" x="1405" y="20" width="32" height="20"/>
+				<textElement/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageFooter>
+</jasperReport>

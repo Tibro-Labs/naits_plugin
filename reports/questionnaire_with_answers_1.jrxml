@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="questionnaire_with_answers_1" language="groovy" pageWidth="802" pageHeight="555" orientation="Landscape" columnWidth="802" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="8dde69d0-2087-4187-bd2d-eb6b46ebd9df">
+	<property name="ireport.zoom" value="2.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.math.BigDecimal">
+		<property name="OBJ_ID" value=""/>
+	</parameter>
+	<queryString>
+		<![CDATA[select  ( CASE WHEN vst.table_name = 'ANIMAL'
+			THEN (
+				SELECT animal_id
+				from naits.vanimal va
+					join naits.vsvarog_form vsf_1 on va.object_id = vsf_1.parent_id
+				where now() < va.dt_delete
+				and now() < vsf_1.dt_delete
+				and vsf_1.object_id = vsf.object_id
+			)
+		WHEN vst.table_name = 'HOLDING'
+		THEN (
+				SELECT pic
+				from naits.vholding vh
+					join naits.vsvarog_form vsf_1 on vh.object_id = vsf_1.parent_id
+				where now() < vh.dt_delete
+				and now() < vsf_1.dt_delete
+				and vsf_1.object_id = vsf.object_id
+			)
+		ELSE ''
+		END) as parent_id_1,
+		vsf.dt_insert, vsu_s.user_name,
+		vspv.value
+from naits.vsvarog_form_type vsft
+	JOIN naits.vsvarog_link vsl ON vsft.object_id = vsl.link_obj_id_1
+	JOIN naits.vsvarog_link_type vslt ON vsl.link_type_id = vslt.object_id
+	JOIN naits.vsvarog_form_field_type vsfft ON vsl.link_obj_id_2 = vsfft.object_id
+	JOIN naits.vsvarog_form vsf on vsf.form_type_id = vsft.object_id
+	JOIN naits.vsvarog_form_field vsff on vsff.form_object_id = vsf.object_id and vsff.field_type_id = vsfft.object_id
+	JOIN naits.vsvarog_labels vsl_questionnaire on vsft.label_code = vsl_questionnaire.label_code
+	JOIN naits.vsvarog_labels vsl_question on vsfft.label_code = vsl_question.label_code
+	JOIN naits.vsvarog_users vsu on vsff.user_id = vsu.object_id
+	JOIN naits.vsvarog_users vsu_qnr ON vsu_qnr.object_id = vsft.user_id
+	JOIN naits.vsvarog_users vsu_qq ON vsu_qq.object_id = vsfft.user_id
+	JOIN naits.vsvarog_users vsu_s ON vsu_s.object_id = vsf.user_id
+	JOIN naits.vsvarog_tables vst ON vst.object_id = vsft.parent_id
+	JOIN naits.vsvarog_param vsp ON vsf.object_id = vsp.parent_id
+	JOIN naits.vsvarog_param_value vspv on vsp.object_id = vspv.parent_id
+where now() < vsft.dt_delete
+and now() < vsl.dt_delete
+and now () < vslt.dt_delete
+and now() < vsfft.dt_delete
+and now() < vsf.dt_delete
+and now() < vsff.dt_delete
+and now() < vsl_questionnaire.dt_delete
+and now() < vsl_question.dt_delete
+and now() < vsu.dt_delete
+and now() < vsu_qnr.dt_delete
+and now() < vst.dt_delete
+and now() < vsu_qq.dt_delete
+and now() < vsu_s.dt_delete
+and vsft.object_id = $P{OBJ_ID}
+group by  parent_id_1, vsf.dt_insert, vsu_s.user_name, vspv.value]]>
+	</queryString>
+	<field name="parent_id_1" class="java.lang.String"/>
+	<field name="dt_insert" class="java.sql.Timestamp"/>
+	<field name="user_name" class="java.lang.String"/>
+	<field name="value" class="java.lang.String"/>
+	<columnHeader>
+		<band height="30">
+			<textField>
+				<reportElement mode="Opaque" x="0" y="0" width="69" height="30" backcolor="#FFFFFF" uuid="2d02f1ae-77d0-4ced-90cc-af279dd31abc"/>
+				<box topPadding="0" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ANSWERING DATE"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement mode="Opaque" x="69" y="0" width="69" height="30" backcolor="#FFFFFF" uuid="9ea26709-c8df-46de-9de0-cae68d2d0aa0"/>
+				<box topPadding="0" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ANSWERED BY"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="138" y="0" width="44" height="30" uuid="5adbf9b0-67ba-4632-8c60-d2da0804341d"/>
+				<box topPadding="0" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<text><![CDATA[SCORE]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="25">
+			<textField>
+				<reportElement x="0" y="0" width="69" height="25" uuid="2de793a7-2c28-4698-8700-143affa0160c"/>
+				<box topPadding="0" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dt_insert}]]></textFieldExpression>
+				<patternExpression><![CDATA["yyyy-MM-dd"]]></patternExpression>
+			</textField>
+			<textField>
+				<reportElement x="69" y="0" width="69" height="25" uuid="9c10f248-05b2-453e-b697-01a29d3ebddb"/>
+				<box topPadding="0" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{user_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="138" y="0" width="44" height="25" uuid="15353248-3061-4659-b406-d5649912ded1"/>
+				<box topPadding="0" leftPadding="3">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="7"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{value}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

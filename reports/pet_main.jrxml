@@ -6,7 +6,7 @@
 	<parameter name="OBJ_ID" class="java.lang.Long"/>
 	<queryString>
 		<![CDATA[select naits.get_label_text_per_value(vp.status, 'OBJ_STATUS','en_US')as status,
-pet_id,
+PET_TAG_ID,
 chip_insertion_place,
 chip_responsible_person,
 badge_number,
@@ -45,7 +45,7 @@ where now() < vp.dt_delete
 and vp.object_id=$P{OBJ_ID};]]>
 	</queryString>
 	<field name="status" class="java.lang.String"/>
-	<field name="pet_id" class="java.lang.String"/>
+	<field name="PET_TAG_ID" class="java.lang.String"/>
 	<field name="chip_insertion_place" class="java.lang.String"/>
 	<field name="chip_responsible_person" class="java.lang.String"/>
 	<field name="badge_number" class="java.lang.String"/>
@@ -189,7 +189,7 @@ and vp.object_id=$P{OBJ_ID};]]>
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="14"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{pet_id}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{PET_TAG_ID}]]></textFieldExpression>
 			</textField>
 			<staticText>
 				<reportElement uuid="87a2bd6f-088a-4ffc-99ac-69ebdc1491a2" x="267" y="0" width="225" height="15" forecolor="#990000"/>

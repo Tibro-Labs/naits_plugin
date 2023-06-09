@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="public_animal_details_sub1" language="groovy" pageWidth="700" pageHeight="990" columnWidth="700" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="6c52023f-ad74-4809-8358-12454bc1d8f8">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long"/>
+	<queryString>
+		<![CDATA[select
+	vh.pic,
+	vh.name,
+	va.status,
+	naits.get_label_text_per_value(vh.type,'HOLDING_MAIN_TYPE', 'ka_GE') holdingType,
+    naits.get_label_text_per_value(vh.village_code,'VILLAGES', 'ka_GE') villageCode,
+	vh.physical_address slaughterlocation,
+	(to_char(COALESCE(vsf.manufacture_date,vsf.slaughter_date,va.death_date) + interval '8' hour,'DD'))||'/'||(to_char(COALESCE(vsf.manufacture_date,vsf.slaughter_date,va.death_date) + interval '8' hour,'MM'))||'/'||(to_char(COALESCE(vsf.manufacture_date,vsf.slaughter_date,va.death_date) + interval '8' hour,'YY')) as slaughter_date,
+	vh.approval_num
+from naits.vholding vh
+	join naits.vterritory vt on vt.code_value = vh.village_code
+	join naits.vanimal va on vh.object_id = va.parent_id
+	left join naits.vpost_slaught_form vsf on va.object_id = vsf.parent_id and current_timestamp between vsf.dt_insert and vsf.dt_delete
+where current_timestamp between vh.dt_insert and vh.dt_delete and
+current_timestamp between va.dt_insert and va.dt_delete and
+va.object_id = $P{OBJ_ID}]]>
+	</queryString>
+	<field name="pic" class="java.lang.String"/>
+	<field name="name" class="java.lang.String"/>
+	<field name="status" class="java.lang.String"/>
+	<field name="holdingtype" class="java.lang.String"/>
+	<field name="villagecode" class="java.lang.String"/>
+	<field name="slaughterlocation" class="java.lang.String"/>
+	<field name="slaughter_date" class="java.lang.String"/>
+	<field name="approval_num" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<columnHeader>
+		<band height="100">
+			<textField>
+				<reportElement x="0" y="20" width="141" height="20" forecolor="#000000" uuid="45c4384e-4534-4e25-8fd4-e4f4981bfa0d"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სასაკლაოს აღიარების ნომერი"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="40" width="141" height="20" forecolor="#000000" uuid="ad979329-141f-4183-aadb-091fb397ae5b"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სასაკლაოს სახელი"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="141" y="20" width="260" height="20" uuid="3144b53d-2d1a-4167-8e8f-26e903f42e08"/>
+				<box topPadding="0" leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{approval_num}!=null)?$F{approval_num}:"ინფ. არ არის")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="141" y="40" width="260" height="20" uuid="f4564a86-fc91-4174-ac7b-537ff84b557c"/>
+				<box topPadding="0" leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{name}!=null)?$F{name}:"ინფ. არ არის")]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="0" y="0" width="253" height="20" forecolor="#CC0000" uuid="809a9746-8bd8-4c3b-8b0d-439ea015193c"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.0" lineColor="#000000"/>
+					<topPen lineWidth="0.0" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<text><![CDATA[დაკვლის დეტალები]]></text>
+			</staticText>
+			<textField pattern="yyyy/MM/dd">
+				<reportElement x="141" y="80" width="260" height="20" uuid="c518ad32-1a8d-4dcd-a1be-bd1f632dd7b1">
+					<printWhenExpression><![CDATA[$F{status}.equals("POSTMORTEM")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{slaughter_date}!=null)?$F{slaughter_date}:"")]]></textFieldExpression>
+				<patternExpression><![CDATA["yyyy/MM/dd"]]></patternExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="60" width="141" height="20" forecolor="#000000" uuid="b64bfbd5-42e0-488d-ae6a-6d866a385564">
+					<printWhenExpression><![CDATA[$F{status}.equals("POSTMORTEM")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["სასაკლაოს მისამართი"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="141" y="60" width="260" height="20" uuid="d804fd7c-1244-46a0-b595-919db3ade62d">
+					<printWhenExpression><![CDATA[$F{status}.equals("POSTMORTEM")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[(($F{slaughterlocation}!=null)?$F{slaughterlocation}:"")]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="0" y="80" width="141" height="20" forecolor="#000000" uuid="671a3e9c-b879-4300-876e-3e1fd3f0507f">
+					<printWhenExpression><![CDATA[$F{status}.equals("POSTMORTEM")]]></printWhenExpression>
+				</reportElement>
+				<box leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["დამზადების თარიღი"]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+</jasperReport>

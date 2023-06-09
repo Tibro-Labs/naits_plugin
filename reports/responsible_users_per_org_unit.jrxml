@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="responsible_users_per_org_unit" language="groovy" pageWidth="700" pageHeight="990" orientation="Landscape" columnWidth="660" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="7cf3bf56-3cb2-4147-9961-ac2a665ce046">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="OBJ_ID" class="java.lang.Long"/>
+	<queryString>
+		<![CDATA[
+
+select vh.first_name,
+	vh.last_name,
+	vh.user_name,
+	vh.e_mail,
+	vhr.status,
+	vh.user_type,
+	vhr.external_id,
+	naits.get_label_text_per_value(vhr.org_unit_type, 'ORG_UNIT_TYPE', 'en_US') orgUnitType
+from naits.vsvarog_users vh
+	JOIN naits.vsvarog_link vsl ON vh.object_id = vsl.link_obj_id_1
+	JOIN naits.vsvarog_link_type vslt ON vsl.link_type_id = vslt.object_id AND vslt.link_type = 'POA'
+	JOIN naits.vsvarog_org_units vhr ON vsl.link_obj_id_2 = vhr.object_id
+where current_timestamp between vh.dt_insert and vh.dt_delete
+and current_timestamp between vsl.dt_insert and vsl.dt_delete
+and current_timestamp between vslt.dt_insert and vslt.dt_delete
+and current_timestamp between vhr.dt_insert and vhr.dt_delete
+and vhr.object_id = $P{OBJ_ID}
+]]>
+	</queryString>
+	<field name="first_name" class="java.lang.String"/>
+	<field name="last_name" class="java.lang.String"/>
+	<field name="user_name" class="java.lang.String"/>
+	<field name="e_mail" class="java.lang.String"/>
+	<field name="status" class="java.lang.String"/>
+	<field name="user_type" class="java.lang.String"/>
+	<field name="external_id" class="java.math.BigDecimal"/>
+	<field name="orgunittype" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="46" splitType="Stretch">
+			<textField>
+				<reportElement uuid="1150b46f-4769-4e4e-a47e-1b4b81977809" x="213" y="0" width="292" height="34"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="14"/>
+				</textElement>
+				<textFieldExpression><![CDATA["RESPONISBLE USERS PER ORG UNIT"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7fbe6824-1f81-493f-a323-472c9fc568ad" x="513" y="0" width="85" height="20" forecolor="#CC0000"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Report generated at: "]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="9553d970-99fe-4c1c-865b-b5d7854614fc" x="598" y="0" width="62" height="20" forecolor="#CC0000"/>
+				<textElement>
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="51">
+			<rectangle>
+				<reportElement uuid="d4dd5557-df43-41ad-b16a-d4973bc8d1aa" x="137" y="11" width="523" height="40"/>
+			</rectangle>
+			<textField>
+				<reportElement uuid="35b70572-c0e9-4200-99d8-0abf0bddafef" x="137" y="31" width="76" height="20" forecolor="#3399FF"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["First name"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="a3791121-11a0-4266-8a20-f2839e4225c3" x="213" y="31" width="100" height="20" forecolor="#3399FF"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Last name"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="036f86de-9f67-42fb-a33a-0aba96969455" x="313" y="31" width="100" height="20" forecolor="#3399FF"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Username"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="e063a505-725c-402f-9113-717ea8fdd18f" x="413" y="31" width="80" height="20" forecolor="#3399FF"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Type"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="73a025a7-a0ab-43b9-953f-dcf73de292a4" x="493" y="31" width="167" height="20" forecolor="#3399FF"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Email"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="45cdde2f-2f7b-4ba8-bb2f-eddb86a9b5d6" x="137" y="11" width="523" height="20" forecolor="#CC0000"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["RESPONSIBLE USER DETAILS"]]></textFieldExpression>
+			</textField>
+			<rectangle>
+				<reportElement uuid="b9a83c88-4c8f-4b14-b8b0-1419de5cb0ba" x="0" y="11" width="137" height="40"/>
+			</rectangle>
+			<textField>
+				<reportElement uuid="c6edc340-14e5-4947-aad2-52603a85aa67" x="0" y="11" width="137" height="20" forecolor="#CC0000"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<topPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.5" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ORG UNIT DETAILS"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="56f09fdc-fbee-4025-a266-1bf7834c31d1" x="0" y="31" width="57" height="20" forecolor="#00CC00"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["ID"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="302e6784-8e5f-4ecf-a796-bcc1c1dddab0" x="57" y="31" width="80" height="20" forecolor="#00CC00"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Type"]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement uuid="a1cb19b2-2785-44bd-a70d-bffc5f5c887a" x="137" y="0" width="76" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{first_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="74bf5f15-df80-4063-8313-cd70765dc92c" x="213" y="0" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{last_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="84e9e768-f6a7-481f-acba-ed1747335960" x="313" y="0" width="100" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{user_name}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="bfb4acb1-a637-44f2-84b2-c55d8dec4b78" x="493" y="0" width="167" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{e_mail}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="47a03c73-27b1-4e5e-80f8-63f894abe0f7" x="57" y="0" width="80" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{orgunittype}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="92e79ec2-b8b2-420a-9265-8721611055df" x="413" y="0" width="80" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{user_type}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="acf87d4e-c20b-49c5-803e-b6561a9ebe54" x="0" y="0" width="57" height="20"/>
+				<box leftPadding="2">
+					<pen lineWidth="0.75" lineStyle="Dotted"/>
+					<topPen lineWidth="0.75" lineStyle="Dotted"/>
+					<leftPen lineWidth="0.75" lineStyle="Dotted"/>
+					<bottomPen lineWidth="0.75" lineStyle="Dotted"/>
+					<rightPen lineWidth="0.75" lineStyle="Dotted"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{external_id}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+</jasperReport>

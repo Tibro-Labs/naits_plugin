@@ -1,43 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MHC_herder" language="groovy" pageWidth="660" pageHeight="595" orientation="Landscape" whenNoDataType="NoDataSection" columnWidth="660" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="f080b210-1a69-4754-b3ac-c8d1f8b44e2b">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="MHC_herder" language="groovy" pageWidth="660" pageHeight="595" orientation="Landscape" columnWidth="660" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="f080b210-1a69-4754-b3ac-c8d1f8b44e2b">
 	<property name="ireport.zoom" value="1.0"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<parameter name="path" class="java.lang.String"/>
 	<parameter name="OBJ_ID" class="java.lang.Long"/>
 	<queryString>
-		<![CDATA[
---HERDER
- select
-	/*person 3 - herder*/
-	case
-		when vp3.first_name is null then vp3.full_name
-		else vp3.first_name end as name3,
-		vp3.last_name as surn3,
-		vp3.nat_reg_number as pers_id3,
-		case
-			when vp3.mobile_number is null then vp3.phone_number
-			else vp3.mobile_number end as pers_phone3
-		from
-			naits.vsvarog_link vsl
-		join naits.vholding_responsible vp3 on
-			vsl.link_obj_id_2 = vp3.object_id
-		join naits.vsvarog_link_type vslt on
-			vslt.object_id = vsl.link_type_id
-		where
-			now() between vsl.dt_insert and vsl.dt_delete
-			and now() between vp3.dt_insert and vp3.dt_delete
-			and now() between vslt.dt_insert and vslt.dt_delete
-			and vslt.link_type = 'HOLDING_HERDER'
-			and vsl.link_obj_id_1 in (
-			select
-				parent_id
-			from
-				naits.vmovement_doc
-			where
-				object_id = $P{OBJ_ID}
-				and now() between dt_insert and dt_delete)
-		limit 1;]]>
+		<![CDATA[select
+/*person 3 - herder*/
+case when vp3.first_name is null
+	then vp3.full_name
+	else vp3.first_name
+	end as name3,
+vp3.last_name as surn3,
+vp3.nat_reg_number as pers_id3,
+case when vp3.mobile_number is null
+	then vp3.phone_number
+	else vp3.mobile_number
+	end as pers_phone3
+from naits.vsvarog_link vsl
+join naits.vholding_responsible vp3
+	on vsl.link_obj_id_2=vp3.object_id
+join naits.vsvarog_link_type vslt
+	on vslt.object_id=vsl.link_type_id
+where
+now() between vsl.dt_insert and vsl.dt_delete and
+now() between vp3.dt_insert and vp3.dt_delete and
+now() between vslt.dt_insert and vslt.dt_delete and
+vsl.link_obj_id_1 in (select parent_id from naits.vmovement_doc where object_id=$P{OBJ_ID}
+	and now() between dt_insert and dt_delete)
+and vsl.link_type_id in (select vslt.object_id from naits.vsvarog_link_type vslt where vslt.link_type='HOLDING_HERDER'
+and now() between vslt.dt_insert and vslt.dt_delete)
+limit 1;]]>
 	</queryString>
 	<field name="name3" class="java.lang.String"/>
 	<field name="surn3" class="java.lang.String"/>
@@ -47,9 +41,9 @@
 		<band splitType="Stretch"/>
 	</background>
 	<detail>
-		<band height="30" splitType="Stretch">
+		<band height="40" splitType="Stretch">
 			<staticText>
-				<reportElement uuid="63c19be1-5861-4805-9768-34566a3fb941" x="0" y="0" width="95" height="15" forecolor="#0099CC"/>
+				<reportElement x="0" y="0" width="111" height="20" forecolor="#0099CC" uuid="63c19be1-5861-4805-9768-34566a3fb941"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -60,24 +54,10 @@
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Herder]]></text>
+				<text><![CDATA[დროებით პასუხისმგებელი პირი / Herder]]></text>
 			</staticText>
 			<staticText>
-				<reportElement uuid="8c622561-cc71-447c-bd8d-6bcdc190acc8" x="390" y="0" width="270" height="15" forecolor="#0099CC"/>
-				<box leftPadding="2" rightPadding="2">
-					<pen lineWidth="0.5"/>
-					<topPen lineWidth="0.5"/>
-					<leftPen lineWidth="0.5"/>
-					<bottomPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[Phone]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="6de7347c-1174-4c27-b82b-840e263df9d6" x="0" y="15" width="95" height="15" forecolor="#0099CC"/>
+				<reportElement x="0" y="20" width="111" height="20" forecolor="#0099CC" uuid="6de7347c-1174-4c27-b82b-840e263df9d6"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -88,24 +68,10 @@
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[Herder]]></text>
-			</staticText>
-			<staticText>
-				<reportElement uuid="23fc7441-92ce-4801-b3b9-0ca1e637fce7" x="95" y="0" width="70" height="15" forecolor="#0099CC"/>
-				<box leftPadding="2" rightPadding="2">
-					<pen lineWidth="0.5"/>
-					<topPen lineWidth="0.5"/>
-					<leftPen lineWidth="0.5"/>
-					<bottomPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[Name]]></text>
+				<text><![CDATA[]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="d3c91952-1b71-42f7-91ed-3990b9baef2d" x="95" y="15" width="70" height="15" forecolor="#000000"/>
+				<reportElement x="111" y="20" width="70" height="20" forecolor="#000000" uuid="d3c91952-1b71-42f7-91ed-3990b9baef2d"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -119,7 +85,7 @@
 				<textFieldExpression><![CDATA[$F{name3}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="a8bd89e7-8a04-4287-8151-8fec598e9960" x="240" y="15" width="150" height="15" forecolor="#000000"/>
+				<reportElement x="256" y="20" width="150" height="20" forecolor="#000000" uuid="a8bd89e7-8a04-4287-8151-8fec598e9960"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -132,22 +98,8 @@
 				</textElement>
 				<textFieldExpression><![CDATA[$F{pers_id3}]]></textFieldExpression>
 			</textField>
-			<staticText>
-				<reportElement uuid="602d411d-c753-48d8-ac69-32987464dc72" x="165" y="0" width="75" height="15" forecolor="#0099CC"/>
-				<box leftPadding="2" rightPadding="2">
-					<pen lineWidth="0.5"/>
-					<topPen lineWidth="0.5"/>
-					<leftPen lineWidth="0.5"/>
-					<bottomPen lineWidth="0.5"/>
-					<rightPen lineWidth="0.5"/>
-				</box>
-				<textElement textAlignment="Center" verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="8"/>
-				</textElement>
-				<text><![CDATA[Surname]]></text>
-			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="4f88b651-0d2c-4fc4-89be-c34ddef3f688" x="390" y="15" width="270" height="15" forecolor="#000000"/>
+				<reportElement x="406" y="20" width="254" height="20" forecolor="#000000" uuid="4f88b651-0d2c-4fc4-89be-c34ddef3f688"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -161,7 +113,7 @@
 				<textFieldExpression><![CDATA[$F{pers_phone3}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement uuid="f9fab438-1baf-4a4c-918c-d6b3feeaebea" x="165" y="15" width="75" height="15" forecolor="#000000"/>
+				<reportElement x="181" y="20" width="75" height="20" forecolor="#000000" uuid="f9fab438-1baf-4a4c-918c-d6b3feeaebea"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -175,7 +127,7 @@
 				<textFieldExpression><![CDATA[$F{surn3}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="eba83997-b3af-4df1-8224-809f5e59920f" x="240" y="0" width="150" height="15" forecolor="#0099CC"/>
+				<reportElement x="181" y="0" width="75" height="20" forecolor="#0099CC" uuid="c9ef93c8-e9cc-4f2a-b82e-1d9ec95f762a"/>
 				<box leftPadding="2" rightPadding="2">
 					<pen lineWidth="0.5"/>
 					<topPen lineWidth="0.5"/>
@@ -186,7 +138,49 @@
 				<textElement textAlignment="Center" verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<text><![CDATA[ID#]]></text>
+				<text><![CDATA[გვარი / Surname]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="256" y="0" width="150" height="20" forecolor="#0099CC" uuid="421b9b4a-1ba8-47a5-8707-62fc4252a265"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[პ.ნ. / ID#]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="111" y="0" width="70" height="20" forecolor="#0099CC" uuid="1be8ed86-bfb4-4c2e-b0a1-ee8213b618f2"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[სახელი / Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="406" y="0" width="254" height="20" forecolor="#0099CC" uuid="b57d7319-b21e-43d2-88d7-a82849997a52"/>
+				<box leftPadding="2" rightPadding="2">
+					<pen lineWidth="0.5"/>
+					<topPen lineWidth="0.5"/>
+					<leftPen lineWidth="0.5"/>
+					<bottomPen lineWidth="0.5"/>
+					<rightPen lineWidth="0.5"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="DejaVu Sans" size="8"/>
+				</textElement>
+				<text><![CDATA[ტელ / Phone]]></text>
 			</staticText>
 		</band>
 	</detail>
