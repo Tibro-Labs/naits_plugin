@@ -30,10 +30,13 @@ import com.prtech.svarog.SvWriter;
 import com.prtech.svarog.svCONST;
 import com.prtech.svarog_common.DbDataArray;
 import com.prtech.svarog_common.DbDataObject;
+import com.prtech.svarog_common.DbSearchCriterion;
+import com.prtech.svarog_common.DbSearchExpression;
 import com.prtech.svarog_common.ISvOnSave;
+import com.prtech.svarog_common.DbSearchCriterion.DbCompareOperand;
 
 /**
- * Class for definition and control on preSave/afterSave validations checks
+ * Class for definition and control on preSave/afterSave validation checks
  * 
  * @author TIBRO_001
  *
@@ -45,9 +48,9 @@ public class OnSaveValidations implements ISvOnSave {
 
 	static ArrayList<Long> handledSvTypes = null;
 
-	boolean isTypeHandled(Long typeId) {
+	static boolean isTypeHandled(Long typeId) {
 		if (handledSvTypes == null) {
-			handledSvTypes = new ArrayList<Long>();
+			handledSvTypes = new ArrayList<>();
 			handledSvTypes.add(SvReader.getTypeIdByName(Tc.HOLDING));
 			handledSvTypes.add(SvReader.getTypeIdByName(Tc.HOLDING_RESPONSIBLE));
 			handledSvTypes.add(SvReader.getTypeIdByName(Tc.ANIMAL));
@@ -82,10 +85,14 @@ public class OnSaveValidations implements ISvOnSave {
 			handledSvTypes.add(SvReader.getTypeIdByName(Tc.HEALTH_PASSPORT));
 			handledSvTypes.add(SvReader.getTypeIdByName(Tc.STRAY_PET_LOCATION));
 			handledSvTypes.add(SvReader.getTypeIdByName(Tc.POPULATION));
+			handledSvTypes.add(SvReader.getTypeIdByName(Tc.RFID_INPUT));
+			handledSvTypes.add(SvReader.getTypeIdByName(Tc.HERD));
+			handledSvTypes.add(SvReader.getTypeIdByName(Tc.PET_QUARANTINE));
 			handledSvTypes.add(svCONST.OBJECT_TYPE_NOTIFICATION);
 			handledSvTypes.add(svCONST.OBJECT_TYPE_MESSAGE);
 			handledSvTypes.add(svCONST.OBJECT_TYPE_USER);
 			handledSvTypes.add(svCONST.OBJECT_TYPE_GROUP);
+			handledSvTypes.add(svCONST.OBJECT_TYPE_ORG_UNITS);
 			handledSvTypes.add(svCONST.OBJECT_TYPE_LINK);
 			handledSvTypes.add(svCONST.OBJECT_TYPE_CODE);
 		}
@@ -101,6 +108,8 @@ public class OnSaveValidations implements ISvOnSave {
 		Writer wr = null;
 		Boolean result = true;
 		ValidationChecks vc = null;
+		UserManager um = null;
+		HerdActions ha = null;
 		ReentrantLock lock = null;
 		DbDataObject dboAnimalOrFlock = null;
 		if (!isTypeHandled(dbo.getObject_type())) {
@@ -113,6 +122,8 @@ public class OnSaveValidations implements ISvOnSave {
 			rdr = new Reader();
 			wr = new Writer();
 			vc = new ValidationChecks();
+			um = new UserManager();
+			ha = new HerdActions();
 			Long objectTypeId = dbo.getObject_type();
 			if (objectTypeId == null || objectTypeId.equals(0L)) {
 				result = false;
@@ -124,6 +135,13 @@ public class OnSaveValidations implements ISvOnSave {
 			switch (objTableName) {
 			case Tc.HOLDING:
 				if (dbo.getObject_id().equals(0L)) {
+					// 14 is border point holding type
+					if (dbo.getVal(Tc.TYPE).toString().equals("14")) {
+						DbDataObject dboUser = SvReader.getUserBySession(svr.getSessionId());
+						if (!um.checkIfUserHasCustomPermission(dboUser, Tc.CUSTOM_BORDER_POINT_MNG, svr))
+							throw (new SvException("naits.error.onlyUsersWithAppropriatePermissionCanDoThisAction",
+									svCONST.systemUser, null, null));
+					}
 					DbDataArray linkedHoldingsPerUser = rdr
 							.getLinkedTablesWithGeoStatCodePerUser(objectTable.getObject_id(), svr);
 					if (!linkedHoldingsPerUser.getItems().isEmpty()) {
@@ -134,20 +152,32 @@ public class OnSaveValidations implements ISvOnSave {
 					generatePicPerHolding(dbo, parentCore);
 				}
 				autoSetSdiUnitsAccordingVillageCode(dbo);
-				beforeSaveHoldingCheck(dbo, rdr, svr);
+				beforeSaveHoldingCheck(dbo, rdr, wr, vc, svr);
 				break;
 			case Tc.HOLDING_RESPONSIBLE:
-				String publicRegistryPath = SvConf.getParam("public_registry.path");
+				String publicRegistryKeyStoragePath = SvConf.getParam("public_registry.key_storage_path");
+				String publicRegistryMainPath = SvConf.getParam("public_registry.main_path");
 				autoSetSdiUnitsAccordingVillageCode(dbo);
+				wr.trimFieldValue(dbo, Tc.NAT_REG_NUMBER);
+				if (!NumberUtils.isDigits((String) dbo.getVal(Tc.NAT_REG_NUMBER))) {
+					throw (new SvException("naits.error.nationalRegistrationNumberMustBeDigitOnly", svCONST.systemUser,
+							null, null));
+				}
+				try {
+					Thread.sleep(5);
+				} catch (InterruptedException e) {
+					log4j.error(e);
+					throw (new SvException("naits.error.errorWhileSavingPerson", svCONST.systemUser, null, null));
+				}
 				if (!vc.checkIfFieldIsUnique(Tc.NAT_REG_NUMBER, dbo, svr)) {
 					throw (new SvException("naits.error.natRegNumIsUnique", svCONST.systemUser, null, null));
 				}
 				if (!dbo.getObject_id().equals(0L)) {
 					vc.checkIfHolderTypeCanBeUpdated(dbo, svr);
 				}
-				if (publicRegistryPath != null && dbo.getVal(Tc.HOLDER_TYPE).toString().equals("1")) {
+				if (publicRegistryKeyStoragePath != null && dbo.getVal(Tc.HOLDER_TYPE).toString().equals("1")) {
 					PublicRegistry pr = new PublicRegistry();
-					if (!pr.publicRegistryCheck(dbo, publicRegistryPath, svr)) {
+					if (!pr.publicRegistryCheck(dbo, publicRegistryKeyStoragePath, publicRegistryMainPath, svr)) {
 						dbo.setStatus(Tc.INVALID);
 					}
 				} else {
@@ -164,7 +194,18 @@ public class OnSaveValidations implements ISvOnSave {
 					if (lock == null) {
 						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
 					}
-					vc.inventoryItemCheck(dbo, rdr, svr);
+					if (dbo.getObject_id().equals(0L)) {
+						if (dbo.getVal(Tc.CHECK_COLUMN) == null) {
+							// these checks are disabled when generateMassAnimal action is being used
+							// ref. Writer.generateAnimalObjects
+							vc.checkIfAnimalBirthDateIsNull(dbo, rdr, svr);
+							vc.inventoryItemCheck(dbo, rdr, svr);
+						}
+						// checks to prevent creating duplicates between Donkey
+						// &
+						// Horse and Goat & Sheep only for newly added animals
+						vc.checksToPreventCreatingDuplicatesForEquidsAndRuminants(dbo, rdr, svr);
+					}
 					// check if animal id already existed once and was replaced
 					if (rdr.findAnimalTagRepalcementViaOldEarTag(animalId, dbo.getParent_id(), svr) != null) {
 						throw (new SvException("naits.error.animalIdAlreadyExistedButWasReplaced", svCONST.systemUser,
@@ -183,15 +224,6 @@ public class OnSaveValidations implements ISvOnSave {
 						// for current animal
 					}
 					vc.updateHoldingStatusAccordingHoldingTypeBeforeSaveAnimalOrFlock(dbo, svr);
-					/*
-					 * if (dbo.getVal(Tc.DEATH_DATE) != null && dbo.getStatus()
-					 * !=
-					 * 
-					 * 
-					 * null && dbo.getStatus().equals(Tc.VALID)) { throw (new
-					 * SvException("naits.error.animalStatusIsStillValid",
-					 * svCONST.systemUser, null, null)); }
-					 */
 				} finally {
 					if (lock != null) {
 						SvLock.releaseLock(sb.toString(), lock);
@@ -199,6 +231,16 @@ public class OnSaveValidations implements ISvOnSave {
 				}
 				break;
 			case Tc.FLOCK:
+				String flockAniType = "";
+				Boolean specialFlockAniType = false;
+				if (dbo.getVal(Tc.ANIMAL_TYPE) != null) {
+					flockAniType = dbo.getVal(Tc.ANIMAL_TYPE).toString();
+				} else {
+					throw (new SvException("naits.error.mustChooseAnimalType", svCONST.systemUser, null, null));
+				}
+				if (flockAniType.equals("4") || flockAniType.equals("5") || flockAniType.equals("6")) {
+					specialFlockAniType = true;
+				}
 				if (!vc.checkIfDbDataObjectHasMinimumNumOfFilledFields(dbo, 2)) {
 					throw (new SvException("naits.error.cantSaveEmptyObject", svCONST.systemUser, null, null));
 				}
@@ -211,28 +253,25 @@ public class OnSaveValidations implements ISvOnSave {
 				if (dbo.getVal(Tc.FLOCK_ID) == null) {
 					wr.generateFicPerFlock(dbo, svr);
 				}
-				if (dbo.getVal(Tc.ANIMAL_TYPE) == null) {
-					throw (new SvException("naits.error.mustChooseAnimalType", svCONST.systemUser, null, null));
-				}
-				if (dbo.getVal(Tc.ANIMAL_TYPE) != null && !dbo.getVal(Tc.ANIMAL_TYPE).toString().equals("4")) {
+				if (!specialFlockAniType) {
 					wr.calculateSumForFlock(dbo, svr);
 				}
-				if (dbo.getVal(Tc.ANIMAL_TYPE) != null && !dbo.getVal(Tc.ANIMAL_TYPE).toString().equals("4")
-						&& !vc.validateFlockEwesNumber(dbo, svr)) {
+				if (!specialFlockAniType && !vc.validateFlockEwesNumber(dbo, svr)) {
 					throw (new SvException("naits.error.NumberOfEwesCanNotBeBiggerThenNumberOfFemales",
 							svCONST.systemUser, null, null));
 				}
 				if ((dbo.getVal(Tc.TOTAL) == null || dbo.getVal(Tc.TOTAL).toString().equals("0"))
-						&& dbo.getVal(Tc.ANIMAL_TYPE) != null && dbo.getVal(Tc.ANIMAL_TYPE).toString().equals("4")) {
+						&& specialFlockAniType) {
 					throw (new SvException("naits.error.flockTotalCantBeNullAndMustBeLargerThanZero",
 							svCONST.systemUser, null, null));
 				}
 				if (dbo.getVal(Tc.TOTAL) != null && dbo.getVal(Tc.TOTAL).toString().equals("0")
-						&& dbo.getVal(Tc.ANIMAL_TYPE) != null && !dbo.getVal(Tc.ANIMAL_TYPE).toString().equals("4")) {
+						&& !specialFlockAniType) {
 					throw (new SvException("naits.error.flockMalesOrFemalesCantBeNullOrZero", svCONST.systemUser, null,
 							null));
 				}
-				if (dbo.getVal(Tc.ANIMAL_TYPE) != null && dbo.getVal(Tc.ANIMAL_TYPE).toString().equals("4")) {
+				// case for beehives(4), poultry(6) and fish (7)
+				if (specialFlockAniType) {
 					wr.setFlockElementsToZero(dbo, Tc.FEMALES, false);
 					wr.setFlockElementsToZero(dbo, Tc.MALES, false);
 					wr.setFlockElementsToZero(dbo, Tc.ADULTS, false);
@@ -249,56 +288,36 @@ public class OnSaveValidations implements ISvOnSave {
 				}
 				break;
 			case Tc.OTHER_ANIMALS:
-				// result = beforeSaveOtherAnimal(dbo, rdr, parentCore);
 				if (!vc.checkIfDbDataObjectHasMinimumNumOfFilledFields(dbo, 2)) {
 					throw (new SvException("naits.error.cantSaveEmptyObject", svCONST.systemUser, null, null));
 				}
 				break;
 			case Tc.TRANSFER:
-				wr.autoAsignSessionUserToObjectField(dbo, Tc.RETURNED_BY, false, svr);
-				wr.setAutoDate(dbo, Tc.DATE_CREATED, false);
-				DbDataObject dboOrgUnit = svr.getObjectById(dbo.getParent_id(), svCONST.OBJECT_TYPE_ORG_UNITS, null);
-				if (dbo.getObject_id().equals(0L) && dbo.getVal(Tc.DIRECT_TRANSFER) == null) {
-					dbo.setStatus(Tc.DRAFT);
-				}
-				if (!dbo.getObject_id().equals(0L)) {
-					DbDataObject dboTransfer = svr.getObjectById(dbo.getObject_id(), dbo.getObject_type(),
-							new DateTime());
-					if (dboTransfer.getVal(Tc.SUBJECT_TO) != null && dbo.getVal(Tc.SUBJECT_TO) != null && !dboTransfer
-							.getVal(Tc.SUBJECT_TO).toString().equals(dbo.getVal(Tc.SUBJECT_TO).toString())) {
-						throw (new SvException("naits.error.arrivalPlaceCannotBeEdited", svCONST.systemUser, null,
-								null));
-					}
-				}
-				if (dbo.getVal(Tc.SUBJECT_TO) == null) {
-					throw (new SvException("naits.error.transferMustHaveDepartureAndArrivalOrgUnit", svCONST.systemUser,
-							null, null));
-				}
-				if (dbo.getObject_id().equals(0L) && dboOrgUnit != null) {
-					if (dbo.getVal(Tc.TRANSFER_TYPE) != null && dbo.getVal(Tc.TRANSFER_TYPE).equals(Tc.DEFAULT)) {
+				if (dbo.getVal(Tc.CHECK_COLUMN) == null) {
+					wr.autoAsignSessionUserToObjectField(dbo, Tc.RETURNED_BY, false, svr);
+					wr.setAutoDate(dbo, Tc.DATE_CREATED, false);
+					DbDataObject dboOrgUnit = svr.getObjectById(dbo.getParent_id(), svCONST.OBJECT_TYPE_ORG_UNITS,
+							null);
+					if (dbo.getObject_id().equals(0L) && dboOrgUnit != null) {
 						String externalId = "00";
 						if (dboOrgUnit.getVal(Tc.EXTERNAL_ID) != null) {
 							externalId = dboOrgUnit.getVal(Tc.EXTERNAL_ID).toString();
 						}
 						String transferId = wr.generateTransferId(externalId, svr);
 						dbo.setVal(Tc.TRANSFER_ID, transferId);
+						if (dbo.getVal(Tc.SUBJECT_FROM) == null) {
+							dbo.setVal(Tc.SUBJECT_FROM, dboOrgUnit.getVal(Tc.NAME).toString());
+							dbo.setVal(Tc.ORIGIN_OBJ_ID, dboOrgUnit.getObject_id().toString());
+						}
+					} else if (dboOrgUnit == null) {
+						DbDataObject dboHolding = svr.getObjectById(dbo.getParent_id(),
+								SvReader.getTypeIdByName(Tc.HOLDING), null);
+						String transferId = wr
+								.generateTransferIdForHoldingBackwardCase(dboHolding.getObject_id().toString(), svr);
+						dbo.setVal(Tc.TRANSFER_ID, transferId);
 					}
-					if (dbo.getVal(Tc.SUBJECT_FROM) == null) {
-						dbo.setVal(Tc.SUBJECT_FROM, dboOrgUnit.getVal(Tc.NAME).toString());
-						dbo.setVal(Tc.ORIGIN_OBJ_ID, dboOrgUnit.getObject_id().toString());
-					}
+					result = vc.rangeValidationSet(dbo, rdr, Tc.TRANSFER, svr);
 				}
-				if (dbo.getVal(Tc.DESTINATION_OBJ_ID) != null) {
-					DbDataObject dboDestinationOrgUnit = svr.getObjectById(
-							Long.valueOf(dbo.getVal(Tc.DESTINATION_OBJ_ID).toString()), svCONST.OBJECT_TYPE_ORG_UNITS,
-							null);
-					if (dbo.getVal(Tc.DIRECT_TRANSFER) == null && dboDestinationOrgUnit != null
-							&& dboDestinationOrgUnit.getObject_id().equals(dbo.getParent_id())) {
-						throw (new SvException("naits.error.cantSendInventoryItemsToSameOrgUnit", svCONST.systemUser,
-								null, null));
-					}
-				}
-				result = vc.rangeValidationSet(dbo, rdr, Tc.TRANSFER, svr);
 				break;
 			case Tc.RANGE:
 				result = vc.rangeValidationSet(dbo, rdr, Tc.RANGE, svr);
@@ -334,23 +353,28 @@ public class OnSaveValidations implements ISvOnSave {
 					throw (new SvException("naits.error.supplierCanNotBeModifiedAfterReleasedOrder", svCONST.systemUser,
 							null, null));
 				}
+				if (dbo.getVal(Tc.EMAIL) != null && !dbo.getVal(Tc.EMAIL).toString().matches(Tc.EMAIL_REGEX)) {
+					throw (new SvException("naits.error.invalidEmailFormat", svCONST.systemUser, null, null));
+				}
 				break;
 			case Tc.LABORATORY:
+				wr.trimFieldValue(dbo, Tc.LAB_NAME);
 				if (dbo.getVal(Tc.LAB_NAME) == null || dbo.getVal(Tc.LAB_NAME).equals("")) {
 					throw (new SvException("naits.error.labNameCantBeEmptyOrNull", svCONST.systemUser, null, null));
 				}
 				if (!vc.checkIfFieldIsUnique(Tc.LAB_NAME, dbo, svr)) {
 					throw (new SvException("naits.error.labNameMustBeUnique", svCONST.systemUser, null, null));
 				}
+				if (dbo.getVal(Tc.EMAIL) != null && !dbo.getVal(Tc.EMAIL).toString().matches(Tc.EMAIL_REGEX)) {
+					throw (new SvException("naits.error.invalidEmailFormat", svCONST.systemUser, null, null));
+				}
 				break;
 			case Tc.LAB_TEST_RESULT:
 				DbDataObject dboLabSample = svr.getObjectById(dbo.getParent_id(),
 						SvReader.getTypeIdByName(Tc.LAB_SAMPLE), null);
-				if (!dbo.getObject_id().equals(0L)) {
-					if (dbo.getVal(Tc.TEST_RESULT) == null || dbo.getVal(Tc.TEST_RESULT).equals("")) {
-						throw (new SvException("naits.error.testResultCantBeEmptyOrNull", svCONST.systemUser, null,
-								null));
-					}
+				if (!dbo.getObject_id().equals(0L)
+						&& (dbo.getVal(Tc.TEST_RESULT) == null || dbo.getVal(Tc.TEST_RESULT).equals(""))) {
+					throw (new SvException("naits.error.testResultCantBeEmptyOrNull", svCONST.systemUser, null, null));
 				}
 				wr.setAutoDate(dbo, Tc.DATE_OF_TEST);
 				DbDataObject dboTestType = rdr.getTestTypeDependOnLabSampleAndTestResult(dboLabSample, dbo, svr);
@@ -373,15 +397,51 @@ public class OnSaveValidations implements ISvOnSave {
 					} else {
 						if (dbo.getVal(Tc.REASON).toString().equals(Tc.WRONG_ENTRY)) {
 							/*
-							 * When ear_tag is wrongly entered, return the tag
-							 * back to headquarter
+							 * When ear_tag is wrongly entered, return the tag back to headquarter
 							 */
-							DbDataObject dboOrgUnitHeadquarter = rdr.searchForObject(svCONST.OBJECT_TYPE_ORG_UNITS,
-									Tc.ORG_UNIT_TYPE, Tc.HEADQUARTER, svr);
-							oldInventoryItem.setVal(Tc.TAG_STATUS, Tc.NON_APPLIED);
-							oldInventoryItem.setParent_id(dboOrgUnitHeadquarter.getObject_id());
+							// DbDataObject dboOrgUnitHeadquarter =
+							// rdr.searchForObject(svCONST.OBJECT_TYPE_ORG_UNITS,
+							// Tc.ORG_UNIT_TYPE, Tc.HEADQUARTER, svr);
+							// oldInventoryItem.setVal(Tc.TAG_STATUS,
+							// Tc.NON_APPLIED);
+							DbSearchCriterion cr1 = new DbSearchCriterion(Tc.OBJECT_ID, DbCompareOperand.EQUAL,
+									oldInventoryItem.getObject_id());
+							DbDataArray dbArrInventoryItemHistory = svr.getObjectsHistory(
+									new DbSearchExpression().addDbSearchItem(cr1),
+									SvReader.getTypeIdByName(Tc.INVENTORY_ITEM), 0, 0);
+							if (dbArrInventoryItemHistory != null && !dbArrInventoryItemHistory.getItems().isEmpty()) {
+								for (int i = dbArrInventoryItemHistory.size(); i-- > 0;) {
+									DbDataObject dboElement = dbArrInventoryItemHistory.get(i);
+									// last ORG UNIT
+									DbDataObject tempDboOrgUnit = svr.getObjectById(dboElement.getParent_id(),
+											svCONST.OBJECT_TYPE_ORG_UNITS, null);
+									if (tempDboOrgUnit != null) {
+										if (tempDboOrgUnit.getObject_id() != 49L) {
+											oldInventoryItem.setVal(Tc.TAG_STATUS, Tc.NON_APPLIED);
+											oldInventoryItem.setParent_id(tempDboOrgUnit.getObject_id());
+											break;
+										} else {
+											DbDataObject dboHolding = svr.getObjectById(parentAnimalObj.getParent_id(),
+													SvReader.getTypeIdByName(Tc.HOLDING), null);
+											if (dboHolding != null) {
+												DbDataArray dbArrRegions = rdr.searchForObjectWithSingleFilter(
+														svCONST.OBJECT_TYPE_ORG_UNITS, Tc.EXTERNAL_ID,
+														Long.valueOf(dboHolding.getVal(Tc.REGION_CODE).toString()),
+														svr);
+												if (dbArrRegions != null && !dbArrRegions.getItems().isEmpty()) {
+													DbDataObject dboRegion = dbArrRegions.get(0);
+													oldInventoryItem.setVal(Tc.TAG_STATUS, Tc.NON_APPLIED);
+													oldInventoryItem.setParent_id(dboRegion.getObject_id());
+													break;
+												}
+											}
+										}
+									}
+								}
+							}
 						} else {
 							oldInventoryItem.setVal(Tc.TAG_STATUS, dbo.getVal(Tc.REASON).toString());
+							oldInventoryItem.setStatus(Tc.INVALID);
 						}
 					}
 					oldInventoryItem.setVal(Tc.CHECK_COLUMN, true);
@@ -429,10 +489,19 @@ public class OnSaveValidations implements ISvOnSave {
 								svCONST.systemUser, null, null));
 					}
 				}
+
+				if (dboAnimalOrFlock.getStatus().equals(Tc.VALID)) {
+					wr.changeStatus(dboAnimalOrFlock, Tc.PREMORTEM, svw, false);
+					if (!dboAnimalOrFlock.getStatus().equals(Tc.PREMORTEM)) {
+						throw (new SvException("naits.error.animalOrFlockDoesNotHaveAppropriateStatus",
+								svCONST.systemUser, null, null));
+					}
+				}
+
 				if (dbo.getObject_id().equals(0L)) {
 					String diseases = rdr.getDiseaseasPerAnimalInMultiSelectDropDownFormat(dboAnimalOrFlock, rdr, svr);
-					if (diseases != "") {
-						wr.setDiseaseInPreOrPostSlaughterObj(diseases, dbo, svw);
+					if (!diseases.equals("")) {
+						wr.setDiseaseInPreOrPostSlaughterObj(diseases, dbo);
 					}
 				}
 				if (!(dboAnimalOrFlock.getStatus().equals(Tc.VALID)
@@ -444,31 +513,13 @@ public class OnSaveValidations implements ISvOnSave {
 					throw (new SvException("naits.error.animalOrFlockWithPermissableToKillPreMortemForm",
 							svCONST.systemUser, null, null));
 				}
-				if (dboAnimalOrFlock.getStatus().equals(Tc.VALID)) {
-					wr.changeStatus(dboAnimalOrFlock, Tc.PREMORTEM, svw, false);
-				}
+
 				if (vc.isDiseaseProhibited(dbo, Tc.DISEASE_SUSPISION_PM) || vc.isDiseaseProhibited(dbo, Tc.DISEASE)) {
 					dbo.setVal(Tc.DECISION, "0"); // DISEASE SUSPISION
 				}
 				if (vc.checkIfAnimalHasBlockingDiseaseInPremortemForm(dboAnimalOrFlock, svr)) {
 					throw (new SvException("naits.error.blockingDiseaseInPreMortem", svCONST.systemUser, null, null));
 				}
-				/*
-				 * if (dboPreMortemForm != null &&
-				 * (dboPreMortemForm.getVal(Tc.DISEASE) != null ||
-				 * dboPreMortemForm.getVal(Tc.DISEASE).toString().equals("")) &&
-				 * (dbo.getVal(Tc.DISEASE) != null ||
-				 * !dbo.getVal(Tc.DISEASE).toString().equals(""))) { if
-				 * (!dbo.getVal(Tc.DISEASE).equals(dboPreMortemForm.getVal(Tc.
-				 * DISEASE))) { throw (new
-				 * SvException("naits.error.diseaseFieldNotEditable",
-				 * svCONST.systemUser, null, null)); } } else if
-				 * (dbo.getObject_id().equals(0L) && dbo.getVal(Tc.DISEASE) !=
-				 * null && dbo.getVal("IS_AUTO_GEN") == null) { throw (new
-				 * SvException("naits.error.diseaseFieldNotEditable",
-				 * svCONST.systemUser, null, null)); }
-				 */
-
 				if (!vc.checkIfAnimalHasAppropriateDiseaseInPreOrPostSlaughtForm(dbo, dboAnimalOrFlock, svr)) {
 					throw (new SvException("naits.error.diseaseDoesntMatchWithAnimalBreedOrRace", svCONST.systemUser,
 							null, null));
@@ -487,8 +538,8 @@ public class OnSaveValidations implements ISvOnSave {
 				}
 				if (dbo.getObject_id().equals(0L)) {
 					String diseases = rdr.getDiseaseasPerAnimalInMultiSelectDropDownFormat(dboAnimalOrFlock, rdr, svr);
-					if (diseases.equals("")) {
-						wr.setDiseaseInPreOrPostSlaughterObj(diseases, dbo, svw);
+					if (!diseases.equals("")) {
+						wr.setDiseaseInPreOrPostSlaughterObj(diseases, dbo);
 					}
 					if (!(dboAnimalOrFlock.getStatus().equals(Tc.SLAUGHTRD)
 							|| dboAnimalOrFlock.getStatus().equals(Tc.POSTMORTEM))) {
@@ -499,21 +550,6 @@ public class OnSaveValidations implements ISvOnSave {
 						dbo.setVal(Tc.SLAUGHTER_DATE, new DateTime(dboAnimalOrFlock.getVal(Tc.DEATH_DATE).toString()));
 					}
 				}
-				/*
-				 * if (dboPostMortemForm != null &&
-				 * (dboPostMortemForm.getVal(Tc.DISIESE_FINDING) != null ||
-				 * dboPostMortemForm.getVal(Tc.DISIESE_FINDING).toString().
-				 * equals("")) && (dbo.getVal(Tc.DISIESE_FINDING) != null ||
-				 * !dbo.getVal(Tc.DISIESE_FINDING).toString().equals(""))) { if
-				 * (!dbo.getVal(Tc.DISIESE_FINDING).equals(dboPostMortemForm.
-				 * getVal(Tc.DISIESE_FINDING))) { throw (new
-				 * SvException("naits.error.diseaseFieldNotEditable",
-				 * svCONST.systemUser, null, null)); } } else if
-				 * (dbo.getObject_id().equals(0L) && dbo.getVal(Tc.DISEASE) !=
-				 * null && dbo.getVal("IS_AUTO_GEN") == null) { throw (new
-				 * SvException("naits.error.diseaseFieldNotEditable",
-				 * svCONST.systemUser, null, null)); }
-				 */
 				if (dbo.getVal(Tc.SLAUGHTER_DATE) != null) {
 					DateTime dtSlaughter = new DateTime(dbo.getVal(Tc.SLAUGHTER_DATE).toString());
 					if (dbo.getVal(Tc.MANUFACTURE_DATE) != null) {
@@ -559,14 +595,18 @@ public class OnSaveValidations implements ISvOnSave {
 				}
 				break;
 			case Tc.VACCINATION_EVENT:
-				vc.vaccinationEventValidationSet(dbo, svr);
+				wr.trimFieldValue(dbo, Tc.CAMPAIGN_NAME);
+				if (!vc.checkIfFieldIsUnique(Tc.CAMPAIGN_NAME, dbo, svr)) {
+					throw (new SvException("naits.error.campaignNameIsUnique", svCONST.systemUser, null, null));
+				}
+				vc.vaccinationEventValidationSet(dbo);
 				break;
 			case Tc.LAB_SAMPLE:
 				// code
-				beforeSaveLabSample(dbo, rdr, wr, vc, svr, svw, svl);
+				DbDataObject dboCurrentUser = SvReader.getUserBySession(svr.getSessionId());
+				beforeSaveLabSample(dbo, dboCurrentUser, rdr, wr, vc, svr, svw);
 				if (dbo.getVal(Tc.COLLECTIONER_NAME) == null) {
-					DbDataObject dboUser = SvReader.getUserBySession(svr.getSessionId());
-					dbo.setVal(Tc.COLLECTIONER_NAME, dboUser.getVal(Tc.USER_NAME).toString());
+					dbo.setVal(Tc.COLLECTIONER_NAME, dboCurrentUser.getVal(Tc.USER_NAME).toString());
 				}
 				break;
 			case Tc.MOVEMENT_DOC:
@@ -578,7 +618,32 @@ public class OnSaveValidations implements ISvOnSave {
 				}
 				break;
 			case Tc.PET:
+				if (dbo.getVal(Tc.PET_ID) == null) {
+					// autoset all pets as STRAY PET
+					dbo.setVal(Tc.IS_STRAY_PET, "1");
+					dbo.setVal(Tc.PET_ID, wr.generatePetId(svr));
+				}
 				vc.petValidationSet(dbo, wr, rdr, svw, svr);
+				// archive number
+				// if (dbo != null && dbo.getVal(Tc.ARCHIVE_NUMBER) == null) {
+				// String petArchiveNumber;
+				// if (dbo.getParent_id().equals(0)) {
+				// petArchiveNumber = wr.generateArchiveNumber(dbo, null,
+				// Tc.PET_REGISTRATION, svr);
+				// } else {
+				// petArchiveNumber = wr.generateArchiveNumber(dbo, null,
+				// Tc.PET_SHELTER_REGISTRATION, svr);
+				// }
+				// dbo.setVal(Tc.ARCHIVE_NUMBER, petArchiveNumber);
+				// }
+				if (dbo.getVal(Tc.CHIP_RESPONSIBLE_PERSON) == null) {
+					DbDataObject dboUser = SvReader.getUserBySession(svr.getSessionId());
+					dbo.setVal(Tc.CHIP_RESPONSIBLE_PERSON, dboUser.getVal(Tc.USER_NAME).toString());
+				}
+				log4j.info("ARCHIVE:" + dbo.getVal(Tc.ARCHIVE_NUMBER));
+				break;
+			case Tc.PET_QUARANTINE:
+				vc.petQuarantineValidationSet(dbo, rdr, svw, svr);
 				break;
 			case Tc.STRAY_PET:
 				vc.strayPetValidationSet(dbo, svr);
@@ -595,35 +660,74 @@ public class OnSaveValidations implements ISvOnSave {
 			case Tc.HEALTH_PASSPORT:
 				vc.healthPassportValidationSet(dbo, rdr, svw, svr);
 				break;
-			case Tc.PET_MOVEMENT:
-				vc.petMovementValidationSet(dbo, svr);
-				break;
 			case Tc.SVAROG_USERS:
-				if (!dbo.getObject_id().equals(0L) && dbo.getVal(Tc.USER_NAME) != null) {
-					dbo.setVal(Tc.USER_NAME, dbo.getVal(Tc.USER_NAME).toString().toUpperCase());
+				if (dbo.getVal(Tc.USER_NAME) != null) {
+					dbo.setVal(Tc.USER_NAME, dbo.getVal(Tc.USER_NAME).toString().trim().toUpperCase());
+				}
+				break;
+			case Tc.RFID_INPUT:
+				vc.rfidValidationSet(dbo, wr, rdr, svr);
+				break;
+			case Tc.HERD:
+				if (dbo.getVal(Tc.ANIMAL_TYPE) == null) {
+					throw (new SvException("naits.error.herdTypeMustHaveValue", svCONST.systemUser, null, null));
+				}
+				if (dbo.getVal(Tc.HERD_ID) == null || dbo.getVal(Tc.HERD_ID).toString().isEmpty()) {
+					ha.generateHerdIdSequence(dbo, dbo.getVal(Tc.ANIMAL_TYPE).toString(), dbo.getParent_id(), svr);
+				}
+				DbDataObject dboHerdDatabaseVersion = svr.getObjectById(dbo.getObject_id(),
+						SvReader.getTypeIdByName(Tc.HERD), new DateTime());
+				if (dboHerdDatabaseVersion != null) {
+					DbDataArray dbArrAnimalsInHerd = ha.getAnimalsInHerd(dbo.getObject_id(), svr);
+					if (dbArrAnimalsInHerd != null && !dbArrAnimalsInHerd.getItems().isEmpty()
+							&& rdr.checkIfObjectHasBeenEditedDependOnSpecificFields(dbo, dboHerdDatabaseVersion,
+									Tc.ANIMAL_TYPE)) {
+						throw (new SvException("naits.error.herdTypeCanotBeEditedWhenThereAreAnimalsInTheHerd",
+								svCONST.systemUser, null, null));
+					}
 				}
 				break;
 			case Tc.SVAROG_USER_GROUPS:
-				if (dbo.getObject_id().equals(0L) && dbo.getVal("GROUP_UID") == null) {
-					dbo.setVal("GROUP_UID", SvUtil.getUUID());
+				wr.trimFieldValue(dbo, Tc.GROUP_NAME);
+				if (!vc.checkIfFieldIsUnique(Tc.GROUP_NAME, dbo, svr)) {
+					throw (new SvException("naits.error.groupNameIsUnique", svCONST.systemUser, null, null));
+				}
+				if (dbo.getObject_id().equals(0L) && dbo.getVal(Tc.GROUP_UID) == null) {
+					dbo.setVal(Tc.GROUP_UID, SvUtil.getUUID());
 				}
 				break;
 			case Tc.SVAROG_NOTIFICATION:
+				wr.trimFieldValue(dbo, Tc.TITLE);
+				wr.trimFieldValue(dbo, Tc.MESSAGE);
 				wr.autoAsignSessionUserToObjectField(dbo, Tc.SENDER, false, svr);
 				vc.beforeSaveNotificationValidationSet(dbo, rdr, svr);
 				break;
-			case Tc.INVENTORY_ITEM:
-				DbDataObject dboAnimalOrPet = svr.getObjectById(dbo.getParent_id(), SvReader.getTypeIdByName(Tc.ANIMAL),
-						null);
-				if (dboAnimalOrPet == null) {
-					dboAnimalOrPet = svr.getObjectById(dbo.getParent_id(), SvReader.getTypeIdByName(Tc.PET), null);
+			case Tc.SVAROG_ORG_UNITS:
+				wr.trimFieldValue(dbo, Tc.NAME);
+				if (!vc.checkIfFieldIsUnique(Tc.NAME, dbo, svr)) {
+					throw (new SvException("naits.error.orgUnitNameIsUnique", svCONST.systemUser, null, null));
 				}
-				if (dboAnimalOrPet != null && dbo.getVal(Tc.CHECK_COLUMN) == null) {
-					DbDataObject dboInventoryItemObj = svr.getObjectById(dbo.getObject_id(), dbo.getObject_type(),
-							new DateTime());
-					if (dboInventoryItemObj != null && dboInventoryItemObj.getParent_id().equals(dbo.getParent_id())
-							&& !dboInventoryItemObj.getValuesMap().toString().equals(dbo.getValuesMap().toString())) {
-						throw (new SvException("naits.error.cannotEditAppliedEarTag", svCONST.systemUser, null, null));
+				break;
+			case Tc.INVENTORY_ITEM:
+				// only for new ones, avoid duplicates
+				if (dbo.getObject_id() == 0L && rdr.getDboInventoryItem(dbo.getVal(Tc.EAR_TAG_NUMBER).toString(),
+						dbo.getVal(Tc.TAG_TYPE).toString(), svr) != null) {
+					throw (new SvException("naits.error.inventoryItemAlreadyExists", svCONST.systemUser, null, null));
+				}
+				if (dbo.getVal(Tc.CHECK_COLUMN) == null) {
+					DbDataObject dboAnimalOrPet = svr.getObjectById(dbo.getParent_id(),
+							SvReader.getTypeIdByName(Tc.ANIMAL), null);
+					if (dboAnimalOrPet == null) {
+						dboAnimalOrPet = svr.getObjectById(dbo.getParent_id(), SvReader.getTypeIdByName(Tc.PET), null);
+					}
+					if (dboAnimalOrPet != null) {
+						DbDataObject dboInventoryItemObj = svr.getObjectById(dbo.getObject_id(), dbo.getObject_type(),
+								new DateTime());
+						if (dboInventoryItemObj.getParent_id().equals(dbo.getParent_id()) && !dboInventoryItemObj
+								.getValuesMap().toString().equals(dbo.getValuesMap().toString())) {
+							throw (new SvException("naits.error.cannotEditAppliedEarTag", svCONST.systemUser, null,
+									null));
+						}
 					}
 				}
 				break;
@@ -638,8 +742,8 @@ public class OnSaveValidations implements ISvOnSave {
 					if (dbo.getVal(Tc.CREATED_BY) != null
 							&& !dbo.getVal(Tc.ASSIGNED_TO).toString().equals(dbo.getVal(Tc.CREATED_BY).toString())) {
 						svcon.markAsUnread(svw, dboConversation);
-					} else if (dboConversation.getVal(Tc.ASSIGNED_TO) != null && !dboConversation.getVal(Tc.ASSIGNED_TO)
-							.toString().equals(dbo.getVal(Tc.ASSIGNED_TO).toString())) {
+					} else if (!dboConversation.getVal(Tc.ASSIGNED_TO).toString()
+							.equals(dbo.getVal(Tc.ASSIGNED_TO).toString())) {
 						svcon.markAsUnread(svw, dboConversation);
 					}
 				}
@@ -649,33 +753,54 @@ public class OnSaveValidations implements ISvOnSave {
 					throw (new SvException("system.objTypeNotFound", svCONST.systemUser, null, null));
 				}
 				Long linkTypeId = Long.valueOf(dbo.getVal(Tc.LINK_TYPE_ID).toString());
+				Long objId1 = Long.valueOf(dbo.getVal(Tc.LINK_OBJ_ID_1).toString());
+				Long objId2 = Long.valueOf(dbo.getVal(Tc.LINK_OBJ_ID_2).toString());
+				if (rdr.getLinkObject(objId1, objId2, linkTypeId, svr) != null) {
+					throw (new SvException("naits.error.linkBetweenObjectsAlreadyExist", svCONST.systemUser, null,
+							null));
+				}
+
 				DbDataObject dboLinkType = svr.getObjectById(linkTypeId, svCONST.OBJECT_TYPE_LINK_TYPE, null);
 				String linkName = dboLinkType.getVal(Tc.LINK_TYPE).toString();
 				// by configuration in DbInit this can not be null
-				Long objId1 = Long.valueOf(dbo.getVal(Tc.LINK_OBJ_ID_1).toString());
-				Long objId2 = Long.valueOf(dbo.getVal(Tc.LINK_OBJ_ID_2).toString());
 
 				// since we need to check every action correlated with person
-				Long defObjectId = 0L;
-				Long personType = SvReader.getTypeIdByName(Tc.HOLDING_RESPONSIBLE);
-				if (Long.valueOf(dboLinkType.getVal("LINK_OBJ_TYPE_1").toString()).equals(personType)) {
-					defObjectId = objId1;
-				} else if (Long.valueOf(dboLinkType.getVal("LINK_OBJ_TYPE_2").toString()).equals(personType)) {
-					defObjectId = objId2;
-				}
-				// DbDataObject dboPerson = svr.getObjectById(defObjectId,
-				// personType, null);
-				// if (dboPerson != null &&
-				// dboPerson.getStatus().equals(Tc.INVALID)) {
-				// throw (new
-				// SvException("naits.error.personMustHaveStatusValidForAnyFurtherActions",
-				// svCONST.systemUser, null, null));
-				// }
+				// Long defObjectId;
+				// Long personType = SvReader.getTypeIdByName(Tc.HOLDING_RESPONSIBLE);
+				/*
+				 * if (Long.valueOf(dboLinkType.getVal(Tc.LINK_OBJ_TYPE_1).toString()).equals(
+				 * personType)) { defObjectId = objId1; } else if
+				 * (Long.valueOf(dboLinkType.getVal(Tc.LINK_OBJ_TYPE_2).toString()).equals(
+				 * personType)) { defObjectId = objId2; }
+				 */
 				switch (linkName) {
+				case Tc.PET_OWNER:
+					DbDataObject dboPet = svr.getObjectById(objId1, SvReader.getTypeIdByName(Tc.PET), null);
+					DbDataObject dboCurrentOwner = rdr.getPetOwner(dboPet.getObject_id(), svr);
+					if (dboCurrentOwner != null) {
+						DbDataObject getOwnerLink = rdr.getLinkObject(objId1, dboCurrentOwner.getObject_id(),
+								linkTypeId, svr);
+						if (getOwnerLink != null) {
+							svw.deleteObject(getOwnerLink, false);
+						}
+					}
+					break;
 				case Tc.HOLDING_KEEPER:
 					DbDataObject dboHolding = svr.getObjectById(objId1, SvReader.getTypeIdByName(Tc.HOLDING), null);
 					DbDataObject dboOwner = svr.getObjectById(objId2, SvReader.getTypeIdByName(Tc.HOLDING_RESPONSIBLE),
 							null);
+					if (dboOwner != null) {
+						// Check if holder type is LEGAL_ENTITY and does not
+						// have ASSOCIATED, if so return exception
+						if (dboOwner.getVal(Tc.HOLDER_TYPE) != null
+								&& dboOwner.getVal(Tc.HOLDER_TYPE).toString().equals("2")
+								&& !vc.checkIfLegalEntityKeeperHasAtLeastOnePhysicalEntityAssociatedPerson(dboHolding,
+										Tc.HOLDING_ASSOCIATED, rdr, svr)) {
+							throw (new SvException(
+									"naits.error.keeperThatIsLegalEntityMustHavePhysicalEntityAssociatedPerson",
+									svCONST.systemUser, null, null));
+						}
+					}
 					if (rdr.checkIfSomeLinkExistsBetweenHoldingAndPerson(dboHolding, Tc.HOLDING_KEEPER, svr)) {
 						DbDataObject currentOwner = rdr.getHoldingOwner(objId1, svr);
 						if (currentOwner != null) {
@@ -686,25 +811,6 @@ public class OnSaveValidations implements ISvOnSave {
 							}
 						}
 					}
-					dboHolding = svr.getObjectById(objId1, SvReader.getTypeIdByName(Tc.HOLDING), new DateTime());
-					if (dboOwner != null) {
-						// Check if holder type is not LEGAL_ENTITY
-						if ((dboOwner.getVal(Tc.HOLDER_TYPE) == null
-								|| !dboOwner.getVal(Tc.HOLDER_TYPE).toString().equals("2")) && objId1 != null
-								&& objId2 != null) {
-							wr.updateKeeperNameIfNeeded(dboHolding, dboOwner);
-							wr.updateKeeperInfoInHolding(dboHolding, dboOwner);
-						} else if (dboOwner.getVal(Tc.HOLDER_TYPE) != null
-								&& dboOwner.getVal(Tc.HOLDER_TYPE).toString().equals("2")
-								&& !vc.checkIfLegalEntityKeeperHasAtLeastOnePhysicalEntityAssociatedPerson(dboHolding,
-										Tc.HOLDING_ASSOCIATED, rdr, svr)) {
-							throw (new SvException(
-									"naits.error.keeperThatIsLegalEntityMustHavePhysicalEntityAssociatedPerson",
-									svCONST.systemUser, null, null));
-
-						}
-					}
-					wr.updateHoldingStatus(dboHolding, Tc.NO_KEEPER, Tc.VALID, true, svr);
 					break;
 				case Tc.HOLDING_HERDER:
 					DbDataObject dboHerder = svr.getObjectById(objId2, SvReader.getTypeIdByName(Tc.HOLDING_RESPONSIBLE),
@@ -723,6 +829,31 @@ public class OnSaveValidations implements ISvOnSave {
 						throw (new SvException("naits.error.associatedMustBePhysicalEntity", svCONST.systemUser, null,
 								null));
 					}
+					if (dbo.getDt_delete() != null && dbo.getDt_delete().isBefore(new DateTime())) {
+						DbDataObject holdingOwner = rdr.getHoldingOwner(objId1, svr);
+						// if user try to delete associated of the holding, but
+						// the keeper is LEGAL , system should block this
+						if (holdingOwner != null && holdingOwner.getVal(Tc.HOLDER_TYPE) != null
+								&& holdingOwner.getVal(Tc.HOLDER_TYPE).equals("2"))
+							throw (new SvException("naits.error.associatedCanNoteBeRemovedBecauseOfLegalKeeper",
+									svCONST.systemUser, null, null));
+					}
+					break;
+				case Tc.HOLDING_MEMBER_OF:
+					dboHolding = svr.getObjectById(objId1, SvReader.getTypeIdByName(Tc.HOLDING), null);
+					DbDataObject dboOrganization = svr.getObjectById(objId2,
+							SvReader.getTypeIdByName(Tc.HOLDING_RESPONSIBLE), null);
+					if (dboOrganization != null && dboOrganization.getVal(Tc.HOLDER_TYPE) != null
+							&& !dboOrganization.getVal(Tc.HOLDER_TYPE).toString().equals("2")) {
+						throw (new SvException("naits.error.holdingCanBeMemberOfLegalTypeEntityOnly",
+								svCONST.systemUser, null, null));
+					}
+					DbDataObject dboLink = rdr.getLinkObject(dboHolding.getObject_id(), dboOrganization.getObject_id(),
+							Long.valueOf(dbo.getVal(Tc.LINK_TYPE_ID).toString()), false, svr);
+					if (dboLink != null) {
+						throw (new SvException("naits.error.holdinAndOrganizationAlreadyLinked", svCONST.systemUser,
+								null, null));
+					}
 					break;
 				case Tc.DISEASE_QUARANTINE:
 					if (!vc.checkIfQuarantineBlackList(objId2, svr))
@@ -736,12 +867,17 @@ public class OnSaveValidations implements ISvOnSave {
 					DbDataObject dboAnimal = svr.getObjectById(objId1, SvReader.getTypeIdByName(Tc.ANIMAL), null);
 					if (dboVaccinationBook.getVal(Tc.CAMPAIGN_NAME) != null
 							&& !dboVaccinationBook.getVal(Tc.CAMPAIGN_NAME).toString().equals("")) {
-						DbDataArray arrVaccinationBooks = rdr.getLinkedVaccinationBooksPerAnimalOrFlock(dboAnimal, svr);
-						if (vc.checkIfAnimalParticipatedInVaccinationEvent(arrVaccinationBooks,
-								dboVaccinationBook.getVal(Tc.CAMPAIGN_NAME).toString())) {
-							throw (new SvException("naits.error.animalAlreadyParticipatedInSelectedCampaign",
-									svCONST.systemUser, null, null));
-						}
+						// DbDataArray arrVaccinationBooks =
+						// rdr.getLinkedVaccinationBooksPerAnimalOrFlock(dboAnimal,
+						// svr);
+						// if
+						// (vc.checkIfAnimalParticipatedInVaccinationEvent(arrVaccinationBooks,
+						// dboVaccinationBook.getVal(Tc.CAMPAIGN_NAME).toString()))
+						// {
+						// throw (new
+						// SvException("naits.error.animalAlreadyParticipatedInSelectedCampaign",
+						// svCONST.systemUser, null, null));
+						// }
 						dboEvent = rdr.getVaccEventByName(dboVaccinationBook.getVal(Tc.CAMPAIGN_NAME).toString(), svr);
 						List<String> animalTypes = rdr.getMultiSelectFieldValueAsList(dboEvent, Tc.ANIMAL_TYPE);
 						if (!vc.checkIfAnimalTypeScopeIsApplicableOnSelectedAnimal(animalTypes, dboAnimal)) {
@@ -796,7 +932,7 @@ public class OnSaveValidations implements ISvOnSave {
 								null, null));
 
 					}
-					if (objId2 != 0L && vc.checkIfHoldingBelongsInActiveQuarantine(holdingObj1, svr)) {
+					if (objId2 != 0L && vc.checkIfHoldingBelongsInActiveQuarantine(holdingObj1.getObject_id(), svr)) {
 						throw (new SvException("naits.error.holdingCanBelongToOneActiveQuarantine", svCONST.systemUser,
 								null, null));
 					}
@@ -826,7 +962,9 @@ public class OnSaveValidations implements ISvOnSave {
 			default:
 				break;
 			}
-		} finally {
+		} finally
+
+		{
 			if (svr != null) {
 				svr.release();
 			}
@@ -848,8 +986,6 @@ public class OnSaveValidations implements ISvOnSave {
 		Reader rdr = null;
 		Writer wr = null;
 		ValidationChecks vc = new ValidationChecks();
-		if (!isTypeHandled(dbo.getObject_type())) {
-		}
 
 		try {
 			svr = new SvReader(parentCore);
@@ -866,28 +1002,30 @@ public class OnSaveValidations implements ISvOnSave {
 			// depending from objType, do appropriate validations
 			switch (objTableName) {
 			case Tc.ANIMAL:
-				if (vc.isInventoryItemCheckBlocked(dbo)) {
+				if (vc.isInventoryItemCheckBlocked(dbo) && dbo.getVal(Tc.CHECK_COLUMN) == null) {
 					String blockCheck = SvConf.getParam("app_block.disable_animal_check");
+					Long animalObjId = dbo.getObject_id();
+					dbo.setObject_id(0L);
 					DbDataObject dboInventoryItem = rdr.getInventoryItem(dbo, Tc.NON_APPLIED, false, svr);
 					if (blockCheck == null && dboInventoryItem != null) {
-						dboInventoryItem.setParent_id(dbo.getObject_id());
-						dboInventoryItem.setVal(Tc.TAG_STATUS, Tc.APPLIED);
-						svw.saveObject(dboInventoryItem, true);
+						DbDataObject dboOrgUnit = svr.getObjectById(dboInventoryItem.getParent_id(),
+								svCONST.OBJECT_TYPE_ORG_UNITS, null);
+						if (dboOrgUnit != null) {
+							dboInventoryItem.setParent_id(animalObjId);
+							dboInventoryItem.setVal(Tc.TAG_STATUS, Tc.APPLIED);
+							svw.saveObject(dboInventoryItem, true);
+						}
 					}
 				}
 				break;
 			case Tc.PET:
 				vc.petAfterSaveValidationSet(dbo, wr, rdr, svw, svr);
 				break;
-			// case Tc.HOLDING_RESPONSIBLE:
-			// String publicRegistryPath =
-			// SvConf.getParam("public_registry.path");
-			// if (dbo.getStatus().equals(Tc.INVALID) && publicRegistryPath !=
-			// null) {
-			// throw (new SvException("naits.error.noDataFoundForCurrentPerson",
-			// svCONST.systemUser, null, null));
-			// }
-			// break;
+			case Tc.HOLDING:
+				@SuppressWarnings("unused")
+				DbDataObject dboTempHolding = svr.getObjectById(dbo.getObject_id(), dbo.getObject_type(),
+						new DateTime());
+				break;
 			case Tc.LAB_SAMPLE:
 				DbDataObject animalObj = svr.getObjectById(dbo.getParent_id(), SvReader.getTypeIdByName(Tc.ANIMAL),
 						null);
@@ -979,6 +1117,11 @@ public class OnSaveValidations implements ISvOnSave {
 					}
 				}
 				break;
+			case Tc.SVAROG_CONVERSATION:
+				DbDataObject dboUser = svr.getObjectById((Long) dbo.getVal(Tc.ASSIGNED_TO), svCONST.OBJECT_TYPE_USER,
+						null);
+				wr.assignConversationToUserAndLinkToResponsibleUsers(dboUser, dbo, svw, svr);
+				break;
 			case Tc.SVAROG_LINK:
 				if (dbo.getVal(Tc.LINK_TYPE_ID) == null) {
 					throw (new SvException("system.objTypeNotFound", svCONST.systemUser, null, null));
@@ -996,12 +1139,18 @@ public class OnSaveValidations implements ISvOnSave {
 							null);
 					DbDataObject dboLink = rdr.getLinkObject(dboHolding.getObject_id(), dboOwner.getObject_id(),
 							Long.valueOf(dbo.getVal(Tc.LINK_TYPE_ID).toString()), false, svr);
-					if (dboLink == null) {
-						dboHolding = svr.getObjectById(objId1, SvReader.getTypeIdByName(Tc.HOLDING), new DateTime());
+					if (dboLink != null) {
+						dboHolding.setVal("DISABLE_VILLAGE_CHECK", true);
+						wr.updateKeeperNameIfNeeded(dboHolding, dboOwner);
+						wr.updateKeeperInfoInHolding(dboHolding, dboOwner);
+						// without condition, in order to triger save of the
+						// previously entered data
+						wr.updateHoldingStatus(dboHolding, Tc.VALID, svr);
+					} else {
 						wr.removeKeeperInfoInHolding(dboHolding);
 						wr.updateHoldingStatus(dboHolding, Tc.NO_KEEPER, svr);
 					}
-					dboHolding = svr.getObjectById(objId1, SvReader.getTypeIdByName(Tc.HOLDING), new DateTime());
+
 					break;
 				case Tc.HOLDING_QUARANTINE:
 					DbDataObject dboQuarantine = svr.getObjectById(objId2, SvReader.getTypeIdByName(Tc.QUARANTINE),
@@ -1038,10 +1187,18 @@ public class OnSaveValidations implements ISvOnSave {
 
 	}
 
-	public Boolean beforeSaveHoldingCheck(DbDataObject dbo, Reader rdr, SvReader svr) throws SvException {
+	public Boolean beforeSaveHoldingCheck(DbDataObject dbo, Reader rdr, Writer wr, ValidationChecks vc, SvReader svr)
+			throws SvException {
 		Boolean result = false;
+		Boolean shouldUpdateHoldingStatusWhenAddingFirstAnimal = false;
+		DbDataObject dboHoldingDatabaseVersion = svr.getObjectById(dbo.getObject_id(), dbo.getObject_type(),
+				new DateTime());
 		if (dbo.getObject_id().equals(0L)) {
 			dbo.setStatus(Tc.NO_KEEPER);
+			if (dbo.getVal(Tc.TYPE) == null || dbo.getVal(Tc.TYPE).toString().trim().isEmpty()) {
+				throw (new SvException("naits.error.beforeSaveCheck_holdingTypeMustBeEntered", svCONST.systemUser, null,
+						null));
+			}
 		}
 		if (dbo.getVal(Tc.DT_CREATION) != null) {
 			Date dt_creation = (Date) dbo.getVal(Tc.DT_CREATION);
@@ -1051,7 +1208,8 @@ public class OnSaveValidations implements ISvOnSave {
 						null, null));
 			}
 		}
-		if (dbo.getVal(Tc.VILLAGE_CODE) != null) {
+		if (!(dbo.getVal("DISABLE_VILLAGE_CHECK") != null && dbo.getVal("DISABLE_VILLAGE_CHECK").equals(true))
+				&& dbo.getVal(Tc.VILLAGE_CODE) != null) {
 			String translatedVillageCode = "";
 			DbDataArray codeItem = rdr.searchForDependentMunicCommunVillage(dbo.getVal(Tc.VILLAGE_CODE).toString(),
 					Tc.VILLAGES, svr);
@@ -1064,25 +1222,77 @@ public class OnSaveValidations implements ISvOnSave {
 		if (dbo.getVal(Tc.PIC) == null) {
 			throw (new SvException("naits.error.null_pic", svCONST.systemUser, null, null));
 		}
+		if (dbo.getVal(Tc.CHECK_COLUMN) != null) {
+			shouldUpdateHoldingStatusWhenAddingFirstAnimal = (Boolean) dbo.getVal(Tc.CHECK_COLUMN);
+		}
+		if (!shouldUpdateHoldingStatusWhenAddingFirstAnimal && dbo.getStatus().equals(Tc.VALID)) {
+			wr.updateStatusOfHolding(dbo, Tc.SUSPENDED, true, rdr, vc, svr);
+		}
+		if (dbo.getStatus().equals(Tc.SUSPENDED)) {
+			wr.setStatusOfDboHoldingWithTypeDifferentThanFarm(dbo, vc);
+		}
+		wr.setStatusOfHoldingToValidWhenUpdateTypeOfHoldingToFarm(dbo, vc, svr);
+
+		if (!dbo.getObject_id().equals(0L) && dbo.getStatus().equals(dboHoldingDatabaseVersion.getStatus())
+				&& (dbo.getVal(Tc.TYPE) == null || dbo.getVal(Tc.TYPE).toString().trim().isEmpty())) {
+			throw (new SvException("naits.error.beforeSaveCheck_holdingTypeMustBeEntered", svCONST.systemUser, null,
+					null));
+		}
+
 		return result;
 	}
 
-	public Boolean beforeSaveLabSample(DbDataObject dbo, Reader rdr, Writer wr, ValidationChecks vc, SvReader svr,
-			SvWriter svw, SvLink svl) throws SvException {
+	public Boolean beforeSaveLabSample(DbDataObject dbo, DbDataObject dboUser, Reader rdr, Writer wr,
+			ValidationChecks vc, SvReader svr, SvWriter svw) throws SvException {
+		UserManager um = new UserManager();
 		Boolean result = false;
 		String checkColum = "";
 		DbDataObject labSampleDb = svr.getObjectById(dbo.getObject_id(), dbo.getObject_type(), new DateTime());
-		if (dbo.getObject_id().equals(0L)) {
+		if (dbo.getObject_id().equals(0L) && dbo.getVal(Tc.CHECK_COLUMN) == null) {
+			if (!dbo.getVal(Tc.DISEASE_TEST).toString().equals(Tc.TUBERCULOSIS)
+					&& dbo.getVal(Tc.TEST_RESULT_STATUS) != null) {
+				if (um.checkIfUserLinkedToDefaultGroup(dboUser, Tc.CVIRO, svr)) {
+					throw (new SvException("naits.error.sampleResultCanBeEditedOnlyInLabSampleWithTuberculosisDisease",
+							svCONST.systemUser, null, null));
+				} else {
+					throw (new SvException("naits.error.onlyCVIROuserCanCreateEditLabSampleResult", svCONST.systemUser,
+							null, null));
+				}
+			} else if (dbo.getVal(Tc.DISEASE_TEST).toString().equals(Tc.TUBERCULOSIS)) {
+				if (!(um.checkIfUserLinkedToDefaultGroup(dboUser, Tc.CVIRO, svr)
+						|| um.checkIfUserLinkedToDefaultGroup(dboUser, Tc.FVIRO, svr))) {
+					throw (new SvException("naits.error.onlyCVIROuserCanCreateEditLabSampleResult", svCONST.systemUser,
+							null, null));
+				}
+			}
 			// initial status
 			dbo.setStatus(Tc.COLLECTED);
 		}
 		if (vc.checkIfDateIsInFuture(dbo, Tc.DATE_OF_COLLECTION)) {
 			throw (new SvException("naits.error.collectionDateCannotBeInTheFuture", svCONST.systemUser, null, null));
 		}
-		if (!dbo.getObject_id().equals(0L) && dbo.getVal(Tc.ANIMAL_EAR_TAG) != null
-				&& labSampleDb.getVal(Tc.ANIMAL_EAR_TAG) != null) {
-			if (!dbo.getVal(Tc.ANIMAL_EAR_TAG).toString().equals(labSampleDb.getVal(Tc.ANIMAL_EAR_TAG).toString())) {
-				throw (new SvException("naits.error.animalEarTagCantBeChnaged", svCONST.systemUser, null, null));
+		if (!dbo.getObject_id().equals(0L) && dbo.getVal(Tc.CHECK_COLUMN) == null) {
+			if (dbo.getVal(Tc.ANIMAL_EAR_TAG) != null && labSampleDb.getVal(Tc.ANIMAL_EAR_TAG) != null) {
+				if (!dbo.getVal(Tc.ANIMAL_EAR_TAG).toString()
+						.equals(labSampleDb.getVal(Tc.ANIMAL_EAR_TAG).toString())) {
+					throw (new SvException("naits.error.animalEarTagCantBeChnaged", svCONST.systemUser, null, null));
+				}
+			}
+			if (!dbo.getVal(Tc.DISEASE_TEST).toString().equals(Tc.TUBERCULOSIS)
+					&& rdr.checkIfObjectHasBeenEditedDependOnSpecificFields(dbo, labSampleDb, Tc.TEST_RESULT_STATUS)) {
+				if (um.checkIfUserLinkedToDefaultGroup(dboUser, Tc.CVIRO, svr)) {
+					throw (new SvException("naits.error.sampleResultCanBeEditedOnlyInLabSampleWithTuberculosisDisease",
+							svCONST.systemUser, null, null));
+				} else {
+					throw (new SvException("naits.error.onlyCVIROuserCanCreateEditLabSampleResult", svCONST.systemUser,
+							null, null));
+				}
+			} else if (dbo.getVal(Tc.DISEASE_TEST).toString().equals(Tc.TUBERCULOSIS)) {
+				if (!(um.checkIfUserLinkedToDefaultGroup(dboUser, Tc.CVIRO, svr)
+						|| um.checkIfUserLinkedToDefaultGroup(dboUser, Tc.FVIRO, svr))) {
+					throw (new SvException("naits.error.onlyCVIROuserCanCreateEditLabSampleResult", svCONST.systemUser,
+							null, null));
+				}
 			}
 		}
 		// disease can't be null
@@ -1101,16 +1311,7 @@ public class OnSaveValidations implements ISvOnSave {
 			if (dbo.getVal(Tc.SAMPLE_TEST_TYPE) == null || dbo.getVal(Tc.SAMPLE_TEST_TYPE).toString().equals("")) {
 				throw (new SvException("naits.error.testTypeFieldCantBeEmpty", svCONST.systemUser, null, null));
 			}
-			// check if selected disease/s match with selected sample type
-			// TODO issue #1094
-			/*
-			 * if (!vc.checkIfLabSampleHasValidDiseaseSampleTestCombination(dbo,
-			 * rdr, svr)) { throw (new SvException(
-			 * "naits.error.selectedDiseaseDoesntMatchWithSelectedSampleType",
-			 * svCONST.systemUser, null, null)); }
-			 */
 		}
-		// disable edit
 		if (!dbo.getObject_id().equals(0L) && labSampleDb != null && labSampleDb.getStatus().equals(Tc.PROCESSED)
 				&& dbo.getVal(Tc.TEST_RESULT_STATUS) == null) {
 			if (!labSampleDb.equals(dbo)) {
@@ -1125,24 +1326,27 @@ public class OnSaveValidations implements ISvOnSave {
 			if (animalOrHoldingObj == null) {
 				// parent is holding
 				animalOrHoldingObj = svr.getObjectById(dbo.getParent_id(), SvReader.getTypeIdByName(Tc.HOLDING), null);
-				DbDataObject objHoldingKeeper = rdr.getHoldingOwner(animalOrHoldingObj.getObject_id(), svr);
-				if (dbo.getObject_id().equals(0L)) {
-					dbo.setVal(Tc.HOLDING_PIC, animalOrHoldingObj.getVal(Tc.PIC).toString());
-					String sampleId = generateSampleId(animalOrHoldingObj.getVal(Tc.PIC).toString(), "", svr);
-					dbo.setVal(Tc.SAMPLE_ID, sampleId);
-					dbo.setVal(Tc.GEOSTAT_CODE, animalOrHoldingObj.getVal(Tc.VILLAGE_CODE).toString());
-					if (objHoldingKeeper != null && objHoldingKeeper.getVal(Tc.FULL_NAME) != null) {
-						dbo.setVal(Tc.HOLDING_RESP, objHoldingKeeper.getVal(Tc.FULL_NAME).toString());
-					} else {
-						dbo.setVal(Tc.HOLDING_RESP, "N/A");
+				if (animalOrHoldingObj != null) {
+					DbDataObject objHoldingKeeper = rdr.getHoldingOwner(animalOrHoldingObj.getObject_id(), svr);
+					if (dbo.getObject_id().equals(0L)) {
+						dbo.setVal(Tc.HOLDING_PIC, animalOrHoldingObj.getVal(Tc.PIC).toString());
+						String sampleId = generateSampleId(animalOrHoldingObj.getVal(Tc.PIC).toString(), "", svr);
+						dbo.setVal(Tc.SAMPLE_ID, sampleId);
+						dbo.setVal(Tc.GEOSTAT_CODE, animalOrHoldingObj.getVal(Tc.VILLAGE_CODE).toString());
+						if (objHoldingKeeper != null && objHoldingKeeper.getVal(Tc.FULL_NAME) != null) {
+							dbo.setVal(Tc.HOLDING_RESP, objHoldingKeeper.getVal(Tc.FULL_NAME).toString());
+						} else {
+							dbo.setVal(Tc.HOLDING_RESP, "N/A");
+						}
 					}
-				}
-				if (dbo.getVal(Tc.SAMPLE_ORIGIN) != null && dbo.getVal(Tc.SAMPLE_ORIGIN).toString().equals("1")) {
-					throw (new SvException("naits.error.wrongSampleOrigin", svCONST.systemUser, null, null));
-				} else if (dbo.getVal(Tc.SAMPLE_ORIGIN) != null && dbo.getVal(Tc.SAMPLE_ORIGIN).toString().equals("2")
-						&& dbo.getVal(Tc.ANIMAL_EAR_TAG) != null) {
-					throw (new SvException("naits.error.cantAddAnimalEarTagInHoldingOriginatedSample",
-							svCONST.systemUser, null, null));
+					if (dbo.getVal(Tc.SAMPLE_ORIGIN) != null && dbo.getVal(Tc.SAMPLE_ORIGIN).toString().equals("1")) {
+						throw (new SvException("naits.error.wrongSampleOrigin", svCONST.systemUser, null, null));
+					} else if (dbo.getVal(Tc.SAMPLE_ORIGIN) != null
+							&& dbo.getVal(Tc.SAMPLE_ORIGIN).toString().equals("2")
+							&& dbo.getVal(Tc.ANIMAL_EAR_TAG) != null) {
+						throw (new SvException("naits.error.cantAddAnimalEarTagInHoldingOriginatedSample",
+								svCONST.systemUser, null, null));
+					}
 				}
 			} else {
 				if (dbo.getVal(Tc.SAMPLE_ORIGIN) != null && dbo.getVal(Tc.SAMPLE_ORIGIN).toString().equals("2")) {
@@ -1168,6 +1372,18 @@ public class OnSaveValidations implements ISvOnSave {
 						dbo.setVal(Tc.HOLDING_RESP, objHoldingKeeper.getVal(Tc.FULL_NAME).toString());
 					} else {
 						dbo.setVal(Tc.HOLDING_RESP, "N/A");
+					}
+
+					DbDataArray herdsInHolding = svr.getObjectsByParentId(holdingObj.getObject_id(),
+							SvReader.getTypeIdByName(Tc.HERD), null, 0, 0);
+					if (herdsInHolding != null && !herdsInHolding.getItems().isEmpty()) {
+						for (DbDataObject dboTempHerd : herdsInHolding.getItems()) {
+							if (rdr.checkIfLinkExists(animalOrHoldingObj, dboTempHerd, Tc.ANIMAL_HERD, null, svr)
+									&& dboTempHerd.getVal(Tc.HERD_ID) != null) {
+								dbo.setVal(Tc.HERD_OBJ_ID, dboTempHerd.getObject_id());
+								dbo.setVal(Tc.HERD_ID, dboTempHerd.getVal(Tc.HERD_ID).toString());
+							}
+						}
 					}
 				}
 			}
@@ -1207,6 +1423,22 @@ public class OnSaveValidations implements ISvOnSave {
 						}
 					}
 				}
+				DbDataObject animalParent = svr.getObjectById(existingAnimal.getParent_id(),
+						SvReader.getTypeIdByName(Tc.HOLDING), null);
+				if (animalParent != null) {
+					DbDataArray herdsInHolding = svr.getObjectsByParentId(animalParent.getObject_id(),
+							SvReader.getTypeIdByName(Tc.HERD), null, 0, 0);
+					if (herdsInHolding != null && !herdsInHolding.getItems().isEmpty()) {
+						for (DbDataObject dboTempHerd : herdsInHolding.getItems()) {
+							if (rdr.checkIfLinkExists(existingAnimal, dboTempHerd, Tc.ANIMAL_HERD, null, svr)
+									&& dboTempHerd.getVal(Tc.HERD_ID) != null) {
+								dbo.setParent_id(existingAnimal.getObject_id());
+								dbo.setVal(Tc.HERD_OBJ_ID, dboTempHerd.getObject_id());
+								dbo.setVal(Tc.HERD_ID, dboTempHerd.getVal(Tc.HERD_ID).toString());
+							}
+						}
+					}
+				}
 			}
 		}
 		return result;
@@ -1225,17 +1457,20 @@ public class OnSaveValidations implements ISvOnSave {
 			DbDataObject dboHoldingResponsible = svr.getObjectById(dbo.getObject_id(), dbo.getObject_type(),
 					new DateTime());
 			String oldFirstName = dboHoldingResponsible.getVal(Tc.FIRST_NAME) != null
-					? dboHoldingResponsible.getVal(Tc.FIRST_NAME).toString() : "";
+					? dboHoldingResponsible.getVal(Tc.FIRST_NAME).toString()
+					: "";
 			String oldLastName = dboHoldingResponsible.getVal(Tc.LAST_NAME) != null
-					? dboHoldingResponsible.getVal(Tc.LAST_NAME).toString() : "";
+					? dboHoldingResponsible.getVal(Tc.LAST_NAME).toString()
+					: "";
 			if (!oldFirstName.equals(firstName) || !oldLastName.equals(lastName)) {
 				dbo.setVal(Tc.FULL_NAME, firstName.trim() + " " + lastName.trim());
 			}
 		}
 		// now compare the results, relevant according the holder type
 		if (dbo.getVal(Tc.HOLDER_TYPE) != null) {
-			if (dbo.getVal(Tc.HOLDER_TYPE).toString().equals("1")
-					&& (dbo.getVal(Tc.FIRST_NAME) == null || dbo.getVal(Tc.LAST_NAME) == null)) {
+			if (dbo.getVal(Tc.HOLDER_TYPE).toString().equals("1") && (dbo.getVal(Tc.FIRST_NAME) == null
+					|| dbo.getVal(Tc.FIRST_NAME).toString().trim().equals("") || dbo.getVal(Tc.LAST_NAME) == null
+					|| dbo.getVal(Tc.LAST_NAME).toString().trim().equals(""))) {
 				throw (new SvException("naits.error.enterFirstNameAndLastNameProperly", svCONST.systemUser, null,
 						null));
 			} else if (dbo.getVal(Tc.HOLDER_TYPE).toString().equals("2")) {
@@ -1248,9 +1483,7 @@ public class OnSaveValidations implements ISvOnSave {
 							svCONST.systemUser, null, null));
 				}
 			}
-
 		}
-
 		return result;
 	}
 
@@ -1324,24 +1557,22 @@ public class OnSaveValidations implements ISvOnSave {
 	/**
 	 * Method for generating Sample ID with sequence
 	 * 
-	 * @param animalOrHoldingId
-	 *            animal ear tag or holding PIC
-	 * @param dateOfCollection
-	 *            date of collection
-	 * @param svr
-	 *            SvReader instance
+	 * @param animalOrHoldingId animal ear tag or holding PIC
+	 * @param dateOfCollection  date of collection
+	 * @param svr               SvReader instance
 	 * @return
 	 */
 	public String generateSampleId(String animalOrHoldingId, String dateOfCollection, SvReader svr) {
 		SvSequence svs = null;
 		String animalSampledSeq = "";
 		String generateLabSampleId = "";
+		ReentrantLock lock = null;
+		Long seqId = 0L;
 		try {
 			svs = new SvSequence(svr.getSessionId());
-			// String concDate = dateOfCollection.replaceAll("-",
-			// "").substring(1);
-			Long seqId = svs.getSeqNextVal(animalOrHoldingId, false);
-			Thread.sleep(2);
+			seqId = svs.getSeqNextVal(animalOrHoldingId, false);
+			lock = SvLock.getLock(String.valueOf(animalOrHoldingId), false, 0);
+			Thread.sleep(4);
 			animalSampledSeq = String.format("%01d", Integer.valueOf(seqId.toString()));
 			generateLabSampleId = animalOrHoldingId + "-" + animalSampledSeq;
 			svs.dbCommit();
@@ -1350,6 +1581,9 @@ public class OnSaveValidations implements ISvOnSave {
 		} finally {
 			if (svs != null) {
 				svs.release();
+			}
+			if (lock != null) {
+				SvLock.releaseLock(String.valueOf(animalOrHoldingId), lock);
 			}
 		}
 		return generateLabSampleId;
@@ -1411,31 +1645,4 @@ public class OnSaveValidations implements ISvOnSave {
 			dbo.setVal(regionFieldName, villageCode.substring(0, 2));
 		}
 	}
-
-	public void invalidateLinkBetweenExistingKeeperAndHolding(Long holdingKeeperObjId, SvCore parentCore) {
-		SvReader svr = null;
-		try {
-			svr = new SvReader(parentCore);
-			Reader rdr = new Reader();
-			Writer wr = new Writer();
-			DbDataObject existingLink = null;
-			DbDataObject dboHoldingKeeper;
-
-			dboHoldingKeeper = svr.getObjectById(holdingKeeperObjId, SvReader.getTypeIdByName(Tc.HOLDING_RESPONSIBLE),
-					null);
-			if (dboHoldingKeeper != null) {
-				existingLink = rdr.findLinkBetweenKeeperAndHolding(dboHoldingKeeper, Tc.HOLDING_KEEPER, svr);
-				if (existingLink != null) {
-					wr.invalidateLink(existingLink, svr);
-				}
-			}
-		} catch (SvException e) {
-			log4j.error(e.getFormattedMessage(), e);
-		} finally {
-			if (svr != null)
-				svr.release();
-		}
-
-	}
-
 }

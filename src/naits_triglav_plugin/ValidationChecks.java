@@ -1,23 +1,20 @@
 package naits_triglav_plugin;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
-import org.joda.time.Days;
 import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 
 import com.prtech.svarog.SvConf;
-import com.prtech.svarog.SvCore;
 import com.prtech.svarog.SvException;
 import com.prtech.svarog.SvGeometry;
 import com.prtech.svarog.SvLink;
@@ -56,7 +53,6 @@ public class ValidationChecks {
 				}
 			}
 		}
-
 		return result;
 	}
 
@@ -64,28 +60,12 @@ public class ValidationChecks {
 		Boolean result = false;
 		DbDataArray replacedEarTags = svr.getObjectsByParentId(animalObj.getObject_id(),
 				SvReader.getTypeIdByName(Tc.EAR_TAG_REPLC), null, 0, 0);
-		replacedEarTags.getSortedItems("DT_INSERT", true);
-		if (replacedEarTags != null && replacedEarTags.size() > 0) {
+		replacedEarTags.getSortedItems(Tc.DT_INSERT, true);
+		if (replacedEarTags != null && !replacedEarTags.getItems().isEmpty()) {
 			DbDataObject tempEarTagReplc = replacedEarTags.get(0);
 			if (tempEarTagReplc != null && tempEarTagReplc.getVal(Tc.OLD_EAR_TAG) != null && !tempEarTagReplc
 					.getVal(Tc.OLD_EAR_TAG).toString().equals(animalObj.getVal(Tc.ANIMAL_ID).toString())) {
 				result = true;
-			}
-		}
-		return result;
-	}
-
-	public Boolean checkIfWrongEnteredEarTagExists(DbDataObject animalObj, SvReader svr) throws SvException {
-		Boolean result = false;
-		DbDataArray replacedEarTags = svr.getObjectsByParentId(animalObj.getObject_id(),
-				SvReader.getTypeIdByName(Tc.EAR_TAG_REPLC), null, 0, 0);
-		if (!replacedEarTags.getItems().isEmpty()) {
-			for (DbDataObject dboEarTagReplc : replacedEarTags.getItems()) {
-				if (dboEarTagReplc.getVal(Tc.REASON) != null
-						&& dboEarTagReplc.getVal(Tc.REASON).toString().equals(Tc.WRONG_ENTRY)) {
-					result = true;
-					break;
-				}
 			}
 		}
 		return result;
@@ -107,7 +87,7 @@ public class ValidationChecks {
 		if (animal.getVal(Tc.MOTHER_TAG_ID) != null && !animal.getVal(Tc.MOTHER_TAG_ID).toString().trim().equals("")) {
 			rdr = new Reader();
 			DbDataArray childs = rdr.getAnimalSiblingsAccordingMotherTagId(animal, svr);
-			if (childs != null && childs.size() > 0) {
+			if (childs != null && !childs.getItems().isEmpty()) {
 				if (animal.getObject_id().equals(0L)) {
 					lastBornChild = childs.get(childs.size() - 1);
 				} else {
@@ -423,8 +403,8 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method that checks if departure date is not before arrival date of
-	 * current animal movement
+	 * Method that checks if departure date is not before arrival date of current
+	 * animal movement
 	 * 
 	 * @param currentAnimalMovement
 	 * @param svr
@@ -458,8 +438,8 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method that checks animal movement if arrival date is not before
-	 * departure date
+	 * Method that checks animal movement if arrival date is not before departure
+	 * date
 	 * 
 	 * @param dboAnimalOrFlockMovement
 	 * @return
@@ -500,7 +480,7 @@ public class ValidationChecks {
 		return result;
 	}
 
-	public Boolean checkIfHoldingIsSlaughterhouse(Long holdingID, SvReader svr) throws SvException {
+	public boolean checkIfHoldingIsSlaughterhouse(Long holdingID, SvReader svr) throws SvException {
 		Boolean result = false;
 		if (holdingID != null) {
 			DbDataObject dboHolding = svr.getObjectById(holdingID, SvReader.getTypeIdByName(Tc.HOLDING), null);
@@ -514,7 +494,7 @@ public class ValidationChecks {
 	 * @param dboHolding
 	 * @return
 	 */
-	public Boolean checkIfHoldingIsSlaughterhouse(DbDataObject dboHolding) {
+	public boolean checkIfHoldingIsSlaughterhouse(DbDataObject dboHolding) {
 		Boolean result = false;
 		if (dboHolding != null && dboHolding.getVal(Tc.TYPE) != null
 				&& dboHolding.getVal(Tc.TYPE).toString().equals("7")) {
@@ -558,36 +538,21 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method that checks animal movement if specific holding belongs in active
-	 * quarantine
-	 * 
-	 * @param currentAnimalMovement
-	 * @param svr
-	 * @throws SvException
-	 */
-	public Boolean checkIfHoldingBelongsInActiveQuarantine(Long dboHoldingId, SvReader svr) throws SvException {
-		Boolean result = false;
-		DbDataObject dboHolding = svr.getObjectById(dboHoldingId, SvReader.getTypeIdByName(Tc.HOLDING), null);
-		if (dboHolding != null)
-			result = checkIfHoldingBelongsInActiveQuarantine(dboHolding, svr);
-		return result;
-	}
-
-	/**
 	 * Method that checks if holding is linked to active quarantine
 	 * 
 	 * @param dboHolding
 	 * @param svr
 	 * @throws SvException
 	 */
-	public Boolean checkIfHoldingBelongsInActiveQuarantine(DbDataObject dboHolding, SvReader svr) throws SvException {
+	public Boolean checkIfHoldingBelongsInActiveQuarantine(Long dboHoldingId, SvReader svr) throws SvException {
 		Boolean result = false;
+		DbDataObject dboHolding = svr.getObjectById(dboHoldingId, SvReader.getTypeIdByName(Tc.HOLDING), null);
 		DbDataObject dbLink = SvLink.getLinkType(Tc.HOLDING_QUARANTINE, SvReader.getTypeIdByName(Tc.HOLDING),
 				SvReader.getTypeIdByName(Tc.QUARANTINE));
 		DbDataArray dbaQuarantines = null;
 		if (dboHolding != null && dbLink != null) {
 			dbaQuarantines = svr.getObjectsByLinkedId(dboHolding.getObject_id(), dbLink, null, 0, 0);
-			if (dbaQuarantines != null && dbaQuarantines.size() > 0) {
+			if (dbaQuarantines != null && !dbaQuarantines.getItems().isEmpty()) {
 				for (DbDataObject tempQuarantine : dbaQuarantines.getItems()) {
 					if (checkIfQuarantineActive(tempQuarantine)) {
 						result = true;
@@ -600,41 +565,27 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method that checks animal movement if specific holding belongs only in
-	 * active export quarantine
-	 * 
-	 * @param currentAnimalMovement
-	 * @param svr
-	 * @throws SvException
-	 */
-	public Boolean checkIfHoldingBelongsInActiveDiseaseQuarantine(Long dboHoldingId, SvReader svr) throws SvException {
-		Boolean result = false;
-		DbDataObject dboHolding = svr.getObjectById(dboHoldingId, SvReader.getTypeIdByName(Tc.HOLDING), null);
-		if (dboHolding != null)
-			result = checkIfHoldingBelongsInActiveDiseaseQuarantine(dboHolding, svr);
-		return result;
-	}
-
-	/**
-	 * Method that checks if holding is linked only to active blacklist
+	 * Method that checks if holding is linked to active SPECIFIC quarantine type
 	 * quarantine
 	 * 
-	 * @param dboHolding
+	 * @param dboHoldingId
+	 * @param quarantineType
 	 * @param svr
 	 * @throws SvException
 	 */
-	public Boolean checkIfHoldingBelongsInActiveDiseaseQuarantine(DbDataObject dboHolding, SvReader svr)
-			throws SvException {
+	public Boolean checkIfHoldingBelongsInActiveSpecificQuarantine(Long dboHoldingId, String quarantineType,
+			SvReader svr) throws SvException {
 		Boolean result = false;
+		DbDataObject dboHolding = svr.getObjectById(dboHoldingId, SvReader.getTypeIdByName(Tc.HOLDING), null);
 		DbDataObject dbLink = SvLink.getLinkType(Tc.HOLDING_QUARANTINE, SvReader.getTypeIdByName(Tc.HOLDING),
 				SvReader.getTypeIdByName(Tc.QUARANTINE));
 		DbDataArray dbaQuarantines = null;
 		if (dboHolding != null && dbLink != null) {
 			dbaQuarantines = svr.getObjectsByLinkedId(dboHolding.getObject_id(), dbLink, null, 0, 0);
-			if (dbaQuarantines != null && dbaQuarantines.size() > 0) {
+			if (dbaQuarantines != null && !dbaQuarantines.getItems().isEmpty()) {
 				for (DbDataObject tempQuarantine : dbaQuarantines.getItems()) {
 					if (checkIfQuarantineActive(tempQuarantine)) {
-						if (tempQuarantine.getVal(Tc.QUARANTINE_TYPE).equals("1")) {
+						if (tempQuarantine.getVal(Tc.QUARANTINE_TYPE).equals(quarantineType)) {
 							result = true;
 							break;
 						}
@@ -666,50 +617,6 @@ public class ValidationChecks {
 		return result;
 	}
 
-	public Boolean checkIfSourceHoldingHasPositiveHealthStatus(DbDataObject movementObj, SvReader svr)
-			throws SvException {
-		Reader rdr = new Reader();
-		Boolean result = true;
-		String healthStatus = null;
-		String sourceHolding = null;
-		DbDataObject holding = null;
-		if (movementObj.getVal(Tc.SOURCE_HOLDING_ID) != null) {
-			sourceHolding = movementObj.getVal(Tc.SOURCE_HOLDING_ID).toString();
-			holding = rdr.findAppropriateHoldingByPic(sourceHolding, svr);
-			if (holding != null) {
-				healthStatus = rdr.getHoldingHealthStatus(holding, svr);
-				if (healthStatus.length() > 0) {
-					if (!healthStatus.equals("en.positive")) {
-						result = false;
-					}
-				}
-			}
-		}
-		return result;
-	}
-
-	public Boolean checkIfDestinationHoldingHasPositiveHealthStatus(DbDataObject movementObj, SvReader svr)
-			throws SvException {
-		Reader rdr = new Reader();
-		Boolean result = true;
-		String healthStatus = null;
-		String destinationHolding = null;
-		DbDataObject holding = null;
-		if (movementObj.getVal(Tc.DESTINATION_HOLDING_ID) != null) {
-			destinationHolding = movementObj.getVal(Tc.DESTINATION_HOLDING_ID).toString();
-			holding = rdr.findAppropriateHoldingByPic(destinationHolding, svr);
-			if (holding != null) {
-				healthStatus = rdr.getHoldingHealthStatus(holding, svr);
-				if (healthStatus.length() > 0) {
-					if (!healthStatus.equals("en.positive")) {
-						result = false;
-					}
-				}
-			}
-		}
-		return result;
-	}
-
 	public DbDataObject checkIfAnimalIdExistsInInventoryItem(DbDataObject dbo, Reader rdr, SvReader svr)
 			throws SvException {
 		DbDataObject dboInventoryItem = rdr.getInventoryItemAccordingAnimalParams(dbo, false, svr);
@@ -720,41 +627,11 @@ public class ValidationChecks {
 		return dboInventoryItem;
 	}
 
-	/**
-	 * 
-	 * @param animalMovementObj
-	 * @param daysNum
-	 * @param svr
-	 * @return
-	 * @throws SvException
-	 */
-	public Boolean checkIfAnimalIsVaccinatedNDaysBeforeMovement(DbDataObject animalMovementObj, Integer daysNum,
-			SvReader svr) throws SvException {
-		Reader rdr = new Reader();
-		DbDataObject animalObj = svr.getObjectById(animalMovementObj.getParent_id(),
-				SvReader.getTypeIdByName(Tc.ANIMAL), null);
-		DbDataArray vaccRecords = rdr.getLinkedVaccinationBooksPerAnimalOrFlock(animalObj, svr);
-		DateTimeFormatter dtf = DateTimeFormat.forPattern(Tc.DATE_PATTERN);
-		DbDataObject lastRecord = null;
-		DateTime dt_departure = null;
-		DateTime dt_vacc = null;
-		Boolean result = false;
-		if (animalMovementObj.getVal(Tc.DEPARTURE_DATE) != null) {
-			dt_departure = dtf.parseDateTime(animalMovementObj.getVal(Tc.DEPARTURE_DATE).toString());
-			if (vaccRecords != null && vaccRecords.size() > 0) {
-				vaccRecords.getSortedItems(Tc.VACC_DATE);
-				lastRecord = vaccRecords.get(vaccRecords.size() - 1);
-				if (lastRecord != null && lastRecord.getVal(Tc.VACC_DATE) != null) {
-					dt_vacc = dtf.parseDateTime(lastRecord.getVal(Tc.VACC_DATE).toString());
-					Integer days = Days.daysBetween(dt_departure, dt_vacc).getDays();
-					// log4j.debug(days);
-					if (days >= daysNum) {
-						result = true;
-					}
-				}
-			}
-		}
-		return result;
+	public void checkIfAnimalBirthDateIsNull(DbDataObject dboAnimal, Reader rdr, SvReader svr) throws SvException {
+		if (dboAnimal.getVal(Tc.BIRTH_DATE) == null)
+			throw (new SvException("naits.error.birthDateOfNewlyRegisteredAnimalCanNotBeNull", svCONST.systemUser, null,
+					null));
+		return;
 	}
 
 	public Boolean checkIfQuarantineBlackList(Long quarantineObjId, SvReader svr) throws SvException {
@@ -768,11 +645,10 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method to return health status per specific holding, according Area
-	 * Health Management Tool
+	 * Method to return health status per specific holding, according Area Health
+	 * Management Tool
 	 * 
-	 * @param holdingPic
-	 *            - pic of the holding
+	 * @param holdingPic - pic of the holding
 	 * @param svr
 	 * @return String (FREE/HIGH_RISK/LOW_RISK)
 	 * @throws SvException
@@ -805,56 +681,10 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method to return health status per specific holding and disease,
-	 * according Area Health Management Tool
-	 * 
-	 * @param holdingPic
-	 *            - pic of the holding
-	 * @param disease
-	 *            - code of disease (available codes: FMR, ANTRX, BRUC, TUBRC,
-	 *            RAB)
-	 * @param svr
-	 * @return String (FREE/HIGH_RISK/LOW_RISK)
-	 * @throws SvException
-	 */
-	public String checkHoldingHealthStatusByAreaByDisease(String holdingPic, String disease, SvReader svr)
-			throws SvException {
-		String holdingAreaStatus = Tc.FREE;
-		Reader rdr = new Reader();
-		DbDataObject holding = rdr.findAppropriateHoldingByPic(holdingPic, svr);
-		if (holding != null && holding.getVal(Tc.VILLAGE_CODE) != null) {
-			DbDataObject areaObj = rdr.findAppropriateAreaByCode(holding.getVal(Tc.VILLAGE_CODE).toString(), "3", svr);
-			DbDataArray areaHealthStatuses = svr.getObjectsByParentId(areaObj.getObject_id(),
-					SvReader.getTypeIdByName(Tc.AREA_HEALTH), null, 0, 0);
-			if (areaHealthStatuses.size() > 0) {
-				for (DbDataObject tempAreaHealthStatus : areaHealthStatuses.getItems()) {
-					String tempDiseaseCode = tempAreaHealthStatus.getVal(Tc.DISEASE_ID).toString();
-					if (tempDiseaseCode.equals(disease)) {
-						String tempAreaStatus = tempAreaHealthStatus.getVal(Tc.AREA_STATUS).toString();
-						if (tempAreaStatus.equals("0") || tempAreaStatus.equals("1")) {
-							holdingAreaStatus = tempAreaStatus;
-							break;
-						}
-					}
-				}
-			}
-			if (!holdingAreaStatus.equals(Tc.FREE) && holdingAreaStatus.equals("0")) {
-				holdingAreaStatus = Tc.HIGH_RISK;
-			}
-			if (!holdingAreaStatus.equals(Tc.FREE) && holdingAreaStatus.equals("1")) {
-				holdingAreaStatus = Tc.LOW_RISK;
-			}
-		}
-		return holdingAreaStatus;
-	}
-
-	/**
 	 * Method that checks if AREA_HEALTH has duplicate disease
 	 * 
-	 * @param areaHealthObj
-	 *            AREA_HEALTH object
-	 * @param svr
-	 *            SvReader instance
+	 * @param areaHealthObj AREA_HEALTH object
+	 * @param svr           SvReader instance
 	 * @return
 	 * @throws SvException
 	 */
@@ -865,7 +695,7 @@ public class ValidationChecks {
 			areaHealthStatuses = svr.getObjectsByParentId(areaHealthObj.getParent_id(),
 					SvReader.getTypeIdByName(Tc.AREA_HEALTH), null, 0, 0);
 		}
-		if (areaHealthStatuses != null && areaHealthStatuses.size() > 0) {
+		if (areaHealthStatuses != null && !areaHealthStatuses.getItems().isEmpty()) {
 			for (DbDataObject tempAreaHealth : areaHealthStatuses.getItems()) {
 				if (areaHealthObj.getVal(Tc.DISEASE_ID) != null && tempAreaHealth.getVal(Tc.DISEASE_ID) != null
 						&& areaHealthObj.getVal(Tc.DISEASE_ID).toString()
@@ -879,59 +709,12 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method to return message if movement of the animal between two holdings
-	 * is allowed according the holding's area health status for any disease
+	 * Method that checks if EXPORT CERTIFICATE can be saved depend on quarantine
+	 * type.
 	 * 
-	 * @param dboAnimalMovement
-	 *            - DbDataObject of the movement
-	 * @param svr
-	 * @return String (allowed/destHoldHighRisk/destHoldingLowRisk/
-	 *         sourceHoldingHighRisk/sourceHoldingLowRisk)
-	 * @throws SvException
-	 */
-	public String checkIfMovementValidAccordingHoldingsHealthStatus(DbDataObject dboAnimalMovement, SvReader svr)
-			throws SvException {
-		String movementValidationAccordingHoldingHealthStatus = "naits.system.movement_allowed";
-		// first check source holding
-		if (dboAnimalMovement.getVal(Tc.SOURCE_HOLDING_ID) != null) {
-			String sourceHoldingHealthStatus = checkHoldingHealthStatusByArea(
-					dboAnimalMovement.getVal(Tc.SOURCE_HOLDING_ID).toString(), svr);
-			if (!sourceHoldingHealthStatus.equals(Tc.FREE) && sourceHoldingHealthStatus.equals(Tc.HIGH_RISK)) {
-				movementValidationAccordingHoldingHealthStatus = "naits.system.movemBlocked.sourceHoldingHighRisk";
-			}
-			if (!sourceHoldingHealthStatus.equals(Tc.FREE)
-					&& movementValidationAccordingHoldingHealthStatus.equals("allowed")
-					&& sourceHoldingHealthStatus.equals(Tc.LOW_RISK)) {
-				movementValidationAccordingHoldingHealthStatus = "naits.system.movemBlocked.sourceHoldingLowRisk";
-			}
-		}
-		// then check destination holding, only if the source holding was with
-		// FREE health status
-		if (dboAnimalMovement.getVal(Tc.DESTINATION_HOLDING_ID) != null) {
-			String destintionHoldingHealthStatus = checkHoldingHealthStatusByArea(
-					dboAnimalMovement.getVal(Tc.DESTINATION_HOLDING_ID).toString(), svr);
-			if (!destintionHoldingHealthStatus.equals(Tc.FREE) && destintionHoldingHealthStatus.equals(Tc.HIGH_RISK)) {
-				movementValidationAccordingHoldingHealthStatus = "naits.system.movemBlocked.destHoldingHighRisk";
-			}
-			if (!destintionHoldingHealthStatus.equals(Tc.FREE) && destintionHoldingHealthStatus.equals("allowed")
-					&& destintionHoldingHealthStatus.equals(Tc.LOW_RISK)) {
-				movementValidationAccordingHoldingHealthStatus = "naits.system.movemBlocked.destHoldingLowRisk";
-			}
-		}
-
-		return movementValidationAccordingHoldingHealthStatus;
-	}
-
-	/**
-	 * Method that checks if EXPORT CERTIFICATE can be saved depend on
-	 * quarantine type.
-	 * 
-	 * @param dbo
-	 *            EXPORT_CERTIFICATE object
-	 * @param rdr
-	 *            Reader instance
-	 * @param svr
-	 *            SvReader instance
+	 * @param dbo EXPORT_CERTIFICATE object
+	 * @param rdr Reader instance
+	 * @param svr SvReader instance
 	 * @return
 	 * @throws SvException
 	 */
@@ -955,9 +738,9 @@ public class ValidationChecks {
 		return result;
 	}
 
-	public Boolean checkIfAnimalOrFlockDoesNotBelongToDraftMovementDoc(DbDataObject animalOrFlockObj, Reader rdr,
+	public boolean checkIfAnimalOrFlockDoesNotBelongToDraftMovementDoc(DbDataObject animalOrFlockObj, Reader rdr,
 			SvReader svr) throws SvException {
-		Boolean result = true;
+		boolean result = true;
 		DbDataArray animalOrFlockMovements = null;
 		if (animalOrFlockObj.getObject_type().equals(SvReader.getTypeIdByName(Tc.ANIMAL))) {
 			animalOrFlockMovements = svr.getObjectsByParentId(animalOrFlockObj.getObject_id(),
@@ -966,7 +749,7 @@ public class ValidationChecks {
 			animalOrFlockMovements = svr.getObjectsByParentId(animalOrFlockObj.getObject_id(),
 					SvReader.getTypeIdByName(Tc.FLOCK_MOVEMENT), null, 0, 0);
 		}
-		if (animalOrFlockMovements != null && animalOrFlockMovements.size() > 0) {
+		if (animalOrFlockMovements != null && !animalOrFlockMovements.getItems().isEmpty()) {
 			for (DbDataObject movementObj : animalOrFlockMovements.getItems()) {
 				if (movementObj != null && movementObj.getVal(Tc.MOVEMENT_DOC_ID) != null) {
 					DbDataObject moveDoc = rdr.searchForObject(SvReader.getTypeIdByName(Tc.MOVEMENT_DOC),
@@ -982,49 +765,18 @@ public class ValidationChecks {
 		return result;
 	}
 
-	public Boolean checkIfAnimalOrFlockBelongsToReleasedtMovementDoc(DbDataObject animalOrFlockObj, Reader rdr,
-			SvReader svr) throws SvException {
-		Boolean result = false;
-		DbDataArray animalOrFlockMovementsObj = null;
-		DbDataObject movementObj = null;
-		if (animalOrFlockObj.getObject_type().equals(SvReader.getTypeIdByName(Tc.ANIMAL))) {
-			animalOrFlockMovementsObj = svr.getObjectsByParentId(animalOrFlockObj.getObject_id(),
-					SvReader.getTypeIdByName(Tc.ANIMAL_MOVEMENT), null, 0, 0);
-		} else {
-			animalOrFlockMovementsObj = svr.getObjectsByParentId(animalOrFlockObj.getObject_id(),
-					SvReader.getTypeIdByName(Tc.FLOCK_MOVEMENT), null, 0, 0);
-		}
-		if (animalOrFlockMovementsObj != null && animalOrFlockMovementsObj.size() > 0) {
-			if (animalOrFlockMovementsObj.get(0).getStatus().equals(Tc.VALID)) {
-				movementObj = animalOrFlockMovementsObj.get(0);
-				if (movementObj.getVal(Tc.MOVEMENT_DOC_ID) != null) {
-					DbDataObject tempMovementDoc = rdr.searchForObject(SvReader.getTypeIdByName(Tc.MOVEMENT_DOC),
-							Tc.MOVEMENT_DOC_ID, movementObj.getVal(Tc.MOVEMENT_DOC_ID).toString(), svr);
-					if ((tempMovementDoc != null && tempMovementDoc.getStatus().equals(Tc.RELEASED))
-							|| ((tempMovementDoc == null))) {
-						result = true;
-					}
-				}
-			}
-		}
-		return result;
-	}
-
 	/**
 	 * Method that checks (returns true) if specific field is unique. Otherwise
-	 * returns false. Actually we use this method so we can set specific field
-	 * to be unique.
+	 * returns false. Actually we use this method so we can set specific field to be
+	 * unique.
 	 * 
-	 * @param fieldName
-	 *            Field we want to be unique
-	 * @param dbo
-	 *            Object that contains that field
-	 * @param svr
-	 *            SvReader instance
+	 * @param fieldName Field we want to be unique
+	 * @param dbo       Object that contains that field
+	 * @param svr       SvReader instance
 	 * @return
 	 * @throws SvException
 	 */
-	public Boolean checkIfFieldIsUnique(String fieldName, DbDataObject dbo, SvReader svr) throws SvException {
+	public boolean checkIfFieldIsUnique(String fieldName, DbDataObject dbo, SvReader svr) throws SvException {
 		Boolean result = true;
 		if (dbo.getVal(fieldName) != null) {
 			DbSearchCriterion cr1 = new DbSearchCriterion(fieldName, DbCompareOperand.EQUAL,
@@ -1032,8 +784,8 @@ public class ValidationChecks {
 			DbSearchExpression dbse = new DbSearchExpression();
 			dbse.addDbSearchItem(cr1);
 			DbDataArray ar = svr.getObjects(dbse, dbo.getObject_type(), null, 0, 0);
-			if ((dbo.getObject_id().equals(0L) && ar != null && ar.size() > 0)
-					|| (!dbo.getObject_id().equals(0L) && ar != null && ar.size() > 1)) {
+			if ((dbo.getObject_id().equals(0L) && !ar.getItems().isEmpty())
+					|| (!dbo.getObject_id().equals(0L) && ar.size() > 1)) {
 				result = false;
 			}
 		}
@@ -1061,27 +813,8 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method that checks if ANIMAL or FLOCK has status SLAUGHTRD so we can
-	 * create post-mortem form.
-	 * 
-	 * @param dboPostSlaugh
-	 * @param svr
-	 * @return
-	 * @throws SvException
-	 */
-	public Boolean checkIfAnimalOrFlockHaveStatusSlaught(DbDataObject dboAnimalOrFlock, SvReader svr)
-			throws SvException {
-		Boolean result = false;
-		if (dboAnimalOrFlock != null && dboAnimalOrFlock.getStatus() != null
-				&& dboAnimalOrFlock.getStatus().equals(Tc.SLAUGHTRD)) {
-			result = true;
-		}
-		return result;
-	}
-
-	/**
-	 * Method that checks if ANIMAL or FLOCK has status POSTMORTEM so we can
-	 * edit post-mortem form.
+	 * Method that checks if ANIMAL or FLOCK has status POSTMORTEM so we can edit
+	 * post-mortem form.
 	 * 
 	 * @param dboPostSlaugh
 	 * @param svr
@@ -1102,46 +835,66 @@ public class ValidationChecks {
 	 * Void method that has set of QUARANTINE validations. Than, we use them in
 	 * OnSaveValidation class
 	 * 
-	 * @param dboQuarantine
-	 * @param svr
+	 * @param dbo DbDataObject of quarantine
+	 * @param svr SvReader instance
 	 * @throws SvException
 	 */
-	public void quarantineOnSaveValidationSet(DbDataObject dboQuarantine, Reader rdr, SvReader svr) throws SvException {
-		String pattern = Tc.DATE_PATTERN;
-		if (dboQuarantine.getObject_id().equals(0L) && dboQuarantine.getVal(Tc.DATE_FROM) != null) {
-			String quarantineStartDate = dboQuarantine.getVal(Tc.DATE_FROM).toString().substring(0, 10);
-			String quarantineEndDate = dboQuarantine.getVal(Tc.DATE_TO).toString().substring(0, 10);
-			DateTime convertedQuarantineStartDate = DateTime.parse(quarantineStartDate,
-					DateTimeFormat.forPattern(pattern));
-			DateTime convertedQuarantineEndDate = DateTime.parse(quarantineEndDate, DateTimeFormat.forPattern(pattern));
-			DateTime now = new DateTime();
-			if (convertedQuarantineStartDate.isBefore(now.minusDays(1))) {
-				throw (new SvException("naits.error.quarantineCanNotBeRegisteredInThePast", svCONST.systemUser, null,
-						null));
+	public void quarantineOnSaveValidationSet(DbDataObject dbo, Reader rdr, SvReader svr) throws SvException {
+		DbDataObject dboQuarantineDatabaseVersion = svr.getObjectById(dbo.getObject_id(),
+				SvReader.getTypeIdByName(Tc.QUARANTINE), new DateTime());
+		if (dboQuarantineDatabaseVersion != null) {
+			if (dbo.getVal(Tc.QUARANTINE_TYPE).toString().equals(Tc.BLACKLIST_QUARANTINE)) {
+				if (rdr.checkIfObjectHasBeenEditedDependOnSpecificFields(dbo, dboQuarantineDatabaseVersion,
+						Tc.DATE_FROM, Tc.DATE_TO, Tc.QUARANTINE_TYPE)) {
+					throw (new SvException("naits.error.quarantineStartDateEndDateAndTypeAreNotUpdatable",
+							svr.getInstanceUser()));
+				}
 			}
-			if (convertedQuarantineEndDate.isBefore(convertedQuarantineStartDate)) {
-				throw (new SvException("naits.error.quarantineCanNotHaveEndDateBeforeStartDate", svCONST.systemUser,
-						null, null));
-			}
-		} else if (!dboQuarantine.getObject_id().equals(0L)) {
-			// prevent update of quaranine star date
-			DbDataObject quaranineFromDb = svr.getObjectById(dboQuarantine.getObject_id(),
-					SvReader.getTypeIdByName(Tc.QUARANTINE), null);
-			if (!dboQuarantine.getVal(Tc.DATE_FROM).equals(quaranineFromDb.getVal(Tc.DATE_FROM))) {
-				throw (new SvException("naits.error.quarantineStartDateNotUpdatable", svCONST.systemUser, null, null));
-			}
-			if (!dboQuarantine.getVal(Tc.QUARANTINE_TYPE).equals(quaranineFromDb.getVal(Tc.QUARANTINE_TYPE))) {
-				throw (new SvException("naits.error.quarantineTypeNotUpdatable", svCONST.systemUser, null, null));
+			// here only the quarantine date_to can be edited
+			else if (dbo.getVal(Tc.QUARANTINE_TYPE).toString().equals(Tc.EXPORT_QUARANTINE)) {
+				DateTime dateToCurrentVersion = rdr.getDateFromDBField(Tc.DATE_TO, dbo);
+				DateTime dateToLastVersion = rdr.getDateFromDBField(Tc.DATE_TO, dboQuarantineDatabaseVersion);
+				if (rdr.checkIfObjectHasBeenEditedDependOnSpecificFields(dbo, dboQuarantineDatabaseVersion,
+						Tc.DATE_FROM, Tc.QUARANTINE_TYPE)) {
+					throw (new SvException("naits.error.quarantineStartDateAndTypeAreNotUpdatable",
+							svr.getInstanceUser()));
+				}
+				SimpleDateFormat formatter = new SimpleDateFormat(Tc.DATE_PATTERN);
+				if (formatter.format(new DateTime().toDate())
+						.compareTo(formatter.format(dateToLastVersion.toDate())) == 0) {
+					if (dateToCurrentVersion.isBefore(dateToLastVersion)) {
+						throw (new SvException("naits.error.quarantineEndDateCannotBeShorted", svr.getInstanceUser()));
+					}
+					if ((int) getDateDiff(dateToCurrentVersion, dateToLastVersion, TimeUnit.DAYS) > 15) {
+						throw (new SvException("naits.error.quarantineEndDateCannotBeExtendedForMoreThan15Days",
+								svr.getInstanceUser()));
+					}
+				} else {
+					if (rdr.checkIfObjectHasBeenEditedDependOnSpecificFields(dbo, dboQuarantineDatabaseVersion,
+							Tc.DATE_TO)) {
+						throw (new SvException("naits.error.quarantineCanBeEditedOnlyOnLastDayOfItsExpiration",
+								svr.getInstanceUser()));
+					}
+				}
 			}
 		}
-		if (dboQuarantine.getVal(Tc.QUARANTINE_ID) == null) {
-			rdr.generateQuarantineId(dboQuarantine, svr);
+		DateTime dtFrom = new DateTime(dbo.getVal(Tc.DATE_FROM).toString());
+		DateTime dtNow = new DateTime();
+		if (dtFrom.isBefore(dtNow.minusDays(1))) {
+			throw (new SvException("naits.error.quarantineCanNotBeRegisteredInThePast", svCONST.systemUser, null,
+					null));
+		}
+		if (isQuarantineStartDateAfterEndDate(dbo)) {
+			throw (new SvException("naits.error.quarantineCanNotHaveEndDateBeforeStartDate", svr.getInstanceUser()));
+		}
+		if (dbo.getVal(Tc.QUARANTINE_ID) == null) {
+			rdr.generateQuarantineId(dbo, svr);
 		}
 	}
 
 	/**
-	 * Method that checks if ANIMAL or FLOCK has valid pre-mortem form. We use
-	 * this validation so we can legal create post-mortem form
+	 * Method that checks if ANIMAL or FLOCK has valid pre-mortem form. We use this
+	 * validation so we can legal create post-mortem form
 	 * 
 	 * @param dboPreSlaught
 	 * @param svr
@@ -1156,7 +909,7 @@ public class ValidationChecks {
 		if (dboAnimalOrFlock != null) {
 			preMortemsForAnimalOrFlock = svr.getObjectsByParentId(dboAnimalOrFlock.getObject_id(),
 					SvReader.getTypeIdByName(Tc.PRE_SLAUGHT_FORM), null, 0, 0);
-			if (preMortemsForAnimalOrFlock != null && preMortemsForAnimalOrFlock.size() > 0) {
+			if (preMortemsForAnimalOrFlock != null && !preMortemsForAnimalOrFlock.getItems().isEmpty()) {
 				for (DbDataObject dbo : preMortemsForAnimalOrFlock.getItems()) {
 					if (dbo.getVal(Tc.DECISION) != null && dbo.getVal(Tc.DECISION).toString().equals("1")) {
 						counter++;
@@ -1171,8 +924,8 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * This list of diseases are used to check if Pre_Slaught_Form contains any
-	 * of the prohibited list of diseases.
+	 * This list of diseases are used to check if Pre_Slaught_Form contains any of
+	 * the prohibited list of diseases.
 	 * 
 	 * @param parentCodeName
 	 * @return
@@ -1209,17 +962,17 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Check method used only for Pre_Slaught_Form so we can prohibit new forms
-	 * if unacceptable disease are spotted.
+	 * Check method used only for Pre_Slaught_Form so we can prohibit new forms if
+	 * unacceptable disease are spotted.
 	 * 
 	 * @param dboAnimalOrFlock
 	 * @param svr
 	 * @return
 	 * @throws SvException
 	 */
-	public Boolean checkIfAnimalHasBlockingDiseaseInPremortemForm(DbDataObject dboAnimalOrFlock, SvReader svr)
+	public boolean checkIfAnimalHasBlockingDiseaseInPremortemForm(DbDataObject dboAnimalOrFlock, SvReader svr)
 			throws SvException {
-		Boolean result = false;
+		boolean result = false;
 		DbDataArray preMortemsForAnimalOrFlock = null;
 		if (dboAnimalOrFlock != null) {
 			preMortemsForAnimalOrFlock = svr.getObjectsByParentId(dboAnimalOrFlock.getObject_id(),
@@ -1249,10 +1002,22 @@ public class ValidationChecks {
 	}
 
 	public Boolean isDiseaseProhibited(DbDataObject dbo, String fieldName) {
+		Reader rdr = new Reader();
 		Boolean result = false;
-		if (dbo.getVal(fieldName) != null && prohibitedDiseasesAndSuspissionDiseasesInPremortemForm(fieldName)
-				.contains(dbo.getVal(fieldName).toString()))
-			result = true;
+		if (dbo.getVal(fieldName) != null) {
+			ArrayList<String> arrProhibitedDiseases = prohibitedDiseasesAndSuspissionDiseasesInPremortemForm(fieldName);
+			List<String> arrString = rdr.getMultiSelectFieldValueAsList(dbo, fieldName);
+			if (!arrString.isEmpty()) {
+				for (String foundDisease : arrString) {
+					for (String prohibitDisease : arrProhibitedDiseases) {
+						if (foundDisease.equals(prohibitDisease)) {
+							result = true;
+							break;
+						}
+					}
+				}
+			}
+		}
 		return result;
 	}
 
@@ -1278,7 +1043,7 @@ public class ValidationChecks {
 						start_tag_id, end_tag_id, svr);
 			}
 		}
-		if (arrRangeIntersect.size() > 0) {
+		if (!arrRangeIntersect.getItems().isEmpty()) {
 			if (objectType.equals(Tc.TRANSFER)) {
 				throwMessage += "_" + objectType.toLowerCase();
 			}
@@ -1286,6 +1051,20 @@ public class ValidationChecks {
 		} else {
 			return true;
 		}
+	}
+
+	public Boolean checkIfTransferIsOverlapping(Long objectType, Long parentId, String tag_type, Long start_tag_id,
+			Long end_tag_id, Reader rdr, SvReader svr) {
+		boolean result = false;
+		try {
+			int total = rdr.getOverlappingTransferArrayListCustomSQL(tag_type, start_tag_id, end_tag_id, parentId, svr);
+			if (total > 0) {
+				result = true;
+			}
+		} catch (SvException e) {
+			log4j.error(e);
+		}
+		return result;
 	}
 
 	public Boolean checkIfAnimalMovementCanBeSaved(DbDataObject dbo, SvReader svr) throws SvException {
@@ -1307,7 +1086,7 @@ public class ValidationChecks {
 			// null, null));
 			// }
 			if (convertedBirthDate != null && convertedBirthDate.isAfter(convertedDeparture)) {
-				throw (new SvException("naits.error.beforeSaveCheck_departureDateCanNotBeAfterAnimalBirthDate",
+				throw (new SvException("naits.error.beforeSaveCheck_departureDateCanNotBeBeforeAnimalBirthDate",
 						svCONST.systemUser, null, null));
 			}
 		}
@@ -1371,34 +1150,11 @@ public class ValidationChecks {
 	}
 
 	/**
+	 * Method that checks if animal has appropriate class/race combination. Later we
+	 * use this method in OnSaveValidation
 	 * 
-	 * @param dbo
-	 * @param rdr
-	 * @param parentCore
-	 * @return
-	 * @throws SvException
-	 */
-	public Boolean checkIfOtherAnimalCanBeSaved(DbDataObject dbo, Reader rdr, SvCore parentCore) throws SvException {
-		Boolean result = false;
-		if (dbo.getVal(Tc.NOTE) != null) {
-			String note = dbo.getVal(Tc.NOTE).toString();
-			if (!Pattern.matches("[a-zA-Z0-9]*", note)) {
-				throw (new SvException("naits.error.beforeSaveCheck_onlyAlphabeticCharsAllowed", svCONST.systemUser,
-						null, null));
-			}
-		}
-		result = true;
-		return result;
-	}
-
-	/**
-	 * Method that checks if animal has appropriate class/race combination.
-	 * Later we use this method in OnSaveValidation
-	 * 
-	 * @param dboAnimal
-	 *            ANIMAL object
-	 * @param svr
-	 *            SvReader instance
+	 * @param dboAnimal ANIMAL object
+	 * @param svr       SvReader instance
 	 * @return
 	 * @throws SvException
 	 */
@@ -1424,10 +1180,8 @@ public class ValidationChecks {
 	/**
 	 * Method that checks if newborn has twin
 	 * 
-	 * @param animalObj
-	 *            ANIMAL object
-	 * @param svr
-	 *            SvReader instance
+	 * @param animalObj ANIMAL object
+	 * @param svr       SvReader instance
 	 * @return true/false
 	 * @throws SvException
 	 */
@@ -1441,7 +1195,7 @@ public class ValidationChecks {
 				&& !animalObj.getVal(Tc.MOTHER_TAG_ID).toString().trim().equals("")) {
 			rdr = new Reader();
 			getSibilings = rdr.getAnimalSiblingsAccordingMotherTagId(animalObj, svr);
-			if (getSibilings != null && getSibilings.size() > 0) {
+			if (getSibilings != null && !getSibilings.getItems().isEmpty()) {
 				currentAnimal = getSibilings.get(getSibilings.size() - 1);
 				if (animalObj != null && currentAnimal != null && animalObj.getVal(Tc.ANIMAL_CLASS) != null
 						&& currentAnimal.getVal(Tc.ANIMAL_CLASS) != null
@@ -1464,12 +1218,9 @@ public class ValidationChecks {
 	 * Void method that has set of ANIMAL validations. Than, we use them in
 	 * OnSaveValidation class
 	 * 
-	 * @param dboAnimal
-	 *            ANIMAL object
-	 * @param rdr
-	 *            Reader instance
-	 * @param svr
-	 *            SvReader instance
+	 * @param dboAnimal ANIMAL object
+	 * @param rdr       Reader instance
+	 * @param svr       SvReader instance
 	 * @throws SvException
 	 */
 	public void animalOnSaveValidationSet(DbDataObject dboAnimal, Reader rdr, SvReader svr, SvWriter svw)
@@ -1516,7 +1267,9 @@ public class ValidationChecks {
 							"Animal with ear tag ID: " + dboAnimal.getVal(Tc.ANIMAL_ID).toString()
 									+ " is twin with animal with ear tag ID: "
 									+ twinChild.getVal(Tc.ANIMAL_ID).toString() + " Breed: "
-									+ twinChild.getVal(Tc.ANIMAL_CLASS).toString(),
+									+ rdr.decodeCodeValue(SvReader.getTypeIdByName(Tc.ANIMAL), Tc.ANIMAL_CLASS,
+											twinChild.getVal(Tc.ANIMAL_CLASS).toString(),
+											svr.getUserLocaleId(svr.getInstanceUser()), svr),
 							"", null, svr, svw);
 				}
 			}
@@ -1561,8 +1314,8 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method that checks if user is administrator i.e if it's linked to group
-	 * of type Administrators with Default group link type
+	 * Method that checks if user is administrator i.e if it's linked to group of
+	 * type Administrators with Default group link type
 	 * 
 	 * @param dboUser
 	 * @param svr
@@ -1583,13 +1336,11 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Void method that has set of ANIMAL MOVEMENT validations. Than, we use
-	 * them in OnSaveValidation class
+	 * Void method that has set of ANIMAL MOVEMENT validations. Than, we use them in
+	 * OnSaveValidation class
 	 * 
-	 * @param dboAnimalMovement
-	 *            ANIMAL_MOVEMENT object
-	 * @param svr
-	 *            SvReader instance
+	 * @param dboAnimalMovement ANIMAL_MOVEMENT object
+	 * @param svr               SvReader instance
 	 * @throws SvException
 	 */
 	public void animalMovementOnSaveValidationSet(DbDataObject dboAnimalMovement, SvReader svr) throws SvException {
@@ -1608,12 +1359,11 @@ public class ValidationChecks {
 			 * svCONST.systemUser, null, null)); if
 			 * (!validator.checkIfDestinationHoldingHasPositiveHealthStatus(
 			 * dboAnimalMovement, svr)) throw (new SvException(
-			 * "naits.error.destinationHoldingIsSuspiciousOrNegative",
-			 * svCONST.systemUser, null, null));
+			 * "naits.error.destinationHoldingIsSuspiciousOrNegative", svCONST.systemUser,
+			 * null, null));
 			 * 
 			 * String movementValidationAccordingHoldingHealthStatus = validator
-			 * .checkIfMovementValidAccordingHoldingsHealthStatus(
-			 * dboAnimalMovement, svr);
+			 * .checkIfMovementValidAccordingHoldingsHealthStatus( dboAnimalMovement, svr);
 			 * 
 			 * if (!movementValidationAccordingHoldingHealthStatus.equals(
 			 * "naits.system.movement_allowed")) { throw (new
@@ -1621,38 +1371,6 @@ public class ValidationChecks {
 			 * svCONST.systemUser, null, null)); }
 			 */
 		}
-	}
-
-	/**
-	 * 
-	 * 
-	 * @param dboRangeOrTransfer
-	 * @param dboOrgUnit
-	 * @param svr
-	 * @return
-	 * @throws SvException
-	 */
-	public Boolean checkIfOrgUnitContainsEarTagByRange(DbDataObject dboRangeOrTransfer, DbDataObject dboOrgUnit,
-			SvReader svr) throws SvException {
-		Boolean result = true;
-		Long startRange = null;
-		Long endRange = null;
-		String tag_type = "";
-		Reader rdr = new Reader();
-		if (dboRangeOrTransfer != null && dboOrgUnit != null) {
-			startRange = Long.valueOf(dboRangeOrTransfer.getVal(Tc.START_TAG_ID).toString());
-			endRange = Long.valueOf(dboRangeOrTransfer.getVal(Tc.END_TAG_ID).toString());
-			tag_type = dboRangeOrTransfer.getVal(Tc.TAG_TYPE).toString();
-			for (Long i = startRange; i <= endRange; i++) {
-				DbDataObject inventoryItemFound = rdr.getInvetoryItemPerOrgUnit(dboOrgUnit, tag_type, i.toString(),
-						svr);
-				if (inventoryItemFound == null) {
-					result = false;
-					break;
-				}
-			}
-		}
-		return result;
 	}
 
 	/**
@@ -1676,17 +1394,15 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method that checks if quarantine from type EXPORT CERTIFICATE has
-	 * appropriate dates
+	 * Method that checks if quarantine from type EXPORT CERTIFICATE has appropriate
+	 * dates
 	 * 
-	 * @param obj
-	 *            QUARANTINE object
-	 * @param svr
-	 *            SvReader instance
+	 * @param obj QUARANTINE object
+	 * @param svr SvReader instance
 	 * @return
 	 * @throws SvException
 	 */
-	public Boolean checkIfDateOfInsertIsBeforeEndDate(DbDataObject quarantine, SvReader svr) throws SvException {
+	public boolean checkIfDateOfInsertIsBeforeEndDate(DbDataObject quarantine, SvReader svr) throws SvException {
 		Boolean result = false;
 		String pattern = Tc.DATE_PATTERN;
 		DateTime currentDate = new DateTime();
@@ -1716,13 +1432,10 @@ public class ValidationChecks {
 	 * Boolean method that calculate days between two dates. Useful for days
 	 * difference between new animal and last child animal
 	 * 
-	 * @param lastBronChild
-	 *            DbDataObject of lastBronChild
-	 * @param currentChild
-	 *            DbDataObject of currentChild
-	 * @param num
-	 *            Days difference between lastBronChildBirthDate and animal1
-	 *            currentChildBirthDate
+	 * @param lastBronChild DbDataObject of lastBronChild
+	 * @param currentChild  DbDataObject of currentChild
+	 * @param num           Days difference between lastBronChildBirthDate and
+	 *                      animal1 currentChildBirthDate
 	 * @return true, false
 	 * 
 	 */
@@ -1742,7 +1455,7 @@ public class ValidationChecks {
 	public Boolean checkIfMultiselectedDiseasesAreAppropriate(DbDataObject dbo, String fieldName,
 			DbDataArray appropriateDiseases) {
 		Boolean result = true;
-		String diseases = "";
+		String diseases = Tc.EMPTY_STRING;
 		int countApplicableDisease = 0;
 		if (appropriateDiseases != null && dbo != null && dbo.getVal(fieldName) != null
 				&& !dbo.getVal(fieldName).toString().equals("") && dbo.getVal(fieldName).toString().length() >= 1) {
@@ -1768,10 +1481,8 @@ public class ValidationChecks {
 	/**
 	 * Method that checks if certain type of animal has appropriate disease
 	 * 
-	 * @param preOrPostSlauightObj
-	 *            pre/post slaughter form
-	 * @param svr
-	 *            SvReader instance
+	 * @param preOrPostSlauightObj pre/post slaughter form
+	 * @param svr                  SvReader instance
 	 * @return
 	 * @throws SvException
 	 */
@@ -1779,7 +1490,7 @@ public class ValidationChecks {
 			DbDataObject animalOrFlockObj, SvReader svr) throws SvException {
 		Boolean result = false;
 		Reader rdr = new Reader();
-		String fieldName = "";
+		String fieldName = Tc.EMPTY_STRING;
 		DbDataArray diseasesFound = rdr.getAppropriateDiseasesByAnimal(animalOrFlockObj, svr);
 		if (preOrPostSlauightObj.getObject_type().equals(SvReader.getTypeIdByName(Tc.PRE_SLAUGHT_FORM))) {
 			fieldName = Tc.DISEASE;
@@ -1791,7 +1502,7 @@ public class ValidationChecks {
 					|| preOrPostSlauightObj.getVal(fieldName).toString().equals("")) {
 				result = true;
 			} else {
-				if (diseasesFound != null && diseasesFound.size() > 0) {
+				if (diseasesFound != null && !diseasesFound.getItems().isEmpty()) {
 					if (preOrPostSlauightObj.getVal(fieldName).toString().length() == 1) {
 						for (DbDataObject dboDisease : diseasesFound.getItems()) {
 							if (dboDisease.getVal(Tc.DISEASE_NAME) != null && dboDisease.getVal(Tc.DISEASE_NAME)
@@ -1811,54 +1522,6 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method that checks if twin animal is having appropriate father
-	 * 
-	 * @param dboAnimal
-	 *            ANIMAL object
-	 * @param svr
-	 *            SvReader instance
-	 * @return
-	 * @throws SvException
-	 */
-	public Boolean checkIfTwinAnimalHasAppropriateFather(DbDataObject dboAnimal, SvReader svr) throws SvException {
-		Boolean result = true;
-		Reader rdr = new Reader();
-		DbDataObject twinAnimal = null;
-		DbDataArray animalSibilings = rdr.getAnimalSiblingsAccordingMotherTagId(dboAnimal, svr);
-		if (animalSibilings != null && animalSibilings.size() > 0) {
-			if (checkIfAnimalIsTwin(dboAnimal, svr)) {
-				twinAnimal = animalSibilings.get(0);
-				if (dboAnimal.getVal(Tc.FATHER_TAG_ID) != null && twinAnimal.getVal(Tc.FATHER_TAG_ID) != null
-						&& !dboAnimal.getVal(Tc.FATHER_TAG_ID).toString()
-								.equals(twinAnimal.getVal(Tc.FATHER_TAG_ID).toString())) {
-					result = false;
-				}
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * 
-	 * @param dboSpotCheck
-	 * @param svr
-	 * @return
-	 */
-	public Boolean checkIfNumberOfMissingTagsIsNotLargerThanNumberOfTags(DbDataObject dboSpotCheck) {
-		Boolean result = true;
-		Integer missingTags = null;
-		Integer numTags = null;
-		if (dboSpotCheck.getVal(Tc.MISSING_TAGS) != null && dboSpotCheck.getVal(Tc.NUM_TAGS) != null) {
-			missingTags = Integer.parseInt(dboSpotCheck.getVal(Tc.MISSING_TAGS).toString());
-			numTags = Integer.parseInt(dboSpotCheck.getVal(Tc.NUM_TAGS).toString());
-			if (missingTags > numTags) {
-				result = false;
-			}
-		}
-		return result;
-	}
-
-	/**
 	 * Method that checks if same SPOT_CHECK object is showing more than once on
 	 * same date in HOLDING
 	 * 
@@ -1872,7 +1535,7 @@ public class ValidationChecks {
 		Boolean result = false;
 		DbDataArray onSpotChecks = svr.getObjectsByParentId(dboSpotCheck.getParent_id(),
 				SvReader.getTypeIdByName(Tc.SPOT_CHECK), null, 0, 0);
-		if (onSpotChecks != null && onSpotChecks.size() > 0) {
+		if (onSpotChecks != null && !onSpotChecks.getItems().isEmpty()) {
 			for (DbDataObject checkObj : onSpotChecks.getItems()) {
 				if (checkObj.getVal(Tc.DATE_OF_REG) != null && dboSpotCheck.getVal(Tc.DATE_OF_REG) != null
 						&& checkObj.getVal(Tc.CHECK_SUBJECT) != null && dboSpotCheck.getVal(Tc.CHECK_SUBJECT) != null
@@ -1890,29 +1553,6 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method that checks if SPOT_CHECK is edited and if it's date of
-	 * registration is changed
-	 * 
-	 * @param dboSpotCheck
-	 *            SPOT_CHECK object
-	 * @param svr
-	 *            SvReader instance
-	 * @return
-	 * @throws SvException
-	 */
-	public Boolean checkIfDateOfRegistrationIsEdited(DbDataObject dboSpotCheck, SvReader svr) throws SvException {
-		// this method will be in use only if READ ONLY widget on DATE_OF_REG is
-		// removed
-		Boolean result = false;
-		DbDataObject spotCheckFromDb = svr.getObjectById(dboSpotCheck.getObject_id(),
-				SvReader.getTypeIdByName(Tc.SPOT_CHECK), null);
-		if (!dboSpotCheck.getVal(Tc.DATE_OF_REG).equals(spotCheckFromDb.getVal(Tc.DATE_OF_REG))) {
-			result = true;
-		}
-		return result;
-	}
-
-	/**
 	 * Method that checks if animal has disease in PRE_SLAUGHTER_FORM
 	 * 
 	 * @param dboAnimal
@@ -1925,7 +1565,7 @@ public class ValidationChecks {
 		Boolean result = true;
 		DbDataArray preMortemForms = svr.getObjectsByParentId(dboAnimal.getObject_id(),
 				SvReader.getTypeIdByName(Tc.PRE_SLAUGHT_FORM), null, 0, 0);
-		if (preMortemForms != null && preMortemForms.size() > 0) {
+		if (preMortemForms != null && !preMortemForms.getItems().isEmpty()) {
 			for (DbDataObject dboPreMortem : preMortemForms.getItems()) {
 				if (dboPreMortem.getVal(Tc.DISEASE) != null
 						&& dboPreMortem.getVal(Tc.DISEASE).toString().length() > 0) {
@@ -1951,7 +1591,7 @@ public class ValidationChecks {
 		Boolean result = false;
 		DbDataArray preMortemForms = svr.getObjectsByParentId(dbo.getObject_id(),
 				SvReader.getTypeIdByName(Tc.PRE_SLAUGHT_FORM), null, 0, 0);
-		if (preMortemForms != null && preMortemForms.size() > 0) {
+		if (preMortemForms != null && !preMortemForms.getItems().isEmpty()) {
 			for (DbDataObject dboPreMortem : preMortemForms.getItems()) {
 				if (dboPreMortem.getVal(Tc.DECISION) != null
 						&& !dboPreMortem.getVal(Tc.DECISION).toString().equals("1")) {
@@ -1964,13 +1604,11 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method that checks if animal is part of some valid VACC_EVENT and checks
-	 * if there is any disease recorded
+	 * Method that checks if animal is part of some valid VACC_EVENT and checks if
+	 * there is any disease recorded
 	 * 
-	 * @param dboAnimal
-	 *            ANIMAL object
-	 * @param svr
-	 *            SvReader instance
+	 * @param dboAnimal ANIMAL object
+	 * @param svr       SvReader instance
 	 * @return
 	 * @throws SvException
 	 */
@@ -2007,29 +1645,6 @@ public class ValidationChecks {
 		return result;
 	}
 
-	/**
-	 * Method that checks if animal has PRE_SLAUGHT_FORM.
-	 * 
-	 * @param dboAnimal
-	 *            ANIMAL object
-	 * @param svr
-	 *            SvReader instance
-	 * @return true/false
-	 * @throws SvException
-	 */
-	public Boolean checkIfPreMortemCanBeGenerated(DbDataObject dboAnimal, SvReader svr) throws SvException {
-		Boolean result = false;
-		DbDataArray preMortemsForAnimalOrFlock = null;
-		if (dboAnimal != null) {
-			preMortemsForAnimalOrFlock = svr.getObjectsByParentId(dboAnimal.getObject_id(),
-					SvReader.getTypeIdByName(Tc.PRE_SLAUGHT_FORM), null, 0, 0);
-			if (preMortemsForAnimalOrFlock == null || preMortemsForAnimalOrFlock.size() < 1) {
-				result = true;
-			}
-		}
-		return result;
-	}
-
 	public Boolean checkIfAnimalHasClassAndRace(DbDataObject dbo, String fieldName) {
 		Boolean result = true;
 		if (dbo.getVal(fieldName) == null || dbo.getVal(fieldName).toString().equals("")) {
@@ -2055,60 +1670,6 @@ public class ValidationChecks {
 		}
 		if (count >= numOfMinimumFilledFields) {
 			result = true;
-		}
-		return result;
-	}
-
-	public Boolean checkIfLabSampleHasValidDiseaseSampleTestCombination(DbDataObject dboLabSample, Reader rdr,
-			SvReader svr) throws SvException {
-		Boolean result = true;
-		DbDataArray testTypes = null;
-		List<String> diseases = null;
-		if (dboLabSample != null && dboLabSample.getVal(Tc.DISEASE_TEST) != null
-				&& dboLabSample.getVal(Tc.SAMPLE_TYPE) != null && dboLabSample.getVal(Tc.SAMPLE_TEST_TYPE) != null) {
-			diseases = rdr.getMultiSelectFieldValueAsList(dboLabSample, Tc.DISEASE_TEST);
-			if (diseases != null && diseases.size() > 0) {
-				for (String disease : diseases) {
-					LinkedHashMap<String, String> criterias = new LinkedHashMap<>();
-					criterias.put(Tc.DISEASE, disease);
-					criterias.put(Tc.TEST_TYPE, dboLabSample.getVal(Tc.SAMPLE_TEST_TYPE).toString());
-					criterias.put(Tc.SAMPLE_TYPE, dboLabSample.getVal(Tc.SAMPLE_TYPE).toString());
-					testTypes = rdr.getDbDataWithCriteria(criterias, SvReader.getTypeIdByName(Tc.LAB_TEST_TYPE), svr);
-					if (testTypes == null || testTypes.size() < 1) {
-						result = false;
-						break;
-					}
-				}
-			}
-		}
-		return result;
-	}
-
-	public String checkIfMovementDocumentShouldBeReleasedOrCanceled(DbDataObject dboAnimalOrFlockMovementObj,
-			Reader rdr, String destinationHoldingPic, String status, SvReader svr) throws SvException {
-		String result = Tc.RELEASED;
-		int counterCanceled = 0;
-		int counterFinish = 0;
-		Integer sum = 0;
-		DbDataArray animalOrFlockMovementsArr = null;
-		if (dboAnimalOrFlockMovementObj != null && dboAnimalOrFlockMovementObj.getVal(Tc.MOVEMENT_DOC_ID) != null) {
-			animalOrFlockMovementsArr = rdr.getAnimalMovementsByMovementDocId(
-					dboAnimalOrFlockMovementObj.getVal(Tc.MOVEMENT_DOC_ID).toString(), svr);
-			if (animalOrFlockMovementsArr != null && animalOrFlockMovementsArr.size() > 0) {
-				for (DbDataObject animalOrFlockMovementObj : animalOrFlockMovementsArr.getItems()) {
-					if (animalOrFlockMovementObj != null
-							&& (animalOrFlockMovementObj.getStatus().equals(Tc.CANCELED))) {
-						counterCanceled++;
-					} else if (animalOrFlockMovementObj != null
-							&& (animalOrFlockMovementObj.getStatus().equals(Tc.FINISHED))) {
-						counterFinish++;
-					}
-				}
-				sum = counterFinish + counterCanceled;
-				if (sum.equals(animalOrFlockMovementsArr.size())) {
-
-				}
-			}
 		}
 		return result;
 	}
@@ -2152,7 +1713,7 @@ public class ValidationChecks {
 	public boolean checkIfAnimalTypeScopeIsApplicableOnSelectedAnimal(List<String> animalTypes, DbDataObject dbo) {
 		Boolean result = false;
 		String columnName = Tc.ANIMAL_CLASS;
-		String animalTypeScope = "";
+		String animalTypeScope = Tc.EMPTY_STRING;
 		if (dbo != null) {
 			if (dbo.getObject_type().equals(SvReader.getTypeIdByName(Tc.FLOCK))) {
 				columnName = Tc.ANIMAL_TYPE;
@@ -2213,7 +1774,7 @@ public class ValidationChecks {
 		Boolean result = false;
 		DbDataArray arrAssociatedPersons = rdr.getResponsiblePersonRelatedToHoldingDependOnLinkName(dboHolding,
 				linkName, svr);
-		if (arrAssociatedPersons != null && arrAssociatedPersons.size() > 0) {
+		if (arrAssociatedPersons != null && !arrAssociatedPersons.getItems().isEmpty()) {
 			for (DbDataObject dboAssociatedPerson : arrAssociatedPersons.getItems()) {
 				if (dboAssociatedPerson.getVal(Tc.HOLDER_TYPE) != null
 						&& dboAssociatedPerson.getVal(Tc.HOLDER_TYPE).toString().equals("1")) {
@@ -2227,6 +1788,7 @@ public class ValidationChecks {
 
 	public Boolean rangeValidationSet(DbDataObject dbo, Reader rdr, String objectType, SvReader svr)
 			throws SvException {
+		ValidationChecks vc = new ValidationChecks();
 		Boolean result = true;
 		String status = rdr.getOrderTransferStatusPerRange(dbo, svr);
 		if (status.endsWith(Tc.RELEASED) || status.endsWith(Tc.CANCELED)) {
@@ -2238,26 +1800,53 @@ public class ValidationChecks {
 						null));
 			}
 		}
+		if (dbo.getVal(Tc.CHECK_COLUMN) == null) {
+			vc.checkIfRangeCanBeSaved(dbo, dbo.getVal(Tc.TAG_TYPE).toString(), (Long) dbo.getVal(Tc.START_TAG_ID),
+					(Long) dbo.getVal(Tc.END_TAG_ID), svr);
+		}
 		DbDataObject dboRangeOrTransfer = svr.getObjectById(dbo.getObject_id(), dbo.getObject_type(), new DateTime());
 		if (dbo.getVal(Tc.TAG_TYPE) == null) {
 			throw (new SvException("naits.error.transferMustHaveTagType", svCONST.systemUser, null, null));
 		}
-		if (dbo.getVal(Tc.TAG_TYPE).equals("2") && dbo.getVal(Tc.QUANTITY) == null) {
-			throw (new SvException("naits.error.rangePerFlocksMustContainQuantityInfo", svCONST.systemUser, null,
-					null));
-		} else if (!dbo.getVal(Tc.TAG_TYPE).equals("2") && dbo.getVal(Tc.QUANTITY) != null) {
-			throw (new SvException("naits.error.quantityNeedsToBeFilledOnlyWhenTagTypeIsFlock", svCONST.systemUser,
-					null, null));
-		}
-		if (!dbo.getVal(Tc.TAG_TYPE).equals("2")
-				&& (dbo.getVal(Tc.START_TAG_ID) == null || dbo.getVal(Tc.END_TAG_ID) == null)) {
-			throw (new SvException("naits.error.rangePerIndividualAnimalsMustContainStartEndTagInfo",
-					svCONST.systemUser, null, null));
-		}
-		if (dbo.getVal(Tc.TAG_TYPE).equals("2")
-				&& (dbo.getVal(Tc.START_TAG_ID) != null || dbo.getVal(Tc.END_TAG_ID) != null)) {
-			dbo.setVal(Tc.START_TAG_ID, 0L);
-			dbo.setVal(Tc.END_TAG_ID, 0L);
+		String tagType = dbo.getVal(Tc.TAG_TYPE).toString();
+		switch (tagType) {
+		case "2":
+			if (dbo.getVal(Tc.QUANTITY) == null) {
+				throw (new SvException("naits.error.rangePerFlocksMustContainQuantityInfo", svCONST.systemUser, null,
+						null));
+			}
+			if (dbo.getVal(Tc.START_TAG_ID) != null || dbo.getVal(Tc.END_TAG_ID) != null) {
+				dbo.setVal(Tc.START_TAG_ID, 0L);
+				dbo.setVal(Tc.END_TAG_ID, 0L);
+			}
+			break;
+		default:
+			if (dbo.getVal(Tc.START_TAG_ID) == null || dbo.getVal(Tc.END_TAG_ID) == null) {
+				throw (new SvException("naits.error.rangePerIndividualAnimalsMustContainStartEndTagInfo",
+						svCONST.systemUser, null, null));
+			}
+			if (dbo.getVal(Tc.QUANTITY) != null) {
+				throw (new SvException("naits.error.quantityNeedsToBeFilledOnlyWhenTagTypeIsFlock", svCONST.systemUser,
+						null, null));
+			}
+			if (dbo.getObject_id().equals(0L)) {
+				Long startTagId = Long.valueOf(dbo.getVal(Tc.START_TAG_ID).toString());
+				Long endTagId = Long.valueOf(dbo.getVal(Tc.END_TAG_ID).toString());
+				dbo.setVal(Tc.UNIT_NUMBER, String.valueOf(Math.abs(endTagId - startTagId) + 1L));
+
+				if (endTagId < startTagId) {
+					throw (new SvException("naits.error.endingTagIdMusteLargerThanStartingTagId", svCONST.systemUser,
+							null, null));
+				}
+				if (dbo.getObject_type().equals(SvReader.getTypeIdByName(Tc.TRANSFER))) {
+					if (dbo.getVal(Tc.DIRECT_TRANSFER) == null
+							&& !checkIfEarTagRangeInTransferExistsInInventoryItem(dbo, svr)) {
+						throw (new SvException("naits.error.inventoryItemDoesntHaveAllEarTagsEnteredInTheRange",
+								svCONST.systemUser, null, null));
+					}
+				}
+			}
+			break;
 		}
 		if (rdr.getOrderTransferStatusPerRange(dbo, svr).equals(Tc.RELEASED) && dbo.getDt_delete() != null
 				&& dbo.getDt_delete().isBeforeNow()) {
@@ -2272,24 +1861,7 @@ public class ValidationChecks {
 						null));
 			}
 		}
-		if (dbo.getObject_id().equals(0L) && !dbo.getVal(Tc.TAG_TYPE).equals("2")) {
-			Long startTagId = Long.valueOf(dbo.getVal(Tc.START_TAG_ID).toString());
-			Long endTagId = Long.valueOf(dbo.getVal(Tc.END_TAG_ID).toString());
-			dbo.setVal(Tc.UNIT_NUMBER, String.valueOf(Math.abs(endTagId - startTagId)));
 
-			if (endTagId < startTagId) {
-				throw (new SvException("naits.error.endingTagIdMusteLargerThanStartingTagId", svCONST.systemUser, null,
-						null));
-			}
-			if (dbo.getObject_type().equals(SvReader.getTypeIdByName(Tc.TRANSFER))) {
-				if (dbo.getVal(Tc.DIRECT_TRANSFER) == null
-						&& !checkIfEarTagRangeInTransferExistsInInventoryItem(dbo, svr)) {
-					throw (new SvException("naits.error.inventoryItemDoesntHaveAllEarTagsEnteredInTheRange",
-							svCONST.systemUser, null, null));
-				}
-			}
-			result = checkIfRangeCanBeSaved(dbo, dbo.getVal(Tc.TAG_TYPE).toString(), startTagId, endTagId, svr);
-		}
 		return result;
 	}
 
@@ -2302,7 +1874,8 @@ public class ValidationChecks {
 		String transferTagType = dboTransfer.getVal(Tc.TAG_TYPE).toString();
 		Long parentId = dboTransfer.getParent_id();
 		String transferType = dboTransfer.getVal(Tc.TRANSFER_TYPE) != null
-				? dboTransfer.getVal(Tc.TRANSFER_TYPE).toString() : Tc.DEFAULT;
+				? dboTransfer.getVal(Tc.TRANSFER_TYPE).toString()
+				: Tc.DEFAULT;
 		for (Long i = startTagId; i <= endTagId; i++) {
 			String transferEarTag = String.valueOf(i);
 			DbDataObject tempDboInventory = rdr.getDboInventoryItemDependOnTransfer(parentId, transferEarTag,
@@ -2318,7 +1891,8 @@ public class ValidationChecks {
 
 	public boolean isInventoryItemApplied(DbDataObject dboInventoryItem) {
 		boolean result = false;
-		if (dboInventoryItem != null && dboInventoryItem.getVal(Tc.ANIMAL_OBJ_ID) != null) {
+		if (dboInventoryItem != null && dboInventoryItem.getVal(Tc.TAG_STATUS) != null
+				&& dboInventoryItem.getVal(Tc.TAG_STATUS).toString().equals(Tc.APPLIED)) {
 			result = true;
 		}
 		return result;
@@ -2326,16 +1900,16 @@ public class ValidationChecks {
 
 	public String checkIfAnimalBelongsToSlaughterhouse(Long object_Id, String session_Id) {
 		SvReader svr = null;
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		try {
 			svr = new SvReader(session_Id);
 			DbDataObject dboAnimalOrFlock = svr.getObjectById(object_Id, SvReader.getTypeIdByName(Tc.ANIMAL), null);
 			if (dboAnimalOrFlock != null) {
-				result = checkIfHoldingIsSlaughterhouse(dboAnimalOrFlock.getParent_id(), svr).toString();
+				result = String.valueOf(checkIfHoldingIsSlaughterhouse(dboAnimalOrFlock.getParent_id(), svr));
 			} else {
 				dboAnimalOrFlock = svr.getObjectById(object_Id, SvReader.getTypeIdByName(Tc.FLOCK), null);
 				if (dboAnimalOrFlock != null) {
-					result = checkIfHoldingIsSlaughterhouse(dboAnimalOrFlock.getParent_id(), svr).toString();
+					result = String.valueOf(checkIfHoldingIsSlaughterhouse(dboAnimalOrFlock.getParent_id(), svr));
 				}
 			}
 		} catch (SvException e) {
@@ -2352,7 +1926,7 @@ public class ValidationChecks {
 		DbDataObject dboHolding = svr.getObjectById(holdingObjId, SvReader.getTypeIdByName(Tc.HOLDING), null);
 		DbDataArray arrAnimals = svr.getObjectsByParentId(dboHolding.getObject_id(),
 				SvReader.getTypeIdByName(Tc.ANIMAL), null, 0, 0);
-		if (arrAnimals != null && arrAnimals.size() > 0) {
+		if (arrAnimals != null && !arrAnimals.getItems().isEmpty()) {
 			for (DbDataObject dboTempAnimal : arrAnimals.getItems()) {
 				String movementProhibitions = rdr.getHealthStatusPerAnimalAccordingLabSample(dboTempAnimal, svr);
 				if (!movementProhibitions.equals("")) {
@@ -2361,7 +1935,8 @@ public class ValidationChecks {
 				}
 			}
 			if (movementAllowed) {
-				if (checkIfHoldingBelongsInActiveDiseaseQuarantine(dboHolding, svr)) {
+				if (dboHolding != null && checkIfHoldingBelongsInActiveSpecificQuarantine(holdingObjId,
+						Tc.BLACKLIST_QUARANTINE, svr)) {
 					movementAllowed = false;
 				}
 			}
@@ -2408,18 +1983,14 @@ public class ValidationChecks {
 	/**
 	 * Set of validations for animals/flock in slaughterhouse
 	 * 
-	 * @param holdingObjectId
-	 *            Object id of the Holding
-	 * @param dboObjectToHandle
-	 *            Animal/Flock object
-	 * @param objectTypeLabel
-	 *            Object type label (animal/flock)
-	 * @param svr
-	 *            SvReader instance
+	 * @param holdingObjectId   Object id of the Holding
+	 * @param dboObjectToHandle Animal/Flock object
+	 * @param objectTypeLabel   Object type label (animal/flock)
+	 * @param svr               SvReader instance
 	 * @throws SvException
 	 */
 	public void slaughterhouseHoldingValidationSet(Long holdingObjectId, DbDataObject dboObjectToHandle,
-			String objectTypeLabel, SvReader svr) throws SvException {
+			String objectTypeLabel, Boolean isSlaughterhouseOperator, SvReader svr) throws SvException {
 		if (checkIfHoldingIsSlaughterhouse(holdingObjectId, svr)) {
 			if (!dboObjectToHandle.getStatus().equals(Tc.PREMORTEM)) {
 				throw (new SvException("naits.error.itemMustHavePremortemStatus", svr.getInstanceUser()));
@@ -2434,6 +2005,10 @@ public class ValidationChecks {
 			if (dboObjectToHandle.getObject_type().equals(SvReader.getTypeIdByName(Tc.FLOCK))
 					&& checkIfFlockHaveNegativeOrSuspiciousDecisionInPreSlaughtForm(dboObjectToHandle, svr)) {
 				throw (new SvException("naits.error.flockHasSuspiciousDecisionInPreMortem", svr.getInstanceUser()));
+			}
+			if (isSlaughterhouseOperator) {
+				throw (new SvException("naits.error.slaughterhouseOperatorNotAllowedToSlaughter",
+						svr.getInstanceUser()));
 			}
 		}
 	}
@@ -2455,8 +2030,7 @@ public class ValidationChecks {
 	}
 
 	/**
-	 * Method that checks if HOLDING belongs to affected area
-	 * (HIGH_RISK/LOW_RISK)
+	 * Method that checks if HOLDING belongs to affected area (HIGH_RISK/LOW_RISK)
 	 * 
 	 * @param dboHolding
 	 * @param svr
@@ -2503,86 +2077,34 @@ public class ValidationChecks {
 				SvReader.getTypeIdByName(Tc.HOLDING), new DateTime());
 		DbDataObject dboOldAnimalVersion = svr.getObjectById(dboAnimalOrFlock.getObject_id(),
 				dboAnimalOrFlock.getObject_type(), new DateTime());
-		if (dboOldAnimalVersion == null && dboCurrentHolding.getStatus().equals(Tc.SUSPENDED)) {
-			wr.updateHoldingStatus(dboCurrentHolding, Tc.SUSPENDED, Tc.VALID, svr);
-		}
-	}
-
-	public void updateHoldingStatusAccordingHoldingTypeAfterSaveAnimal(DbDataObject dboAnimalOrFlock, SvReader svr)
-			throws SvException {
-		Writer wr = new Writer();
-		Reader rdr = new Reader();
-		DbDataObject dboOldAnimalVersion = null;
-		DbDataObject dboCurrHolding = null;
-		DbDataArray arrAnimalOrFlockHistory = null;
-		if (dboAnimalOrFlock.getObject_type().equals(SvReader.getTypeIdByName(Tc.ANIMAL))) {
-			arrAnimalOrFlockHistory = rdr.searchByAnimalIdWithHistory(dboAnimalOrFlock.getVal(Tc.ANIMAL_ID).toString(),
-					dboAnimalOrFlock.getVal(Tc.ANIMAL_CLASS).toString(), svr);
-		} else {
-			arrAnimalOrFlockHistory = rdr.searchByFlockIdWithHistory(dboAnimalOrFlock.getVal(Tc.FLOCK_ID).toString(),
-					svr);
-		}
-		// update source holding if need
-		if (arrAnimalOrFlockHistory.size() > 1) {
-			dboOldAnimalVersion = arrAnimalOrFlockHistory.get(arrAnimalOrFlockHistory.size() - 2);
-			if (!dboOldAnimalVersion.getParent_id().equals(dboAnimalOrFlock.getParent_id())) {
-				DbDataObject dboOldHolding = svr.getObjectById(dboOldAnimalVersion.getParent_id(),
-						SvReader.getTypeIdByName(Tc.HOLDING), null);
-				if (checkIfHoldingIsCommercialOrSubsistenceFarmType(dboOldHolding)) {
-					wr.updateHoldingStatus(dboOldHolding, Tc.VALID, Tc.SUSPENDED, true, svr);
-				}
+		if (dboOldAnimalVersion == null && dboCurrentHolding != null
+				&& dboCurrentHolding.getStatus().equals(Tc.SUSPENDED)) {
+			dboCurrentHolding.setVal(Tc.CHECK_COLUMN, true);
+			if (dboCurrentHolding.getStatus().equals(Tc.SUSPENDED)) {
+				wr.updateHoldingStatus(dboCurrentHolding, Tc.SUSPENDED, Tc.VALID, svr);
 			}
-		}
-		// update source if needed
-		dboCurrHolding = svr.getObjectById(dboAnimalOrFlock.getParent_id(), SvReader.getTypeIdByName(Tc.HOLDING), null);
-		if (dboCurrHolding != null) {
-			wr.updateHoldingStatus(dboCurrHolding, Tc.SUSPENDED, Tc.VALID, svr);
 		}
 	}
 
 	public boolean checkIfHoldingIsCommercialOrSubsistenceFarmType(DbDataObject dboHolding) {
 		boolean result = false;
-		if (dboHolding.getVal(Tc.TYPE) != null && (dboHolding.getVal(Tc.TYPE).toString().equals("5")
-				|| dboHolding.getVal(Tc.TYPE).toString().equals("6"))) {
-			result = true;
-		}
-		return result;
-	}
-
-	/**
-	 * Method that contains set of validations for transfer
-	 * 
-	 * @param dboInitialTransfer
-	 * @param rangeFrom
-	 * @param rangeTo
-	 * @param svr
-	 * @throws SvException
-	 */
-	public void reverseTransferOnSaveValidationSet(DbDataObject dboInitialTransfer, Long rangeFrom, Long rangeTo,
-			SvReader svr) throws SvException {
-		if (dboInitialTransfer.getVal(Tc.START_TAG_ID) != null && dboInitialTransfer.getVal(Tc.END_TAG_ID) != null) {
-			Long startTagId = Long.valueOf(dboInitialTransfer.getVal(Tc.START_TAG_ID).toString());
-			Long endTagId = Long.valueOf(dboInitialTransfer.getVal(Tc.END_TAG_ID).toString());
-			if (rangeFrom < startTagId) {
-				throw (new SvException("naits.error.rangeFromCannotBeLessThanInitialStartTagId",
-						svr.getInstanceUser()));
-			} else if (rangeFrom > endTagId) {
-				throw (new SvException("naits.error.rangeFromCannotBeLargerThanInitialEndTagId",
-						svr.getInstanceUser()));
-			} else if (rangeTo > endTagId) {
-				throw (new SvException("naits.error.rangeToCannotBeLessThanInitialEndTagId", svr.getInstanceUser()));
-			} else if (rangeTo < startTagId) {
-				throw (new SvException("naits.error.rangeToCannotBeLargerThanInitialStartTagId",
-						svr.getInstanceUser()));
+		if (dboHolding.getVal(Tc.TYPE) != null) {
+			String holdingType = dboHolding.getVal(Tc.TYPE).toString();
+			if (holdingType.equals("5") || holdingType.equals("6")) {
+				result = true;
 			}
 		}
+
+		return result;
 	}
 
 	public boolean isFlockSlaughterable(DbDataObject dboFlock) {
 		boolean result = false;
-		if (dboFlock != null && dboFlock.getVal(Tc.ANIMAL_TYPE) != null
-				&& dboFlock.getVal(Tc.ANIMAL_TYPE).toString().equals("4")) {
-			result = true;
+		if (dboFlock.getVal(Tc.ANIMAL_TYPE) != null) {
+			String flockAniType = dboFlock.getVal(Tc.ANIMAL_TYPE).toString();
+			if (flockAniType.equals("4") || !flockAniType.equals("6") || !flockAniType.equals("7")) {
+				result = true;
+			}
 		}
 		return result;
 	}
@@ -2591,42 +2113,60 @@ public class ValidationChecks {
 			throws SvException {
 		DbDataObject dboPetLastVersion = svr.getObjectById(dboPet.getObject_id(), dboPet.getObject_type(),
 				new DateTime());
+		DbDataObject dboParentHolding = svr.getObjectById(dboPet.getParent_id(), SvReader.getTypeIdByName(Tc.HOLDING),
+				null);
 		if (dboPet.getVal(Tc.PET_TYPE) == null) {
 			throw (new SvException("naits.error.beforeSaveCheck_pet_PleaseEnterPetType", svCONST.systemUser, null,
 					null));
 		}
-
-		if (!checkIfFieldIsUnique(Tc.PET_ID, dboPet, svr)) {
+		if (!checkIfFieldIsUnique(Tc.PET_TAG_ID, dboPet, svr)) {
 			throw (new SvException("naits.error.beforeSaveCheck_pet_petIdMustBeUnique", svCONST.systemUser, null,
 					null));
 		}
-
-		if (dboPet.getObject_id().equals(0L) && dboPet.getVal(Tc.PET_ID) == null) {
-			String archiveNumber = wr.generateArchiveNumber(dboPet, svr);
-			dboPet.setVal(Tc.ARCHIVE_NUMBER, archiveNumber);
+		if (dboPet.getVal(Tc.PET_TAG_TYPE).toString().equals(Tc.NONE) && dboPet.getVal(Tc.PET_TAG_ID) != null) {
+			throw (new SvException("naits.error.tagTypeMustBeDifferentThanNoneIfTagIdIsEntered", svCONST.systemUser,
+					null, null));
 		}
-
+		if (!dboPet.getVal(Tc.PET_TAG_TYPE).toString().equals(Tc.NONE) && dboPet.getVal(Tc.PET_TAG_ID) == null) {
+			throw (new SvException("naits.error.tagTypeMustBeNoneIfTagIdIsNotEntered", svCONST.systemUser, null, null));
+		}
 		if (dboPetLastVersion != null) {
-			if (dboPetLastVersion.getVal(Tc.PET_ID) != null && dboPet.getVal(Tc.PET_ID) == null) {
+			if (dboPetLastVersion.getVal(Tc.PET_TAG_ID) != null && dboPet.getVal(Tc.PET_TAG_ID) == null) {
 				throw (new SvException("naits.error.beforeSaveCheck_pet_petIdCannotBeEdited", svCONST.systemUser, null,
 						null));
 			}
-			if (dboPetLastVersion.getVal(Tc.PET_ID) != null
-					&& !dboPetLastVersion.getVal(Tc.PET_ID).toString().equals(dboPet.getVal(Tc.PET_ID).toString())
+			if (dboPetLastVersion.getVal(Tc.PET_TAG_ID) != null
+					&& !dboPetLastVersion.getVal(Tc.PET_TAG_ID).toString()
+							.equals(dboPet.getVal(Tc.PET_TAG_ID).toString())
 					&& dboPet.getVal(Tc.CHECK_COLUMN) == null) {
 				throw (new SvException("naits.error.beforeSaveCheck_pet_petIdCannotBeEdited", svCONST.systemUser, null,
 						null));
 			}
+			if (dboPet.getVal(Tc.ADDITIONAL_STATUS) != null) {
+				String additionalStatus = dboPet.getVal(Tc.ADDITIONAL_STATUS).toString();
+				if ((additionalStatus.equals(Tc.ABANDONED) || additionalStatus.equals(Tc.RETURNED))
+						&& !additionalStatus.equals(dboPetLastVersion.getVal(Tc.ADDITIONAL_STATUS))) {
+					ArrayList<String> arrInStatuses = new ArrayList<>();
+					arrInStatuses.add(Tc.RELEASED);
+					arrInStatuses.add(Tc.ADOPTED);
+					DbDataObject dboPetMovement = rdr.getPetMovement(dboPet, arrInStatuses, svr);
+					wr.updatePetOwnerLinkAccordingAdditionalStatus(dboPet, dboPetLastVersion, additionalStatus, rdr,
+							svr);
+					if (dboParentHolding != null) {
+						wr.finishPetMovementAndCreatePetLocation(dboPetLastVersion, dboPetMovement, dboParentHolding,
+								arrInStatuses, svw, svr);
+					}
+					dboPet.setStatus(Tc.VALID);
+				}
+			}
 		}
-
-		if (dboPet.getVal(Tc.PET_ID) != null) {
-			String petId = dboPet.getVal(Tc.PET_ID).toString();
+		if (dboPet.getVal(Tc.PET_TAG_ID) != null) {
+			String petId = dboPet.getVal(Tc.PET_TAG_ID).toString();
 			if (!NumberUtils.isDigits(petId)) {
 				throw (new SvException("naits.error.beforeSaveCheck_pet_petIdMustBeDigitOnly", svCONST.systemUser, null,
 						null));
 			}
 		}
-
 		if (!checkIfAnimalIdIsNotSelfParent(dboPet, svr))
 			throw (new SvException("naits.error.beforeSaveCheck_pet_canNotBeSelfParent", svCONST.systemUser, null,
 					null));
@@ -2726,25 +2266,26 @@ public class ValidationChecks {
 				svw.saveObject(dboPetInventoryItem, false);
 			}
 			// Stray pet location details
-			DbDataObject dboPetShelterHolding = svr.getObjectById(dboPet.getParent_id(),
-					SvReader.getTypeIdByName(Tc.HOLDING), null);
+			// DbDataObject dboPetShelterHolding =
+			// svr.getObjectById(dboPet.getParent_id(),
+			// SvReader.getTypeIdByName(Tc.HOLDING), null);
 			DbDataArray arrExistingLocation = svr.getObjectsByParentId(dboPet.getObject_id(),
 					SvReader.getTypeIdByName(Tc.STRAY_PET_LOCATION), new DateTime(), 0, 0);
 			if (dboPet.getVal(Tc.IS_STRAY_PET) != null && dboPet.getVal(Tc.IS_STRAY_PET).toString().equals("1")
 					&& arrExistingLocation.getItems().isEmpty()) {
 				// Collection location
-				DbDataObject dboPetCollectionLoc = wr.createPetLocationAccordingAnimalShelterHolding(dboPet,
-						dboPetShelterHolding, "1", svr);
-				svg.saveGeometry(dboPetCollectionLoc);
+				// DbDataObject dboPetCollectionLoc =
+				// wr.createPetLocationAccordingAnimalShelterHolding(dboPet,
+				// dboPetShelterHolding, null, "1", svr);
+				// svg.saveGeometry(dboPetCollectionLoc);
 			}
-
 			if (dboPet.getVal(Tc.WEIGHT) != null) {
 				Long lastWeight = null;
 				Long currentWeight = Long.valueOf(dboPet.getVal(Tc.WEIGHT).toString());
+				DbDataObject dboNewMeasurement = wr.createMeasurementObject(
+						Long.valueOf(dboPet.getVal(Tc.WEIGHT).toString()), Tc.WEIGHT, Tc.MEASURE_KG, new DateTime(),
+						dboPet.getObject_id());
 				if (dboPetLastVersion == null) {
-					DbDataObject dboNewMeasurement = wr.createMeasurementObject(
-							Long.valueOf(dboPet.getVal(Tc.WEIGHT).toString()), Tc.WEIGHT, Tc.MEASURE_KG, new DateTime(),
-							dboPet.getObject_id());
 					svw.saveObject(dboNewMeasurement, false);
 				} else {
 					if (dboPetLastVersion.getVal(Tc.WEIGHT) != null) {
@@ -2755,9 +2296,6 @@ public class ValidationChecks {
 						boolean isInvalidated = wr.invalidateLastValidMeasurementObject(dboPet.getObject_id(), Tc.VALID,
 								false, svw, svr);
 						if (isInvalidated) {
-							DbDataObject dboNewMeasurement = wr.createMeasurementObject(
-									Long.valueOf(dboPet.getVal(Tc.WEIGHT).toString()), Tc.WEIGHT, Tc.MEASURE_KG,
-									new DateTime(), dboPet.getObject_id());
 							svw.saveObject(dboNewMeasurement, false);
 						}
 					}
@@ -2775,10 +2313,10 @@ public class ValidationChecks {
 
 	public void strayPetValidationSet(DbDataObject dboStrayPet, SvReader svr) throws SvException {
 		Reader rdr = new Reader();
-		DbDataObject dboPet = rdr.getPetByPetId(dboStrayPet.getVal(Tc.PET_ID).toString(), svr);
+		DbDataObject dboPet = rdr.getPetByPetId(dboStrayPet.getVal(Tc.PET_TAG_ID).toString(), svr);
 		// ID check
-		if (dboStrayPet.getVal(Tc.PET_ID) != null) {
-			if (!NumberUtils.isDigits(dboStrayPet.getVal(Tc.PET_ID).toString())) {
+		if (dboStrayPet.getVal(Tc.PET_TAG_ID) != null) {
+			if (!NumberUtils.isDigits(dboStrayPet.getVal(Tc.PET_TAG_ID).toString())) {
 				throw (new SvException("naits.error.beforeSaveCheck_pet_petIdMustBeDigitOnly", svCONST.systemUser, null,
 						null));
 			}
@@ -2817,16 +2355,21 @@ public class ValidationChecks {
 	}
 
 	public void strayPetLocationValidationSet(DbDataObject dboLocation, SvReader svr) throws SvException {
+		SvWriter svw = null;
 		SvGeometry svg = null;
 		try {
-			svg = new SvGeometry(svr);
+			svw = new SvWriter(svr);
+			svg = new SvGeometry(svw);
 			svg.setAllowNullGeometry(true);
 
+			DbDataObject dboPet = svr.getObjectById(dboLocation.getParent_id(), SvReader.getTypeIdByName(Tc.PET), null);
 			DbDataArray arrPetLocations = svr.getObjectsByParentId(dboLocation.getParent_id(),
 					dboLocation.getObject_type(), new DateTime(), 0, 0);
 			if (dboLocation.getObject_id().equals(0L) && !arrPetLocations.getItems().isEmpty()) {
 				for (DbDataObject dboStrayPetLocation : arrPetLocations.getItems()) {
 					if (dboStrayPetLocation.getStatus().equals(Tc.VALID)
+							&& dboStrayPetLocation.getVal(Tc.LOCATION_REASON) != null
+							&& dboLocation.getVal(Tc.LOCATION_REASON) != null
 							&& dboStrayPetLocation.getVal(Tc.LOCATION_REASON).toString()
 									.equals(dboLocation.getVal(Tc.LOCATION_REASON).toString())) {
 						dboStrayPetLocation.setStatus(Tc.INVALID);
@@ -2834,9 +2377,17 @@ public class ValidationChecks {
 					}
 				}
 			}
+			if (Tc.VALID.equals(dboLocation.getStatus()) && dboLocation.getVal(Tc.WEIGHT) != null
+					&& !dboLocation.getVal(Tc.WEIGHT).equals(dboPet.getVal(Tc.WEIGHT))) {
+				dboPet.setVal(Tc.WEIGHT, dboLocation.getVal(Tc.WEIGHT));
+				svw.saveObject(dboPet);
+			}
 		} catch (SvException e) {
 			log4j.error(e);
 		} finally {
+			if (svw != null) {
+				svw.release();
+			}
 			if (svg != null) {
 				svg.release();
 			}
@@ -2859,13 +2410,25 @@ public class ValidationChecks {
 		if (isInventoryItemCheckBlocked(dbo) && blockCheck == null && dboInventoryItem == null) {
 			checkIfAnimalIdExistsInInventoryItem(dbo, rdr, svr);
 		}
+		DbDataObject dboInventoryItemNonApplied = rdr.getInventoryItem(dbo, Tc.NON_APPLIED, true, svr);
+		if (blockCheck == null && dboInventoryItemNonApplied != null
+				&& dboInventoryItemNonApplied.getParent_id() != 0L) {
+			DbDataObject dboOrgUnit = svr.getObjectById(dboInventoryItemNonApplied.getParent_id(),
+					svCONST.OBJECT_TYPE_ORG_UNITS, null);
+			if (dboOrgUnit != null && (dboOrgUnit.getVal(Tc.ORG_UNIT_TYPE).equals(Tc.HEADQUARTER)
+					|| dboOrgUnit.getVal(Tc.ORG_UNIT_TYPE).equals(Tc.REGIONAL_OFFICE))) {
+				throw (new SvException("naits.error.inventoryShouldNotBelongToHeadquarterAnyOtherTypeIsAvailable",
+						svCONST.systemUser, null, null));
+			}
+		}
 		return result;
 	}
 
-	public Boolean isInventoryItemCheckBlocked(DbDataObject dboAnimal) {
+	public boolean isInventoryItemCheckBlocked(DbDataObject dboAnimal) {
+		Reader rdr = new Reader();
 		Boolean result = true;
 		Boolean dtBirthCriterium = false;
-		String dbAnimalCountry = getDboAnimalCountry(dboAnimal);
+		String dbAnimalCountry = rdr.getDboAnimalCountry(dboAnimal);
 		DateTime dtBirthDate = null;
 		DateTime dtRegistrationDate = null;
 		if (dboAnimal.getVal(Tc.BIRTH_DATE) != null && dboAnimal.getVal(Tc.REGISTRATION_DATE) != null) {
@@ -2875,7 +2438,7 @@ public class ValidationChecks {
 				dtBirthCriterium = true;
 			}
 		}
-		String dbAnimalOriginCountry = getDboAnimalCountry(dboAnimal, true);
+		String dbAnimalOriginCountry = rdr.getDboAnimalCountry(dboAnimal, true);
 		if (!dbAnimalCountry.equals(Tc.GE) || (dbAnimalCountry.equals(Tc.GE) && !dbAnimalOriginCountry.equals(Tc.GE)
 				&& !dbAnimalOriginCountry.equals("") && dtBirthCriterium)) {
 			result = false;
@@ -2883,35 +2446,12 @@ public class ValidationChecks {
 		return result;
 	}
 
-	public String getDboAnimalCountry(DbDataObject dbo) {
-		return getDboAnimalCountry(dbo, false);
-	}
-
-	public String getDboAnimalCountry(DbDataObject dbo, Boolean isCountryOfOrigin) {
-		String result = "";
-		if (dbo != null) {
-			if (isCountryOfOrigin) {
-				if (dbo.getVal(Tc.COUNTRY_OLD_ID) != null) {
-					result = dbo.getVal(Tc.COUNTRY_OLD_ID).toString();
-				}
-			} else {
-				if (dbo.getVal(Tc.COUNTRY) != null) {
-					result = dbo.getVal(Tc.COUNTRY).toString();
-				}
-			}
-		}
-		return result;
-	}
-
 	/**
 	 * Method that prevents duplicate campaign participation per Pet
 	 * 
-	 * @param objectId
-	 *            Pet object_id
-	 * @param vaccEventObjId
-	 *            Vaccination Book / Campaign object_id
-	 * @param svr
-	 *            SvReader instance
+	 * @param objectId       Pet object_id
+	 * @param vaccEventObjId Vaccination Book / Campaign object_id
+	 * @param svr            SvReader instance
 	 * @return
 	 * @throws SvException
 	 */
@@ -2985,7 +2525,8 @@ public class ValidationChecks {
 		if (dbo.getVal(Tc.DT_VALID_FROM) == null || dbo.getVal(Tc.DT_VALID_TO) == null) {
 			throw (new SvException("naits.error.pleaseEnterAppropriateDates", svCONST.systemUser, null, null));
 		}
-		DbDataObject dboPet = rdr.getPetByPetIdAndPetType(dbo.getVal(Tc.PET_ID).toString(), null, false, svr);
+		DbDataObject dboPet = rdr.getPetByPetIdAndPetType(Tc.PET_ID, dbo.getVal(Tc.PET_ID).toString(), null, false,
+				svr);
 		DbDataObject dboCurrentValidPassport = null;
 		if (dboPet != null) {
 			if (!dboPet.getObject_id().equals(dbo.getParent_id())) {
@@ -3069,7 +2610,7 @@ public class ValidationChecks {
 		}
 	}
 
-	public void vaccinationEventValidationSet(DbDataObject dbo, SvReader svr) throws SvException {
+	public void vaccinationEventValidationSet(DbDataObject dbo) throws SvException {
 		Reader rdr = new Reader();
 		if (dbo.getVal(Tc.EVENT_START) != null && dbo.getVal(Tc.EVENT_END) != null) {
 			DateTime dtEventStart = new DateTime(dbo.getVal(Tc.EVENT_START).toString());
@@ -3100,21 +2641,170 @@ public class ValidationChecks {
 			}
 			if (dbo.getVal(Tc.DISEASE) != null && !(dbo.getVal(Tc.DISEASE).toString().equals("61")
 					|| dbo.getVal(Tc.DISEASE).toString().equals("60") || dbo.getVal(Tc.DISEASE).toString().equals("5")
-					|| dbo.getVal(Tc.DISEASE).toString().equals("35"))) {
+					|| dbo.getVal(Tc.DISEASE).toString().equals("35") || dbo.getVal(Tc.DISEASE).toString().equals("70")
+					|| dbo.getVal(Tc.DISEASE).toString().equals("71"))) {
 				throw (new SvException("naits.error.inapplicableDiseaseForPetScope", svCONST.systemUser, null, null));
 			}
 		}
 
-		if (dbo.getVal(Tc.CAMPAIGN_SCOPE) != null && dbo.getVal(Tc.CAMPAIGN_SCOPE).toString().equals(Tc.ANIMAL)
+		// if (dbo.getVal(Tc.CAMPAIGN_SCOPE) != null &&
+		// dbo.getVal(Tc.CAMPAIGN_SCOPE).toString().equals(Tc.ANIMAL)
+		// && dbo.getVal(Tc.ANIMAL_TYPE) != null) {
+		// List<String> animalTypeScope =
+		// rdr.getMultiSelectFieldValueAsList(dbo, Tc.ANIMAL_TYPE);
+		// for (String animalType : animalTypeScope) {
+		// if (animalType.equals("401") || animalType.equals("402") ||
+		// animalType.equals("403")) {
+		// throw (new
+		// SvException("naits.error.animalScopeCanBeAppliedOnAnimalTypeOnly",
+		// svCONST.systemUser,
+		// null, null));
+		// }
+		// }
+		// }
+
+		if (dbo.getVal(Tc.ACTIVITY_TYPE) != null && dbo.getVal(Tc.DISEASE) != null
 				&& dbo.getVal(Tc.ANIMAL_TYPE) != null) {
+			HashMap<String, ArrayList<String>> hmActivityAnimalTypeAndDisease = validateActivityTypeWithAnimalTypeAndDiseases(
+					dbo.getVal(Tc.CAMPAIGN_SCOPE).toString(), dbo.getVal(Tc.ACTIVITY_TYPE).toString(),
+					dbo.getVal(Tc.ANIMAL_TYPE).toString());
 			List<String> animalTypeScope = rdr.getMultiSelectFieldValueAsList(dbo, Tc.ANIMAL_TYPE);
-			for (String animalType : animalTypeScope) {
-				if (animalType.equals("401") || animalType.equals("402") || animalType.equals("403")) {
-					throw (new SvException("naits.error.animalScopeCanBeAppliedOnAnimalTypeOnly", svCONST.systemUser,
-							null, null));
+			if (hmActivityAnimalTypeAndDisease != null) {
+				ArrayList<String> arrAvailableDiseases = new ArrayList<String>();
+				if (dbo.getVal(Tc.CAMPAIGN_SCOPE).toString().equals(Tc.HOLDING)
+						&& hmActivityAnimalTypeAndDisease.get(Tc.HOLDING) != null) {
+					arrAvailableDiseases = hmActivityAnimalTypeAndDisease.get(Tc.HOLDING);
+					if (!arrAvailableDiseases.contains(dbo.getVal(Tc.DISEASE).toString())) {
+						throw (new SvException("naits.error.holdingScopeNotApplicableWithChosenDisease",
+								svCONST.systemUser, null, null));
+					}
+				} else {
+					for (String animalType : animalTypeScope) {
+						hmActivityAnimalTypeAndDisease = validateActivityTypeWithAnimalTypeAndDiseases(
+								dbo.getVal(Tc.CAMPAIGN_SCOPE).toString(), dbo.getVal(Tc.ACTIVITY_TYPE).toString(),
+								animalType);
+						if (hmActivityAnimalTypeAndDisease.containsKey(animalType)) {
+							arrAvailableDiseases = hmActivityAnimalTypeAndDisease.get(animalType);
+							if (!arrAvailableDiseases.contains(dbo.getVal(Tc.DISEASE).toString())) {
+								throw (new SvException("naits.error.animalTypeNotApplicableWithChosenDisease",
+										svCONST.systemUser, null, null));
+							}
+						}
+					}
 				}
 			}
 		}
+	}
+
+	public HashMap<String, ArrayList<String>> validateActivityTypeWithAnimalTypeAndDiseases(String campaignScope,
+			String activityType, String animalType) {
+		HashMap<String, ArrayList<String>> hmResult = new HashMap<>();
+		ArrayList<String> arrCattleAndBuffaloApplicableDiseases = null;
+		ArrayList<String> arrSheepAndGoatApplicableDiseases = null;
+		ArrayList<String> arrPigApplicableDiseases = null;
+		ArrayList<String> arrPetApplicableDiseases = null;
+		ArrayList<String> arrHoldngApplicableDiseases = null;
+		switch (activityType) {
+		case "1":// VACCINE
+			switch (animalType) {
+			case "1":
+			case "2":
+				String vaccineCattleAndBuffalo = "3,5,2,1,10,11,14,18,19,20,21,58";
+				arrCattleAndBuffaloApplicableDiseases = new ArrayList<>(
+						Arrays.asList(vaccineCattleAndBuffalo.split(Tc.COMMA_DELIMITER)));
+				hmResult.put(animalType, arrCattleAndBuffaloApplicableDiseases);
+				break;
+			case "9":
+			case "10":
+				String vaccineGoatAndSheep = "3,5,2,1,10,12,13,14,17,18,19,20,58,72";
+				arrSheepAndGoatApplicableDiseases = new ArrayList<>(
+						Arrays.asList(vaccineGoatAndSheep.split(Tc.COMMA_DELIMITER)));
+				hmResult.put(animalType, arrSheepAndGoatApplicableDiseases);
+				break;
+			case "11":
+				String vaccinePigs = "2,1,6,9,10,14,15,16,18,19,20";
+				arrPigApplicableDiseases = new ArrayList<>(Arrays.asList(vaccinePigs.split(Tc.COMMA_DELIMITER)));
+				hmResult.put(animalType, arrPigApplicableDiseases);
+				break;
+			case "401":
+			case "402":
+			case "403":
+				String vaccinePets = "70,71,5,35,60,61";
+				arrPetApplicableDiseases = new ArrayList<>(Arrays.asList(vaccinePets.split(Tc.COMMA_DELIMITER)));
+				hmResult.put(animalType, arrPetApplicableDiseases);
+				break;
+			default:
+				break;
+			}
+			break;
+		case "3": // DIAGNOSTIC
+			String diagnosticCattleAndBuffalo = "4";
+			arrCattleAndBuffaloApplicableDiseases = new ArrayList<>(
+					Arrays.asList(diagnosticCattleAndBuffalo.split(Tc.COMMA_DELIMITER)));
+			hmResult.put(animalType, arrCattleAndBuffaloApplicableDiseases);
+			break;
+		case "4": // THERAPETUIC
+			if (campaignScope.equals(Tc.HOLDING)) {
+				String therapetuicHolding = "68";
+				arrHoldngApplicableDiseases = new ArrayList<>(
+						Arrays.asList(therapetuicHolding.split(Tc.COMMA_DELIMITER)));
+				hmResult.put(Tc.HOLDING, arrHoldngApplicableDiseases);
+			} else {
+				switch (animalType) {
+				case "1":
+				case "2":
+					String therapetuicCattleAndBuffalo = "20,21,69";
+					arrCattleAndBuffaloApplicableDiseases = new ArrayList<>(
+							Arrays.asList(therapetuicCattleAndBuffalo.split(Tc.COMMA_DELIMITER)));
+					hmResult.put(animalType, arrCattleAndBuffaloApplicableDiseases);
+					break;
+				case "9":
+				case "10":
+					String therapetuicSheepAndGoat = "20,69";
+					arrSheepAndGoatApplicableDiseases = new ArrayList<>(
+							Arrays.asList(therapetuicSheepAndGoat.split(Tc.COMMA_DELIMITER)));
+					hmResult.put(animalType, arrSheepAndGoatApplicableDiseases);
+					break;
+				default:
+					break;
+				}
+			}
+			break;
+		case "2": // SAMPLING
+			if (campaignScope.equals(Tc.HOLDING)) {
+				String samplingHolding = "2,1,58,26,27,28,31,33,34,35,39,40,42,43,44,46,47,50,51,62,64,65,67,69";
+				arrHoldngApplicableDiseases = new ArrayList<>(Arrays.asList(samplingHolding.split(Tc.COMMA_DELIMITER)));
+				hmResult.put(Tc.HOLDING, arrHoldngApplicableDiseases);
+			} else {
+				switch (animalType) {
+				case "1":
+				case "2":
+					String samplingCattleAndBuffalo = "3,5,2,1,10,11,14,18,19,21,23,58,4,22,24,28,31,33,34,35,16,38,39,40,41,50,62,63,69";
+					arrCattleAndBuffaloApplicableDiseases = new ArrayList<>(
+							Arrays.asList(samplingCattleAndBuffalo.split(Tc.COMMA_DELIMITER)));
+					hmResult.put(animalType, arrCattleAndBuffaloApplicableDiseases);
+					break;
+				case "9":
+				case "10":
+					String samplingGoatAndSheep = "3,5,2,1,10,12,13,14,17,18,19,23,58,4,22,24,28,31,33,34,35,16,37,38,39,40,41,50,62,63,66,69,72";
+					arrSheepAndGoatApplicableDiseases = new ArrayList<>(
+							Arrays.asList(samplingGoatAndSheep.split(Tc.COMMA_DELIMITER)));
+					hmResult.put(animalType, arrSheepAndGoatApplicableDiseases);
+					break;
+				case "11":
+					String samplingPigs = "2,1,6,9,10,14,15,16,18,19,4,28,29,31,33,34,38,39,40,41,50,52,69,70,71";
+					arrPigApplicableDiseases = new ArrayList<>(Arrays.asList(samplingPigs.split(Tc.COMMA_DELIMITER)));
+					hmResult.put(animalType, arrPigApplicableDiseases);
+					break;
+				default:
+					break;
+				}
+			}
+			break;
+		default:
+			break;
+		}
+		return hmResult;
 	}
 
 	public void vaccinationBookValdidationSet(DbDataObject dbo, Writer wr, Reader rdr, SvWriter svw, SvReader svr)
@@ -3170,32 +2860,6 @@ public class ValidationChecks {
 			}
 		}
 		return result;
-	}
-
-	/**
-	 * Set of validations for Pet movement object
-	 * 
-	 * @param dbo
-	 * @param rdr
-	 * @param svr
-	 * @throws SvException
-	 */
-	public void petMovementValidationSet(DbDataObject dbo, SvReader svr) throws SvException {
-		if (!dbo.getStatus().equals(Tc.RELEASED) && dbo.getVal(Tc.HOLDING_OBJ_ID) == null) {
-			throw (new SvException("naits.error.cannotCreateMovementWithoutDestination", svCONST.systemUser, null,
-					null));
-		}
-		DbDataObject dboPet = svr.getObjectById(dbo.getParent_id(), SvReader.getTypeIdByName(Tc.PET), new DateTime());
-		DbDataObject dboSourceHolding = svr.getObjectById(dboPet.getParent_id(), SvReader.getTypeIdByName(Tc.HOLDING),
-				null);
-		DbDataObject dboDestinationHolding = svr.getObjectById(Long.valueOf(dbo.getVal(Tc.HOLDING_OBJ_ID).toString()),
-				SvReader.getTypeIdByName(Tc.HOLDING), null);
-		if (!dboPet.getStatus().equals(Tc.VALID)) {
-			throw (new SvException("naits.error.petMustBeValid", svCONST.systemUser, null, null));
-		}
-		if (dboDestinationHolding.getObject_id().equals(dboSourceHolding.getObject_id())) {
-			throw (new SvException("naits.error.sourceAndDestinationHoldingAreSame", svCONST.systemUser, null, null));
-		}
 	}
 
 	/**
@@ -3345,12 +3009,253 @@ public class ValidationChecks {
 	 */
 	public boolean isStringValidDate(String date) {
 		boolean result = true;
-		DateTime dt = null;
 		try {
-			dt = new DateTime(date);
+			@SuppressWarnings("unused")
+			DateTime dt = new DateTime(date);
 		} catch (Exception e) {
 			result = false;
 		}
 		return result;
+	}
+
+	/**
+	 * Method that prohibits animal movement if animal country is not GE.
+	 * 
+	 * @param animalObjId
+	 * @param svr
+	 * @return
+	 * @throws SvException
+	 */
+	public Boolean checkIfMovementIsAllowedPerAnimalCountry(DbDataObject dboAnimal, SvReader svr) throws SvException {
+		Boolean movementAllowed = true;
+		if (dboAnimal != null && dboAnimal.getVal(Tc.COUNTRY) != null
+				&& !dboAnimal.getVal(Tc.COUNTRY).toString().equals(Tc.GE)) {
+			movementAllowed = false;
+		}
+		return movementAllowed;
+	}
+
+	/**
+	 * Method that checks if quarantine's date_from is after quarantine's date_to.
+	 * 
+	 * @param dbo
+	 * @param svr
+	 * @return
+	 */
+	public Boolean isQuarantineStartDateAfterEndDate(DbDataObject dbo) {
+		Boolean isAfter = false;
+		DateTime dtFrom = new DateTime(dbo.getVal(Tc.DATE_FROM).toString());
+		DateTime dtTo = new DateTime(dbo.getVal(Tc.DATE_TO).toString());
+		if (dtFrom.isAfter(dtTo)) {
+			isAfter = true;
+		}
+		return isAfter;
+	}
+
+	public void rfidValidationSet(DbDataObject dbo, Writer wr, Reader rdr, SvReader svr) throws SvException {
+		if (dbo.getVal(Tc.ANIMAL_TYPE) == null) {
+			throw new SvException("naits.error.missing_animal_type", svr.getInstanceUser());
+		}
+		if (dbo.getVal(Tc.IMPORT_TYPE) != null) {
+			if (dbo.getVal(Tc.IMPORT_TYPE).toString().equals(Tc.VIA_FILE)) {
+				List<String> earTagList = rdr.getRFIDEarTagsViaFile(dbo);
+				if (earTagList == null || earTagList.isEmpty()) {
+					throw new SvException("naits.error.empty_file_cannot_be_processed", svr.getInstanceUser());
+				}
+			} else {
+				if (dbo.getVal(Tc.TEXT_EAR_TAGS) == null
+						|| dbo.getVal(Tc.TEXT_EAR_TAGS).toString().trim().length() < 1) {
+					throw new SvException("naits.error.missing_ear_tags_inserted", svr.getInstanceUser());
+				}
+			}
+		}
+		if (dbo.getVal(Tc.RFID_NUMBER) == null) {
+			String rfidInputSeqNumber = wr.generateRFIDSeqNumber(dbo.getObject_type(), svr);
+			dbo.setVal(Tc.RFID_NUMBER, rfidInputSeqNumber);
+		}
+	}
+
+	public boolean checkIfActionTypeIsAlreadyExecutedOnRfidInputState(DbDataObject dboRfidInputState,
+			String currentAction, Reader rdr) {
+		boolean result = false;
+		if (dboRfidInputState.getVal(Tc.EXECUTED_ACTIONS) != null) {
+			List<String> executedActions = rdr.getMultiSelectFieldValueAsList(dboRfidInputState, Tc.EXECUTED_ACTIONS);
+			if (!executedActions.isEmpty()) {
+				for (String executedAction : executedActions) {
+					if (executedAction.trim().equals(currentAction)) {
+						result = true;
+						break;
+					}
+				}
+			}
+		}
+		return result;
+	}
+
+	public boolean checkIfRfidInputStateAllowedToBeProcessedInMassAction(DbDataObject dboRfidInputState,
+			String actionType, Reader rdr, SvReader svr) throws SvException {
+		boolean result = true;
+		if (dboRfidInputState.getStatus().equals(Tc.NOT_FOUND)) {
+			DbDataObject rfidInputStateParent = svr.getObjectById(dboRfidInputState.getParent_id(),
+					SvReader.getTypeIdByName(Tc.RFID_INPUT), null);
+			if (rfidInputStateParent != null) {
+				DbDataObject dboAnimal = null;
+				String rfidString = dboRfidInputState.getVal(Tc.ANIMAL_EAR_TAG).toString();
+				String animalClass = rfidInputStateParent.getVal(Tc.ANIMAL_TYPE).toString();
+				if (rfidString.length() > 8) {
+					String animalIdViaRfid = rfidString.substring(rfidString.length() - 8);
+					if (!animalIdViaRfid.isEmpty()) {
+						dboAnimal = rdr.findAppropriateAnimalByAnimalIdAndAnimalClass(animalIdViaRfid, animalClass,
+								true, svr);
+					}
+				} else {
+					dboAnimal = rdr.findAppropriateAnimalByAnimalIdAndAnimalClass(rfidString, animalClass, true, svr);
+				}
+				if (dboAnimal == null) {
+					result = false;
+					if (actionType.equals(Tc.REGISTRATION)) {
+						result = true;
+					}
+				}
+			}
+		}
+		if (!actionType.equalsIgnoreCase(Tc.REGISTRATION) && (dboRfidInputState.getStatus().equals(Tc.NONAPPLIED))) {
+			result = false;
+		}
+		return result;
+	}
+
+	public DbDataObject validationSetForGeneratingRfidInputResult(String actionType, String animalBreed,
+			Long destinationObjectId, Long destinationObjectType, DbDataObject dboRfidInput, DateTime actionDate,
+			SvReader svr) throws SvException {
+		DbDataObject dboDestinationObject = null;
+		if (actionType == null) {
+			throw new SvException("naits.error.missing_action_type", svr.getInstanceUser());
+		}
+		if (dboRfidInput == null) {
+			throw new SvException("naits.error.missing_rfid_input", svr.getInstanceUser());
+		}
+		if (actionDate == null) {
+			actionDate = new DateTime();
+		}
+
+		if (!actionType.equals(Tc.ACTION)) {
+			if (actionType.equals(Tc.REGISTRATION)) {
+				if (animalBreed == null) {
+					throw new SvException("naits.error.missing_animal_breed", svr.getInstanceUser());
+				}
+				if (destinationObjectId == null) {
+					throw new SvException("naits.error.missing_destination_number", svr.getInstanceUser());
+				}
+				dboDestinationObject = svr.getObjectById(destinationObjectId, destinationObjectType, null);
+				if (dboDestinationObject == null) {
+					throw new SvException("naits.error.no_destination_holding_found", svr.getInstanceUser());
+				}
+				if (dboDestinationObject.getVal(Tc.TYPE) != null
+						&& (dboDestinationObject.getVal(Tc.TYPE).toString().equals(Tc.VET_STATION_TYPE)
+								|| dboDestinationObject.getVal(Tc.TYPE).toString().equals(Tc.ANIMAL_SHELTER_TYPE))) {
+					throw new SvException("naits.error.register_animal_in_shelter_or_vet_station",
+							svr.getInstanceUser());
+				}
+			} else if (actionType.equals(Tc.TRANSFER)) {
+				if (destinationObjectId == null) {
+					throw new SvException("naits.error.missing_destination_number", svr.getInstanceUser());
+				}
+				dboDestinationObject = svr.getObjectById(destinationObjectId, destinationObjectType, null);
+				if (dboDestinationObject == null) {
+					throw new SvException("naits.error.no_destination_holding_found", svr.getInstanceUser());
+				}
+			} else if (actionType.equals(Tc.MOVE_TO_CERTIFICATE)) {
+				if (destinationObjectId == null) {
+					throw new SvException("naits.error.missing_destination_number", svr.getInstanceUser());
+				}
+				dboDestinationObject = svr.getObjectById(destinationObjectId, destinationObjectType, null);
+				if (dboDestinationObject == null) {
+					throw new SvException("naits.error.no_export_certificate_found", svr.getInstanceUser());
+				}
+			}
+		}
+		return dboDestinationObject;
+	}
+
+	public boolean checkIfAnimalCanBeMovedToExportCertificate(DbDataObject dboExportCertificate, DbDataObject dboAnimal,
+			SvReader svr) throws SvException {
+		Reader rdr = new Reader();
+		boolean result = true;
+		DbDataObject dboQuaranitne = svr.getObjectById(dboExportCertificate.getParent_id(),
+				SvReader.getTypeIdByName(Tc.QUARANTINE), null);
+		DbDataObject dboHolding = rdr.getHoldingLinkedPerExportQuaranitne(dboQuaranitne, svr);
+		if (dboHolding != null && !dboAnimal.getParent_id().equals(dboHolding.getObject_id())) {
+			result = false;
+		}
+		return result;
+	}
+
+	public ArrayList<String> checkIfAllItemsInTransferRangeBelongToOrgUnit(Long senderOrgUnitId,
+			Long transferStartRange, Long transferEndRange, String transferTagType, SvReader svr) throws SvException {
+		Reader rdr = new Reader();
+		ArrayList<String> missingInvItems = new ArrayList<String>();
+
+		// initiate ownership check
+		for (Long i = transferStartRange; i <= transferEndRange; i++) {
+			String earTagNo = i.toString();
+			DbDataObject dboInvItem = rdr.getDboInventoryItem(earTagNo, transferTagType, svr);
+			if (dboInvItem == null || !dboInvItem.getParent_id().equals(senderOrgUnitId)) {
+				missingInvItems.add(earTagNo);
+			}
+		}
+
+		return missingInvItems;
+	}
+
+	/**
+	 * Method that prevent creating duplicate animals - (Goat/Sheep),
+	 * (Horse/Donkey), (Cattle/Buffalo)
+	 * 
+	 * @param dbo DbDataObject of animal
+	 * @param rdr Reader instance
+	 * @param svr SvReader instance
+	 * @throws SvException
+	 */
+	public void checksToPreventCreatingDuplicatesForEquidsAndRuminants(DbDataObject dbo, Reader rdr, SvReader svr)
+			throws SvException {
+		String currIdNo = dbo.getVal(Tc.ANIMAL_ID).toString();
+		DbDataObject dboAnimalWithSameId = rdr.findAppropriateAnimalByAnimalId(currIdNo, svr);
+		if (dboAnimalWithSameId != null) {
+			if (dbo.getVal(Tc.ANIMAL_CLASS).toString().equals("12")
+					|| dbo.getVal(Tc.ANIMAL_CLASS).toString().equals("400")
+							&& (dboAnimalWithSameId.getVal(Tc.ANIMAL_CLASS).toString().equals("12")
+									|| dboAnimalWithSameId.getVal(Tc.ANIMAL_CLASS).toString().equals("400"))) {
+				throw (new SvException("naits.error.beforeSaveCheck_AnimalIdForEquidsMustBeUnique", svCONST.systemUser,
+						null, null));
+			}
+			if (dbo.getVal(Tc.ANIMAL_CLASS).toString().equals("9")
+					|| dbo.getVal(Tc.ANIMAL_CLASS).toString().equals("10")
+							&& (dboAnimalWithSameId.getVal(Tc.ANIMAL_CLASS).toString().equals("9")
+									|| dboAnimalWithSameId.getVal(Tc.ANIMAL_CLASS).toString().equals("10"))) {
+				throw (new SvException("naits.error.beforeSaveCheck_AnimalIdForRuminantsMustBeUnique",
+						svCONST.systemUser, null, null));
+			}
+			if (dbo.getVal(Tc.ANIMAL_CLASS).toString().equals("1") || dbo.getVal(Tc.ANIMAL_CLASS).toString().equals("2")
+					&& (dboAnimalWithSameId.getVal(Tc.ANIMAL_CLASS).toString().equals("1")
+							|| dboAnimalWithSameId.getVal(Tc.ANIMAL_CLASS).toString().equals("2"))) {
+				throw (new SvException("naits.error.beforeSaveCheck_AnimalIdForCattleAndBuffaloMustBeUnique",
+						svCONST.systemUser, null, null));
+			}
+		}
+	}
+
+	public void petQuarantineValidationSet(DbDataObject dbo, Reader rdr, SvWriter svw, SvReader svr)
+			throws SvException {
+		if (new DateTime(dbo.getVal(Tc.DATE_FROM).toString()).isAfter(new DateTime())) {
+			throw (new SvException("naits.error.validation_check_dateFromCanNotBeInTheFuture", svCONST.systemUser, null,
+					null));
+		}
+		if (new DateTime(dbo.getVal(Tc.DATE_TO).toString())
+				.isBefore(new DateTime(dbo.getVal(Tc.DATE_FROM).toString()))) {
+			throw (new SvException("naits.error.validation_check_dateToCanNotBeBeforDateFrom", svCONST.systemUser, null,
+					null));
+		}
+
 	}
 }

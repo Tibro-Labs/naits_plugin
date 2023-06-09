@@ -165,15 +165,13 @@ public class GeoCoder {
 	 */
 	protected DbSearchExpression genSearchEx(String type, String searchStr, JsonArray critArr) throws SvException {
 		DbSearchExpression dbse = new DbSearchExpression();
-
 		if (searchStr != null && critArr.size() > 0) {
 			for (int i = 0; i < critArr.size(); i++) {
 				String name = critArr.get(i).getAsString();
-				DbSearchCriterion crit = new DbSearchCriterion(name, DbCompareOperand.ILIKE, "%" + searchStr + "%");
+				DbSearchCriterion crit = new DbSearchCriterion(name, DbCompareOperand.ILIKE, Tc.PERCENT_OPERATOR + searchStr + Tc.PERCENT_OPERATOR);
 				if (i < critArr.size() - 1) {
 					crit.setNextCritOperand("OR");
 				}
-
 				dbse.addDbSearchItem(crit);
 			}
 		}

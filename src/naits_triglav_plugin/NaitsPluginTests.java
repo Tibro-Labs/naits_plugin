@@ -2,9 +2,16 @@ package naits_triglav_plugin;
 
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -12,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -26,14 +34,19 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+
 import java.util.Map.Entry;
-import java.util.Random;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.FileHandler;
 import java.util.logging.SimpleFormatter;
+import java.util.Random;
+import java.util.Scanner;
+import java.util.TimeZone;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -42,8 +55,13 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.joda.time.DateTime;
@@ -53,9 +71,11 @@ import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.json.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-import org.w3c.dom.Document;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -71,6 +91,7 @@ import com.prtech.svarog.SvException;
 import com.prtech.svarog.SvFileStore;
 import com.prtech.svarog.SvGeometry;
 import com.prtech.svarog.SvLink;
+import com.prtech.svarog.SvLock;
 import com.prtech.svarog.SvNote;
 import com.prtech.svarog.SvNotification;
 import com.prtech.svarog.SvParameter;
@@ -83,15 +104,71 @@ import com.prtech.svarog.SvWriter;
 import com.prtech.svarog.svCONST;
 import com.prtech.svarog_common.DbDataArray;
 import com.prtech.svarog_common.DbDataObject;
+import com.prtech.svarog_common.DbQueryExpression;
+import com.prtech.svarog_common.DbQueryObject;
+import com.prtech.svarog_common.DbSearch;
 import com.prtech.svarog_common.DbSearchCriterion;
 import com.prtech.svarog_common.DbSearchCriterion.DbCompareOperand;
-import com.prtech.svarog_common.DbSearchExpression;
-import com.prtech.svarog_common.SvCharId;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
+import com.prtech.svarog_common.DbSearchExpression;
+import com.prtech.svarog_common.SvCharId;
+
+import naits_triglav_plugin.ReactJsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 public class NaitsPluginTests {
+
+	static boolean initPlugin() {
+		OnSaveValidations call = new OnSaveValidations();
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.ANIMAL));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.ANIMAL_MOVEMENT));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.HOLDING));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.HOLDING_RESPONSIBLE));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.FLOCK));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.FLOCK_MOVEMENT));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.OTHER_ANIMALS));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.RANGE));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.EXPORT_CERT));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.DISEASE));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.AREA_HEALTH));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.POST_SLAUGHT_FORM));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.PRE_SLAUGHT_FORM));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.SUPPLIER));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.TRANSFER));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.QUARANTINE));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.SPOT_CHECK));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.VACCINATION_BOOK));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.VACCINATION_RESULTS));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.VACCINATION_EVENT));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.EAR_TAG_REPLC));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.LAB_SAMPLE));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.LABORATORY));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.LAB_TEST_TYPE));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.LAB_TEST_RESULT));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.MOVEMENT_DOC));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.ORDER));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.PET));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.PET_HEALTH_BOOK));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.PET_PASSPORT));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.INVENTORY_ITEM));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.STRAY_PET));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.STRAY_PET_LOCATION));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.HEALTH_PASSPORT));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.POPULATION));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.RFID_INPUT));
+		SvCore.registerOnSaveCallback(call, svCONST.OBJECT_TYPE_LINK);
+		SvCore.registerOnSaveCallback(call, svCONST.OBJECT_TYPE_MESSAGE);
+		SvCore.registerOnSaveCallback(call, svCONST.OBJECT_TYPE_NOTIFICATION);
+		SvCore.registerOnSaveCallback(call, svCONST.OBJECT_TYPE_ORG_UNITS);
+		SvCore.registerOnSaveCallback(call, svCONST.OBJECT_TYPE_USER);
+		SvCore.registerOnSaveCallback(call, svCONST.OBJECT_TYPE_GROUP);
+		return true;
+	}
 
 	static final Logger log4j = LogManager.getLogger(NaitsPluginTests.class.getName());
 
@@ -143,8 +220,7 @@ public class NaitsPluginTests {
 							SvReader.getTypeIdByName(Tc.HOLDING), null);
 					DbDataObject dboSourceHolding = svr.getObjectById(dboToMove.getParent_id(),
 							SvReader.getTypeIdByName(Tc.HOLDING), null);
-					if (dboSourceHolding != null
-							&& !vc.checkIfHoldingBelongsInActiveQuarantine(dboSourceHolding, svr)) {
+					if (dboSourceHolding != null) {
 						if (dboDestinationHolding != null && !dboToMove.getStatus().equals(Tc.TRANSITION)) {
 							wr.startAnimalOrFlockMovement(dboToMove, dboDestinationHolding, "DIRECT_TRANSFER", null,
 									null, null, null, null, null, null, null, svr, svw, sww);
@@ -333,10 +409,8 @@ public class NaitsPluginTests {
 			svReader = new SvReader(token);
 			svWriter = new SvWriter(svReader);
 			Writer wr = new Writer();
-			/*
-			 * wr.saveSimplifiedAnimalData("M", "22.01.1880", "1", "1005",
-			 * "123456789", "66677799994", 1234L, svReader, svWriter);
-			 */
+			wr.saveSimplifiedAnimalData("M", "22.01.1880", "1", "1005", "123456789", "66677799994", 1234L, svReader,
+					svWriter);
 
 		} catch (SvException e) {
 			log4j.error(e.getFormattedMessage(), e);
@@ -371,11 +445,10 @@ public class NaitsPluginTests {
 
 			cleanUpRecoveryData();
 			/*
-			 * recoveryData = passRecoveryTokens.get(username); if (recoveryData
-			 * == null || !token.equals(recoveryData[0])) { returnMsgLbl =
+			 * recoveryData = passRecoveryTokens.get(username); if (recoveryData == null ||
+			 * !token.equals(recoveryData[0])) { returnMsgLbl =
 			 * "updatePassword.error.tokenNotExist"; return
-			 * Response.status(200).entity(I18n.getText(returnMsgLbl)).build();
-			 * }
+			 * Response.status(200).entity(I18n.getText(returnMsgLbl)).build(); }
 			 */
 		} catch (SvException e) {
 			// TODO Auto-generated catch block
@@ -581,9 +654,11 @@ public class NaitsPluginTests {
 				if (dboUser != null) {
 					error = "ok;" + I18n.getText("user.user_created");
 					Writer wr = new Writer();
-					dboUserDetails = wr.createUserDetails(dboUser, initials, initial_user_password, phone_number,
-							mobile_number, address, job_desig_code, job_desig_descr, svw);
-					svw.saveObject(dboUserDetails);
+					/*
+					 * dboUserDetails = wr.createUserDetails(dboUser, initials,
+					 * initial_user_password, phone_number, mobile_number, address, job_desig_code,
+					 * job_desig_descr, svw); svw.saveObject(dboUserDetails);
+					 */
 					// sendActivationEmail(dboUser, httpRequest);
 					svw.dbCommit();
 				}
@@ -944,9 +1019,9 @@ public class NaitsPluginTests {
 
 			/*
 			 * ArrayList<String> permissions = new ArrayList<String>(
-			 * Arrays.asList("HOLDING.READ", "PREMISE.READ",
-			 * "PREMISE_OWNER.READ", "LIVESTOCK.FULL", "VACCINATION_BOOK.FULL",
-			 * "VACCINATION_EVENT.FULL", "VACCINATION_RESULTS.FULL"));
+			 * Arrays.asList("HOLDING.READ", "PREMISE.READ", "PREMISE_OWNER.READ",
+			 * "LIVESTOCK.FULL", "VACCINATION_BOOK.FULL", "VACCINATION_EVENT.FULL",
+			 * "VACCINATION_RESULTS.FULL"));
 			 */
 
 			ArrayList<String> corePermissions = new ArrayList<String>();
@@ -977,13 +1052,11 @@ public class NaitsPluginTests {
 				/*
 				 * DbSearchCriterion cr1 = new DbSearchCriterion("USER_NAME",
 				 * DbCompareOperand.EQUAL, "ABA_DABA"); DbDataArray dbArray =
-				 * svReader.getObjects(new
-				 * DbSearchExpression().addDbSearchItem(cr1),
+				 * svReader.getObjects(new DbSearchExpression().addDbSearchItem(cr1),
 				 * svCONST.OBJECT_TYPE_USER, null, 0, 0);
 				 * 
-				 * setSidPermission(dbArray.getItems().get(0).getVal("USER_NAME"
-				 * ).toString(), svCONST.OBJECT_TYPE_USER, permissions, "GRANT",
-				 * token);
+				 * setSidPermission(dbArray.getItems().get(0).getVal("USER_NAME" ).toString(),
+				 * svCONST.OBJECT_TYPE_USER, permissions, "GRANT", token);
 				 * 
 				 * log4j.info("User permissionas granted.");
 				 */
@@ -1052,9 +1125,9 @@ public class NaitsPluginTests {
 				/*
 				 * Writer wr = new Writer();
 				 * 
-				 * dboUserDetails = wr.saveContactData(dboUser.getObject_id(),
-				 * "", address, "", "", "", "", phoneNumber, mobileNumber, fax,
-				 * email, svw); svw.saveObject(dboUserDetails);
+				 * dboUserDetails = wr.saveContactData(dboUser.getObject_id(), "", address, "",
+				 * "", "", "", phoneNumber, mobileNumber, fax, email, svw);
+				 * svw.saveObject(dboUserDetails);
 				 */
 				// sendActivationEmail(dboUser, httpRequest);
 				svw.dbCommit();
@@ -1079,11 +1152,9 @@ public class NaitsPluginTests {
 		String token = login("ABA_DABA", "welcome");
 		/*
 		 * String result = changePasswordCore(token, "67831213",
-		 * "40be4e59b9a2a2b5dffb918c0e86b3d7",
-		 * "5f6a7a33997557362fe77ecfcc267b8f"); String result2 =
-		 * changePasswordCore(token, "67831213",
-		 * "5f6a7a33997557362fe77ecfcc267b8f",
-		 * "5f6a7a33997557362fe77ecfcc267b8g");
+		 * "40be4e59b9a2a2b5dffb918c0e86b3d7", "5f6a7a33997557362fe77ecfcc267b8f");
+		 * String result2 = changePasswordCore(token, "67831213",
+		 * "5f6a7a33997557362fe77ecfcc267b8f", "5f6a7a33997557362fe77ecfcc267b8g");
 		 */
 		String result = updatePassword(token, "ABA_DABA", "40be4e59b9a2a2b5dffb918c0e86b3d7",
 				"5f6a7a33997557362fe77ecfcc267b8f");
@@ -1179,11 +1250,9 @@ public class NaitsPluginTests {
 			DbDataObject dboUser = SvReader.getUserBySession(token);
 			wr.editUserData("ADMIN_TEST", "TEST", dboUser, token);
 			/*
-			 * dboUser.setVal("FIRST_NAME", "ADMIN_TEST");
-			 * svw.saveObject(dboUser, false); dboUser =
-			 * svr.getObjectById(dboUser.getObject_id(),
-			 * svCONST.OBJECT_TYPE_USER, null);
-			 * System.out.println(dboUser.getVal("FIRST_NAME")); String result =
+			 * dboUser.setVal("FIRST_NAME", "ADMIN_TEST"); svw.saveObject(dboUser, false);
+			 * dboUser = svr.getObjectById(dboUser.getObject_id(), svCONST.OBJECT_TYPE_USER,
+			 * null); System.out.println(dboUser.getVal("FIRST_NAME")); String result =
 			 * getBasicUserData(token, svr); System.out.println(result);
 			 */
 			svw.dbRollback();
@@ -1399,8 +1468,8 @@ public class NaitsPluginTests {
 				// System.out.println(temp22);
 				DbDataObject dboTable = svr.getObjectById(tempObjId, svCONST.OBJECT_TYPE_TABLE, null);
 				/*
-				 * if (dboTable != null && dboTable.getVal("TABLE_NAME") !=
-				 * null) System.out.println(dboTable.getVal("TABLE_NAME")); else
+				 * if (dboTable != null && dboTable.getVal("TABLE_NAME") != null)
+				 * System.out.println(dboTable.getVal("TABLE_NAME")); else
 				 * System.out.println(tempObjId);
 				 */
 			}
@@ -1426,7 +1495,7 @@ public class NaitsPluginTests {
 	public void testCreateLinkForKeeper() throws SvException {
 		SvReader svr = null;
 		SvLink svl = null;
-		String token = login("L.JANEV", "naits123");
+		String token = login("k.stojanovski", "naits1234");
 		Reader rdr = new Reader();
 		try {
 			svr = new SvReader(token);
@@ -1479,7 +1548,7 @@ public class NaitsPluginTests {
 			svw = new SvWriter(svr);
 			DbDataObject dboAnimal = svr.getObjectById(85096L, SvReader.getTypeIdByName("ANIMAL"), null);
 			DbDataObject dboVaccEvent = svr.getObjectById(223933L, SvReader.getTypeIdByName("VACCINATION_EVENT"), null);
-			wr.createVaccTreatmentRecord(dboAnimal, dboVaccEvent, svw);
+			// wr.createVaccTreatmentRecord(dboAnimal, dboVaccEvent, svw);
 			svw.dbCommit();
 		} catch (SvException e) {
 			log4j.error("Error: ", e.getFormattedMessage());
@@ -1657,14 +1726,14 @@ public class NaitsPluginTests {
 				}
 				/*
 				 * dboVillage.setVal("REGION_CODE",
-				 * tempCodeValue.getVal("CODE_VALUE").toString().substring(0,
-				 * 2)); dboVillage.setVal("MUNIC_CODE",
-				 * tempCodeValue.getVal("CODE_VALUE").toString().substring(0,
-				 * 4)); dboVillage.setVal("COMMUN_CODE",
-				 * tempCodeValue.getVal("CODE_VALUE").toString().substring(0,
-				 * 6)); dboVillage.setVal("VILLAGE_CODE",
-				 * tempCodeValue.getVal("CODE_VALUE").toString().substring(0,
-				 * 8)); newVillagesToSave.addDataItem(dboVillage);
+				 * tempCodeValue.getVal("CODE_VALUE").toString().substring(0, 2));
+				 * dboVillage.setVal("MUNIC_CODE",
+				 * tempCodeValue.getVal("CODE_VALUE").toString().substring(0, 4));
+				 * dboVillage.setVal("COMMUN_CODE",
+				 * tempCodeValue.getVal("CODE_VALUE").toString().substring(0, 6));
+				 * dboVillage.setVal("VILLAGE_CODE",
+				 * tempCodeValue.getVal("CODE_VALUE").toString().substring(0, 8));
+				 * newVillagesToSave.addDataItem(dboVillage);
 				 */
 			}
 			// svw.saveObject(newVillagesToSave);
@@ -1913,7 +1982,7 @@ public class NaitsPluginTests {
 		// String date = "2018-09-09T22:00:00.000Z";
 		String date = "2018-9-29";
 		// String substr_date = date.substring(0, 10);
-		String pattern = "yyyy-MM-dd";
+		String pattern = Tc.DATE_PATTERN;
 		DateTime convertedDate = DateTime.parse(date, DateTimeFormat.forPattern(pattern));
 		log4j.info(convertedDate);
 
@@ -2062,9 +2131,12 @@ public class NaitsPluginTests {
 					throw (new SvException("system.beforeSaveCheck_animal_canNotBeSelfParent", svCONST.systemUser, null,
 							null));
 
-				if (validator.checkIfAnimalsMotherAndFatherHaveSameAnimalId(dboAnimal, svr))
-					throw (new SvException("system.beforeSaveCheck_animal_parentCanNotBeTheSame", svCONST.systemUser,
-							null, null));
+				/*
+				 * if (validator.checkIfAnimalsMotherAndFatherHaveSameAnimalId( dboAnimal, svr))
+				 * throw (new SvException(
+				 * "system.beforeSaveCheck_animal_parentCanNotBeTheSame", svCONST.systemUser,
+				 * null, null));
+				 */
 
 				if (!validator.checkIfAnimalMotherGenderIsValid(dboAnimal, svr))
 					throw (new SvException("system.beforeSaveCheck_animal_invalidMotherGender", svCONST.systemUser,
@@ -2238,23 +2310,22 @@ public class NaitsPluginTests {
 	}
 
 	/*
-	 * @Test public void testUserMassActions() { SvReader svr = null; SvWriter
-	 * svw = null; SvWorkflow sww = null; SvNote svn = null; String token =
-	 * null; Long userObjId = 29069L; MassActions massAct = null; Writer wr =
-	 * null; try { token = login("ADMIN", "welcome"); svr = new SvReader(token);
-	 * svw = new SvWriter(svr); sww = new SvWorkflow(svw); svn = new
-	 * SvNote(sww); massAct = new MassActions(); wr = new Writer();
-	 * svw.setAutoCommit(false); sww.setAutoCommit(false);
-	 * svn.setAutoCommit(false); DbDataObject dboUser =
+	 * @Test public void testUserMassActions() { SvReader svr = null; SvWriter svw =
+	 * null; SvWorkflow sww = null; SvNote svn = null; String token = null; Long
+	 * userObjId = 29069L; MassActions massAct = null; Writer wr = null; try { token
+	 * = login("ADMIN", "welcome"); svr = new SvReader(token); svw = new
+	 * SvWriter(svr); sww = new SvWorkflow(svw); svn = new SvNote(sww); massAct =
+	 * new MassActions(); wr = new Writer(); svw.setAutoCommit(false);
+	 * sww.setAutoCommit(false); svn.setAutoCommit(false); DbDataObject dboUser =
 	 * svr.getObjectById(userObjId, svCONST.OBJECT_TYPE_USER, null);
-	 * massAct.userMassAction(dboUser, "RESET_PASS", null, null, svw, sww, svn,
-	 * wr); massAct.userMassAction(dboUser, "CHANGE_STATUS", "SUSPENDED",
-	 * "bad player", svw, sww, svn, wr); String suspensionNote =
+	 * massAct.userMassAction(dboUser, "RESET_PASS", null, null, svw, sww, svn, wr);
+	 * massAct.userMassAction(dboUser, "CHANGE_STATUS", "SUSPENDED", "bad player",
+	 * svw, sww, svn, wr); String suspensionNote =
 	 * svn.getNote(dboUser.getObject_id(), "SUSPENSION_NOTE");
-	 * massAct.userMassAction(dboUser, "CHANGE_STATUS", "INACTIVE", null, svw,
-	 * sww, svn, wr); massAct.userMassAction(dboUser, "CHANGE_STATUS", "VALID",
-	 * null, svw, sww, svn, wr); svn.dbRollback(); svw.dbRollback();
-	 * sww.dbRollback(); log4j.info("ok"); } catch (SvException e) {
+	 * massAct.userMassAction(dboUser, "CHANGE_STATUS", "INACTIVE", null, svw, sww,
+	 * svn, wr); massAct.userMassAction(dboUser, "CHANGE_STATUS", "VALID", null,
+	 * svw, sww, svn, wr); svn.dbRollback(); svw.dbRollback(); sww.dbRollback();
+	 * log4j.info("ok"); } catch (SvException e) {
 	 * log4j.error(e.getFormattedMessage()); } finally { if (svr != null) {
 	 * svr.release(); } } }
 	 */
@@ -2431,12 +2502,10 @@ public class NaitsPluginTests {
 			 * DbDataObject anim = svr.getObjectById(584745L,
 			 * SvReader.getTypeIdByName("ANIMAL"), null);
 			 * 
-			 * DbDataArray array =
-			 * rdr.getAnimalSiblingsAccordingMotherTagId(anim, svr); DbDataArray
-			 * result = rdr.generateRandom(array, 5, svr); for(DbDataObject
-			 * animObj: result.getItems()) {
-			 * log4j.debug(animObj.getObject_id()); //TEST FOR RANDOM ARRAY WITH
-			 * N SIZE }
+			 * DbDataArray array = rdr.getAnimalSiblingsAccordingMotherTagId(anim, svr);
+			 * DbDataArray result = rdr.generateRandom(array, 5, svr); for(DbDataObject
+			 * animObj: result.getItems()) { log4j.debug(animObj.getObject_id()); //TEST FOR
+			 * RANDOM ARRAY WITH N SIZE }
 			 */
 
 			LinkedHashMap<String, String> pom = new LinkedHashMap<>();
@@ -2452,22 +2521,21 @@ public class NaitsPluginTests {
 	}
 
 	/*
-	 * @Test public void testForPopulation() { SvReader svr = null; SvWriter svw
-	 * = null; String token = null; Reader rdr = null; Writer wrt = null; try {
-	 * token = login("ADMIN", "welcome"); svr = new SvReader(token); svw = new
+	 * @Test public void testForPopulation() { SvReader svr = null; SvWriter svw =
+	 * null; String token = null; Reader rdr = null; Writer wrt = null; try { token
+	 * = login("ADMIN", "welcome"); svr = new SvReader(token); svw = new
 	 * SvWriter(svr); rdr = new Reader(); wrt = new Writer();
 	 * 
-	 * DbDataObject populationObjVaccHolding = wrt.createPopulation("1",
-	 * "HOLDING"); svw.saveObject(populationObjVaccHolding, false);
+	 * DbDataObject populationObjVaccHolding = wrt.createPopulation("1", "HOLDING");
+	 * svw.saveObject(populationObjVaccHolding, false);
 	 * 
 	 * DbDataObject criterionTypeAnimalGenderObj =
-	 * wrt.createCriteriaType("crit.holding.animal_gender", "GENDER", "EQUAL",
-	 * "1", "NVARCHAR"); svw.saveObject(criterionTypeAnimalGenderObj,false);
+	 * wrt.createCriteriaType("crit.holding.animal_gender", "GENDER", "EQUAL", "1",
+	 * "NVARCHAR"); svw.saveObject(criterionTypeAnimalGenderObj,false);
 	 * 
 	 * DbDataObject criterionTypeAnimalAgeObj =
-	 * wrt.createCriteriaType("crit.holding.animal_age", "BIRTH_DATE",
-	 * "LESS_EQUAL", "0", "DATETIME"); svw.saveObject(criterionTypeAnimalAgeObj,
-	 * false);
+	 * wrt.createCriteriaType("crit.holding.animal_age", "BIRTH_DATE", "LESS_EQUAL",
+	 * "0", "DATETIME"); svw.saveObject(criterionTypeAnimalAgeObj, false);
 	 * 
 	 * DbDataObject criterionObjAnimalGender =
 	 * wrt.createCritera(criterionTypeAnimalGenderObj.getObject_id(), "1",
@@ -2551,12 +2619,10 @@ public class NaitsPluginTests {
 
 			/*
 			 * DbDataObject linkAreaPop = SvLink.getLinkType("AREA_POPULATION",
-			 * areaVillageObj.getObject_type(), popObj.getObject_type());
-			 * DbDataArray allItems =
-			 * svr.getObjectsByLinkedId(areaVillageObj.getObject_id(),
-			 * areaVillageObj.getObject_type(), linkAreaPop,
-			 * popObj.getObject_type(), false, null, 0, 0); DbDataArray rez =
-			 * allItems;
+			 * areaVillageObj.getObject_type(), popObj.getObject_type()); DbDataArray
+			 * allItems = svr.getObjectsByLinkedId(areaVillageObj.getObject_id(),
+			 * areaVillageObj.getObject_type(), linkAreaPop, popObj.getObject_type(), false,
+			 * null, 0, 0); DbDataArray rez = allItems;
 			 */
 
 		} catch (Exception e) {
@@ -2611,53 +2677,50 @@ public class NaitsPluginTests {
 	}
 
 	/*
-	 * @Test public void testHoldingHealthStatusByAniamls() { SvReader svr =
-	 * null; String token = null; ValidationChecks vc = null; try { token =
-	 * login("ADMIN", "welcome"); svr = new SvReader(token); vc = new
-	 * ValidationChecks(); DbDataObject animalMovementObj =
-	 * svr.getObjectById(1201004L, SvReader.getTypeIdByName("ANIMAL_MOVEMENT"),
-	 * null); if
-	 * (vc.checkIfDestinationHoldingHasPositiveHealthStatus(animalMovementObj,
-	 * svr)) { log4j.debug("true"); } else {
+	 * @Test public void testHoldingHealthStatusByAniamls() { SvReader svr = null;
+	 * String token = null; ValidationChecks vc = null; try { token = login("ADMIN",
+	 * "welcome"); svr = new SvReader(token); vc = new ValidationChecks();
+	 * DbDataObject animalMovementObj = svr.getObjectById(1201004L,
+	 * SvReader.getTypeIdByName("ANIMAL_MOVEMENT"), null); if
+	 * (vc.checkIfDestinationHoldingHasPositiveHealthStatus(animalMovementObj, svr))
+	 * { log4j.debug("true"); } else {
 	 * Assert.fail("Animal destination holding is infected"); }
 	 * 
-	 * if (vc.checkIfSourceHoldingHasPositiveHealthStatus(animalMovementObj,
-	 * svr)) { log4j.debug("true"); } else {
-	 * Assert.fail("Animal source holding is infected"); } } catch (SvException
-	 * e) { log4j.error(e.getFormattedMessage()); fail(); } finally { if (svr !=
-	 * null) { svr.release(); } } }
+	 * if (vc.checkIfSourceHoldingHasPositiveHealthStatus(animalMovementObj, svr)) {
+	 * log4j.debug("true"); } else {
+	 * Assert.fail("Animal source holding is infected"); } } catch (SvException e) {
+	 * log4j.error(e.getFormattedMessage()); fail(); } finally { if (svr != null) {
+	 * svr.release(); } } }
 	 */
 
 	/*
 	 * @Test public void testAnimalVaccRecAfterMovement() { SvReader svr = null;
-	 * String token = null; ValidationChecks vc = null; try { token =
-	 * login("ADMIN", "welcome"); svr = new SvReader(token); vc = new
-	 * ValidationChecks(); DbDataObject animalObj = svr.getObjectById(1200125L,
+	 * String token = null; ValidationChecks vc = null; try { token = login("ADMIN",
+	 * "welcome"); svr = new SvReader(token); vc = new ValidationChecks();
+	 * DbDataObject animalObj = svr.getObjectById(1200125L,
 	 * SvReader.getTypeIdByName("ANIMAL_MOVEMENT"), null); if
 	 * (vc.checkIfAnimalHaveVaccRecordAfterMovementRequest(animalObj, svr)) {
 	 * log4j.debug("true"); } else {
 	 * Assert.fail("Animal is not vaccinated after movement"); } } catch
-	 * (SvException e) { log4j.error(e.getFormattedMessage()); fail(); } finally
-	 * { if (svr != null) { svr.release(); } } }
+	 * (SvException e) { log4j.error(e.getFormattedMessage()); fail(); } finally {
+	 * if (svr != null) { svr.release(); } } }
 	 */
 
 	/*
-	 * @Test public void testAreaHealthStatus() { SvReader svr = null; SvWriter
-	 * svw = null; String token = null; Reader rdr = null; Writer wrt = null; //
-	 * 540752 try { token = login("ADMIN", "welcome"); svr = new
-	 * SvReader(token); svw = new SvWriter(svr); rdr = new Reader(); wrt = new
-	 * Writer(); DbDataObject holding = svr.getObjectById(1200087L,
-	 * SvReader.getTypeIdByName("HOLDING"), null); DbDataObject animalObj =
-	 * wrt.createAnimalObject("1", "1", null, "2018-12-06", null, null, "1",
-	 * "17", "10000019", null, "2", "GE", holding.getObject_id());
+	 * @Test public void testAreaHealthStatus() { SvReader svr = null; SvWriter svw
+	 * = null; String token = null; Reader rdr = null; Writer wrt = null; // 540752
+	 * try { token = login("ADMIN", "welcome"); svr = new SvReader(token); svw = new
+	 * SvWriter(svr); rdr = new Reader(); wrt = new Writer(); DbDataObject holding =
+	 * svr.getObjectById(1200087L, SvReader.getTypeIdByName("HOLDING"), null);
+	 * DbDataObject animalObj = wrt.createAnimalObject("1", "1", null, "2018-12-06",
+	 * null, null, "1", "17", "10000019", null, "2", "GE", holding.getObject_id());
 	 * svw.saveObject(animalObj, false);
 	 * 
-	 * String pom = rdr.getAreaHealthStatus("29326031",12, svr);
-	 * log4j.debug(pom); if (pom != "Healthy") {
-	 * Assert.fail("Area health status is negative"); } else {
-	 * log4j.debug("Area is healthy!"); } } catch (SvException e) {
-	 * log4j.error(e.getFormattedMessage()); fail(); } finally { if (svr !=
-	 * null) { svr.release(); } } }
+	 * String pom = rdr.getAreaHealthStatus("29326031",12, svr); log4j.debug(pom);
+	 * if (pom != "Healthy") { Assert.fail("Area health status is negative"); } else
+	 * { log4j.debug("Area is healthy!"); } } catch (SvException e) {
+	 * log4j.error(e.getFormattedMessage()); fail(); } finally { if (svr != null) {
+	 * svr.release(); } } }
 	 */
 
 	@Test
@@ -2678,11 +2741,10 @@ public class NaitsPluginTests {
 			svw.setAutoCommit(false);
 
 			/*
-			 * DbDataObject areaHealthObjToFail = wrt.createAreaHealth("BRUC",
-			 * "2", "Perun", 1279293L); if
-			 * (!vc.checkIfAreaHasDuplicateDisease(areaHealthObjToFail, svr)) {
-			 * log4j.info("Area does not have duplicate disease"); } else {
-			 * fail(); } svw.saveObject(areaHealthObjToFail, false);
+			 * DbDataObject areaHealthObjToFail = wrt.createAreaHealth("BRUC", "2", "Perun",
+			 * 1279293L); if (!vc.checkIfAreaHasDuplicateDisease(areaHealthObjToFail, svr))
+			 * { log4j.info("Area does not have duplicate disease"); } else { fail(); }
+			 * svw.saveObject(areaHealthObjToFail, false);
 			 */
 		} catch (SvException e) {
 			log4j.error(e.getFormattedMessage());
@@ -2702,7 +2764,7 @@ public class NaitsPluginTests {
 		try {
 			token = login("ADMIN", "welcome");
 			svr = new SvReader(token);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			DbDataObject dboAnimal = svr.getObjectById(1204851L, 28569L, null);
 			String result = "";
 			result = rdr.calcAnimalAge(dboAnimal.getObject_id(), svr);
@@ -2794,9 +2856,8 @@ public class NaitsPluginTests {
 			token = login("A.ADMIN3", "naits1234");
 			svr = new SvReader(token);
 			/*
-			 * String pattern = "yyyy-MM-dd"; DbDataObject dboQuarantine =
-			 * svr.getObjectById(2303348L,
-			 * SvReader.getTypeIdByName("QUARANTINE"),null);
+			 * String pattern = Tc.DATE_PATTERN; DbDataObject dboQuarantine =
+			 * svr.getObjectById(2303348L, SvReader.getTypeIdByName("QUARANTINE"),null);
 			 * dboQuarantine.setObject_id(0L);
 			 * vc.quarantineOnSaveValidationSet(dboQuarantine,svr);
 			 */
@@ -3017,12 +3078,14 @@ public class NaitsPluginTests {
 			jArr.add(dboAnimal.toSimpleJson());
 			// jArr.add(dboTransfer2.toSimpleJson());
 
-			String pom = ma.animalFlockMassHandler("ANIMAL_MOVEMENT", "MOVE", Tc.FINISH_MOVEMENT, "73059",
-					new DateTime().toString().substring(0, 9), null, null, null, null, null, null, null, null, jArr,
-					svr.getSessionId());
+			/*
+			 * String pom = ma.animalFlockMassHandler("ANIMAL_MOVEMENT", "MOVE",
+			 * Tc.FINISH_MOVEMENT, "73059", new DateTime().toString().substring(0, 9), null,
+			 * null, null, null, null, null, null, null, jArr, svr.getSessionId());
+			 */
 			// String res = ma.exportCertifiedAnimals(1921235L, svr);//
 			// EXPORT_CERT
-			log4j.debug(pom);
+			// log4j.debug(pom);
 
 		} catch (SvException e) {
 			log4j.error(e.getFormattedMessage());
@@ -3216,13 +3279,11 @@ public class NaitsPluginTests {
 			log4j.debug("INT" + dboAnimal.getObject_id().intValue());
 
 			/*
-			 * DbDataArray animalSibilings = null; DbDataObject twinChild =
-			 * null; if (vc.checkIfAnimalIsTwin(dboAnimal, svr)) {
-			 * animalSibilings =
-			 * rdr.getAnimalSiblingsAccordingMotherTagId(dboAnimal, svr);
-			 * twinChild = animalSibilings.get(0);
-			 * wr.notifyUserGroupByGroupName("ADMINISTRATORS", "SYS_GEN",
-			 * "Twins registration detected.", "Animal with ear tag ID: " +
+			 * DbDataArray animalSibilings = null; DbDataObject twinChild = null; if
+			 * (vc.checkIfAnimalIsTwin(dboAnimal, svr)) { animalSibilings =
+			 * rdr.getAnimalSiblingsAccordingMotherTagId(dboAnimal, svr); twinChild =
+			 * animalSibilings.get(0); wr.notifyUserGroupByGroupName("ADMINISTRATORS",
+			 * "SYS_GEN", "Twins registration detected.", "Animal with ear tag ID: " +
 			 * dboAnimal.getVal("ANIMAL_ID").toString() +
 			 * " is twin with animal with ear tag ID: " +
 			 * twinChild.getVal("ANIMAL_ID").toString(), "", null, svr); }
@@ -3337,7 +3398,7 @@ public class NaitsPluginTests {
 		ValidationChecks vc = new ValidationChecks();
 		// 540752
 		try {
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			DateTime ld = new DateTime("2019-03-15");
 			token = login("A.ADMIN3", "naits1234");
 			svr = new SvReader(token);
@@ -3371,7 +3432,7 @@ public class NaitsPluginTests {
 		try {
 			token = login("ADMIN", "welcome");
 			svr = new SvReader(token);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			DateTime ld = new DateTime("2017-10-21");
 			DateTime now = new DateTime();
 			DateTime convertedCurrentDate = DateTime.parse(now.toString().substring(0, 10),
@@ -3554,12 +3615,11 @@ public class NaitsPluginTests {
 			// SvReader.getTypeIdByName("POST_SLAUGHT"), null);
 			/*
 			 * DbDataObject preToTest = new DbDataObject();
-			 * preToTest.setObject_type(SvReader.getTypeIdByName(Tc.
-			 * PRE_SLAUGHT_FORM)); preToTest.setVal("CLINICAL_EXAM",
-			 * "CLINIC_SUSPICIOUS"); preToTest.setVal("DECISION", "1");
-			 * preToTest.setVal("DISEASE", "1234");
-			 * preToTest.setParent_id(animalObj.getObject_id());
-			 * svw.saveObject(preToTest, false);
+			 * preToTest.setObject_type(SvReader.getTypeIdByName(Tc. PRE_SLAUGHT_FORM));
+			 * preToTest.setVal("CLINICAL_EXAM", "CLINIC_SUSPICIOUS");
+			 * preToTest.setVal("DECISION", "1"); preToTest.setVal("DISEASE", "1234");
+			 * preToTest.setParent_id(animalObj.getObject_id()); svw.saveObject(preToTest,
+			 * false);
 			 */
 
 			DbDataObject preSl = svr.getObjectById(1936593L, SvReader.getTypeIdByName(Tc.PRE_SLAUGHT_FORM), null);
@@ -3709,34 +3769,6 @@ public class NaitsPluginTests {
 	}
 
 	@Test
-	public void testVaccEventDisease() {
-		SvReader svr = null;
-		String token = null;
-		Reader rdr = new Reader();
-		ValidationChecks vc = new ValidationChecks();
-		// 540752
-		try {
-			token = login("A.ADMIN3", "naits1234");
-			svr = new SvReader(token);
-			DbDataObject dboAnimal = rdr.findAppropriateAnimalByAnimalId("223989", svr);
-			if (vc.checkIfAnimalHasAnyActiveVaccEventForSpecificDisease(dboAnimal, svr)) {
-				log4j.debug("IT CAN PASS");
-			} else {
-				log4j.debug("IT HAS DISEASE");
-			}
-
-			System.err.println();
-		} catch (SvException e) {
-			log4j.error(e.getFormattedMessage());
-			fail();
-		} finally {
-			if (svr != null) {
-				svr.release();
-			}
-		}
-	}
-
-	@Test
 	public void testDependentClassRace() {
 		SvReader svr = null;
 		String token = null;
@@ -3750,10 +3782,9 @@ public class NaitsPluginTests {
 
 			/*
 			 * DbSearchCriterion cr1 = new DbSearchCriterion("ANIMAL_CLASS",
-			 * DbCompareOperand.EQUAL, animalClass); DbSearchExpression dbse =
-			 * new DbSearchExpression(); dbse.addDbSearchItem(cr1); DbDataArray
-			 * ar = svr.getObjects(dbse,
-			 * SvReader.getTypeIdByName(Tc.ANIMAL_TYPE), null, 0, 0);
+			 * DbCompareOperand.EQUAL, animalClass); DbSearchExpression dbse = new
+			 * DbSearchExpression(); dbse.addDbSearchItem(cr1); DbDataArray ar =
+			 * svr.getObjects(dbse, SvReader.getTypeIdByName(Tc.ANIMAL_TYPE), null, 0, 0);
 			 * 
 			 * log4j.debug("THIS  " + ar.toSimpleJson().toString());
 			 */
@@ -3828,11 +3859,10 @@ public class NaitsPluginTests {
 			 * DbDataObject dboObjectToHandle = svr.getObjectById(1269556L,
 			 * SvReader.getTypeIdByName(Tc.HOLDING), null); if
 			 * ((!subActionName.toUpperCase().equals(Tc.SLAUGHTRD)) &&
-			 * vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getObject_id(
-			 * ), svr)) { if (!subActionName.toUpperCase().equals(Tc.DESTROYED)
-			 * &&
-			 * vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getObject_id(
-			 * ), svr)) { throw (new SvException("naits.error.THIS_IS_ELSE_IF",
+			 * vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getObject_id( ), svr)) {
+			 * if (!subActionName.toUpperCase().equals(Tc.DESTROYED) &&
+			 * vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getObject_id( ), svr)) {
+			 * throw (new SvException("naits.error.THIS_IS_ELSE_IF",
 			 * svr.getInstanceUser())); } }
 			 */
 
@@ -3920,8 +3950,7 @@ public class NaitsPluginTests {
 	/**
 	 * Convert String to Long.
 	 *
-	 * @param string
-	 *            String to be converted.
+	 * @param string String to be converted.
 	 * @return Converted Long.
 	 */
 	public Long convertStringIntoLong(String string) {
@@ -3944,153 +3973,6 @@ public class NaitsPluginTests {
 			System.out.println(convertStringIntoLong(obj_id_str));
 		} else {
 			System.out.println("NE E");
-		}
-	}
-
-	@Test
-	public void testObjSummaryInfoPopulation() {
-		SvReader svr = null;
-		SvWriter svw = null;
-		String token = null;
-		Reader rdr = new Reader();
-		Writer wr = new Writer();
-		ValidationChecks vc = new ValidationChecks();
-		// 540752
-		try {
-			token = login("A.ADMIN3", "naits1234");
-			svr = new SvReader(token);
-			svw = new SvWriter(svr);
-			String animalClass = "1";
-			String subActionName = "";
-			/*
-			 * DbDataObject dboObjectToHandle = svr.getObjectById(1269556L,
-			 * SvReader.getTypeIdByName(Tc.HOLDING), null); if
-			 * ((!subActionName.toUpperCase().equals(Tc.SLAUGHTRD)) &&
-			 * vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getObject_id(
-			 * ), svr)) { if (!subActionName.toUpperCase().equals(Tc.DESTROYED)
-			 * &&
-			 * vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getObject_id(
-			 * ), svr)) { throw (new SvException("naits.error.THIS_IS_ELSE_IF",
-			 * svr.getInstanceUser())); } }
-			 */
-			// 2439256L
-			DbDataObject populationObj = svr.getObjectById(2439256L, SvReader.getTypeIdByName(Tc.POPULATION), null);
-
-			DbSearchCriterion cr1 = new DbSearchCriterion("NOTE", DbCompareOperand.LIKE,
-					"%" + populationObj.getObject_id().toString());
-			DbSearchExpression dbse = new DbSearchExpression();
-			dbse.addDbSearchItem(cr1);
-			DbDataArray getJob = svr.getObjects(dbse, svCONST.OBJECT_TYPE_JOB, null, 0, 0);
-			getJob.getSortedItems("DT_INSERT");
-			DbDataObject jobWeNEed = null;
-			DbDataObject taskWeNeed = null;
-			if (getJob != null && getJob.size() > 0) {
-				// log4j.debug(getJob.toSimpleJson());
-				jobWeNEed = getJob.get(getJob.size() - 1);
-			}
-
-			DbDataArray jobTasks = svr.getObjectsByParentId(jobWeNEed.getObject_id(), svCONST.OBJECT_TYPE_JOB_TASK,
-					null, 0, 0, "DT_INSERT");
-
-			if (jobTasks != null && jobTasks.size() > 0) {
-				taskWeNeed = jobTasks.get(jobTasks.size() - 1);
-			}
-
-			DbDataArray svTasks = svr.getObjectsByParentId(taskWeNeed.getObject_id(), svCONST.OBJECT_TYPE_TASK, null, 0,
-					0, "DT_INSERT");
-
-			for (DbDataObject svTask : svTasks.getItems()) {
-				if (svTask != null && !svTask.getStatus().equals("FINISHED")) {
-					// log4j.debug("NO");
-					break;
-				} else {
-					// log4j.debug("OK");
-				}
-			}
-
-			// log4j.debug(rdr.getAreaSelectedList(populationObj, svr));
-
-			// log4j.debug("FILTERS " +
-			// rdr.getSelectedFiltersList(populationObj, svr));
-
-			DbDataArray areas = rdr.getLinkedAreaPerPopulation(populationObj, svr);
-			// DbDataArray filters = rdr.getPopulationChilds(populationObj,
-			// Tc.CRITERIA, svr);
-			// DbDataArray samples = rdr.getPopulationChilds(populationObj,
-			// Tc.SAMPLE, svr);
-			String sampleApply = rdr.checkIfSampleSelectionIsApplied(populationObj, svr);
-			LinkedHashMap<String, String> jsonOrderedMap = new LinkedHashMap<>();
-			String areaSelected = rdr.getAreaSelectedList(populationObj, svr);
-			String filterAppply = rdr.checkIfFiltersAreApplied(populationObj, svr);
-			String filterSelected = rdr.getSelectedFiltersList(populationObj, svr);
-			if (areaSelected != null) {
-				jsonOrderedMap.put("naits.show.areas", areaSelected);
-			}
-			if (filterSelected != null) {
-				jsonOrderedMap.put("naits.show.filters", filterSelected);
-			}
-			if (sampleApply != null) {
-				jsonOrderedMap.put("naits.show.filter_applied", "Filter applied: " + sampleApply);
-			}
-			if (filterAppply != null) {
-				jsonOrderedMap.put("naits.show.samples_applied",
-						"Selection (Randomized) Sample Applied: " + sampleApply);
-			}
-
-			log4j.debug(jsonOrderedMap.toString());
-
-		} catch (SvException e) {
-			log4j.error(e.getFormattedMessage());
-			fail();
-		} finally {
-			if (svr != null) {
-				svr.release();
-			}
-		}
-	}
-
-	@Test
-	public void testCritTypes() {
-		SvReader svr = null;
-		SvWriter svw = null;
-		String token = null;
-		Reader rdr = new Reader();
-		Writer wr = new Writer();
-		ValidationChecks vc = new ValidationChecks();
-		// 540752
-		try {
-			token = login("A.ADMIN3", "naits1234");
-			svr = new SvReader(token);
-			svw = new SvWriter(svr);
-			DbDataObject populationObj = svr.getObjectById(2439256L, SvReader.getTypeIdByName(Tc.POPULATION), null);
-			DbDataArray filters = rdr.getChildsByParentObject(populationObj, Tc.CRITERIA, svr);
-			ArrayList<String> filtersArray = new ArrayList<>();
-			String criteriaString = "";
-			Long critId = null;
-			if (filters != null) {
-				for (DbDataObject filter : filters.getItems()) {
-					if (filter.getVal("CRITERIA_TYPE_ID") != null && filter.getVal("VALUE") != null) {
-						critId = Long.valueOf(filter.getVal("CRITERIA_TYPE_ID").toString());
-						DbDataArray critTypes = rdr.getCriteriaTypes(critId, svr);
-						for (DbDataObject ct : critTypes.getItems()) {
-							if (ct.getVal("LABEL_CODE") != null && ct.getVal("COMPARE_OPERAND") != null)
-								filtersArray.add(ct.getVal("LABEL_CODE").toString() + " "
-										+ ct.getVal("COMPARE_OPERAND").toString() + ": "
-										+ filter.getVal("VALUE").toString());
-						}
-					}
-				}
-				if (filtersArray != null && filtersArray.size() > 0) {
-					criteriaString = String.join(", ", filtersArray);
-				}
-			}
-			log4j.debug(criteriaString);
-		} catch (SvException e) {
-			log4j.error(e.getFormattedMessage());
-		} finally {
-			if (svr != null) {
-				svr.release();
-			}
 		}
 	}
 
@@ -4137,8 +4019,8 @@ public class NaitsPluginTests {
 			svw.setAutoCommit(false);
 			DbDataObject dboAreaHealth = new DbDataObject();
 			/*
-			 * dboAreaHealth.setObject_type(SvReader.getTypeIdByName(Tc.
-			 * AREA_HEALTH)); dboAreaHealth.setVal("DISEASE_ID", "TUBRC");
+			 * dboAreaHealth.setObject_type(SvReader.getTypeIdByName(Tc. AREA_HEALTH));
+			 * dboAreaHealth.setVal("DISEASE_ID", "TUBRC");
 			 * dboAreaHealth.setVal("AREA_STATUS", "0");
 			 * dboAreaHealth.setParent_id(1280344L);
 			 */
@@ -4433,8 +4315,7 @@ public class NaitsPluginTests {
 				svr.release();
 			}
 			/*
-			 * if (svw != null) { svw.release(); } if (sww != null) {
-			 * sww.release(); }
+			 * if (svw != null) { svw.release(); } if (sww != null) { sww.release(); }
 			 */
 		}
 	}
@@ -4592,12 +4473,11 @@ public class NaitsPluginTests {
 
 			DbDataObject animalObj = rdr.findAppropriateAnimalByAnimalId("10417750", svr);
 			/*
-			 * DbDataObject linkAnimVaccBook =
-			 * svr.getLinkType("ANIMAL_VACC_BOOK", animalObj.getObject_type(),
-			 * SvReader.getTypeIdByName(Tc.VACCINATION_BOOK)); DbDataArray arr =
-			 * svr.getObjectsByLinkedId(animalObj.getObject_id(),
-			 * linkAnimVaccBook, null, 0, 0); arr.getSortedItems("DT_INSERT",
-			 * true); DbDataObject test = arr.get(arr.size() - 1);
+			 * DbDataObject linkAnimVaccBook = svr.getLinkType("ANIMAL_VACC_BOOK",
+			 * animalObj.getObject_type(), SvReader.getTypeIdByName(Tc.VACCINATION_BOOK));
+			 * DbDataArray arr = svr.getObjectsByLinkedId(animalObj.getObject_id(),
+			 * linkAnimVaccBook, null, 0, 0); arr.getSortedItems("DT_INSERT", true);
+			 * DbDataObject test = arr.get(arr.size() - 1);
 			 */
 			DbDataObject dbo = svr.getObjectById(1278406L, SvReader.getTypeIdByName(Tc.OTHER_ANIMALS), null);
 			int count = 0;
@@ -4727,7 +4607,7 @@ public class NaitsPluginTests {
 
 			token = login("ADMIN", "welcome");
 			svr = new SvReader(token);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			DateTime ld = new DateTime("2018-09-04");
 			DateTime now = new DateTime();
 			DateTime convertedCurrentDate = DateTime.parse(now.toString().substring(0, 10),
@@ -5039,7 +4919,7 @@ public class NaitsPluginTests {
 
 			token = login("A.ADMIN3", "naits1234");
 			svr = new SvReader(token);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			DateTime ld = new DateTime("2017-10-21");
 			DateTime now = new DateTime();
 			DateTime convertedCurrentDate = DateTime.parse(now.toString().substring(0, 10),
@@ -5224,7 +5104,7 @@ public class NaitsPluginTests {
 			vc = new ValidationChecks();
 			Writer wr = new Writer();
 
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			DbDataObject dbo = svr.getObjectById(2594634L, SvReader.getTypeIdByName(Tc.LAB_SAMPLE), null);
 			dbo.setVal(Tc.LABORATORY_NAME, "TEST_TEST_4");
 
@@ -5457,7 +5337,7 @@ public class NaitsPluginTests {
 			vc = new ValidationChecks();
 			Writer wr = new Writer();
 
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 
 			DbDataObject labSampleObj = svr.getObjectById(2598122L, SvReader.getTypeIdByName(Tc.LAB_SAMPLE),
 					new DateTime());
@@ -5595,7 +5475,8 @@ public class NaitsPluginTests {
 					null);
 			DbDataObject dboOrgUnit = svr.getObjectById(dboOrder.getParent_id(), svCONST.OBJECT_TYPE_ORG_UNITS, null);
 
-			result = vc.checkIfOrgUnitContainsEarTagByRange(dboRange, dboOrgUnit, svr);
+			// result = vc.checkIfOrgUnitContainsEarTagByRange(dboRange,
+			// dboOrgUnit, svr);
 			if (result.equals(true)) {
 				log4j.debug("ITS TRUE");
 			} else {
@@ -5726,7 +5607,7 @@ public class NaitsPluginTests {
 			svr = new SvReader(token);
 			svw = new SvWriter(svr);
 			svw.dbSetAutoCommit(false);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			OnSaveValidations call = new OnSaveValidations();
 			SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName("ANIMAL"));
 			SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.EXPORT_CERT));
@@ -5774,7 +5655,7 @@ public class NaitsPluginTests {
 			String result = "";
 			token = login("A.ADMIN3", "naits1234");
 			svr = new SvReader(token);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			DbDataObject animalObj = rdr.findAppropriateAnimalByAnimalId("5698745", svr);
 			DbDataObject dboObjectToHandle = svr.getObjectById(112671L, SvReader.getTypeIdByName(Tc.ANIMAL), null);
 			JsonObject jsonAnimObj = new JsonObject();
@@ -5819,9 +5700,11 @@ public class NaitsPluginTests {
 			JsonArray jsonArr = new JsonArray();
 			jsonArr.add(animalObj.toSimpleJson());
 
-			String res = ma.animalFlockMassHandler("ANIMAL", "ANIMAL_CHECKS", "PHYSICAL_CHECK", "2", "", "", "", "", "",
-					"", "", "", "", jsonArr, svr.getSessionId());
-			log4j.debug(res);
+			/*
+			 * String res = ma.animalFlockMassHandler("ANIMAL", "ANIMAL_CHECKS",
+			 * "PHYSICAL_CHECK", "2", "", "", "", "", "", "", "", "", "", jsonArr,
+			 * svr.getSessionId()); log4j.debug(res);
+			 */
 		} catch (SvException e) {
 			log4j.error(e.getFormattedMessage());
 			fail();
@@ -6021,7 +5904,7 @@ public class NaitsPluginTests {
 			token = login("A.ADMIN3", "naits1234");
 			svr = new SvReader(token);
 			svw = new SvWriter(svr);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			svw.setAutoCommit(false);
 			OnSaveValidations call = new OnSaveValidations();
 			SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.MOVEMENT_DOC));
@@ -6059,7 +5942,7 @@ public class NaitsPluginTests {
 			svr = new SvReader(token);
 			svw = new SvWriter(svr);
 			svl = new SvLink(svr);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			svw.setAutoCommit(false);
 
 			OnSaveValidations call = new OnSaveValidations();
@@ -6125,7 +6008,7 @@ public class NaitsPluginTests {
 			svr = new SvReader(token);
 			svw = new SvWriter(svr);
 			svl = new SvLink(svr);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			svw.setAutoCommit(false);
 
 			OnSaveValidations call = new OnSaveValidations();
@@ -6139,9 +6022,8 @@ public class NaitsPluginTests {
 
 			/*
 			 * DbDataObject preMortObj =
-			 * svr.getObjectById(3129417L,SvReader.getTypeIdByName(Tc.
-			 * PRE_SLAUGHT_FORM), null); preMortObj.setDt_delete(new
-			 * DateTime()); svw.saveObject(preMortObj);
+			 * svr.getObjectById(3129417L,SvReader.getTypeIdByName(Tc. PRE_SLAUGHT_FORM),
+			 * null); preMortObj.setDt_delete(new DateTime()); svw.saveObject(preMortObj);
 			 */
 
 			DbDataObject preMortemForm = wr.createPreMortemForm("CLINIC_HEALTHY", "1", 3126080L);
@@ -6182,7 +6064,7 @@ public class NaitsPluginTests {
 			svr = new SvReader(token);
 			svw = new SvWriter(svr);
 			svl = new SvLink(svr);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			svw.setAutoCommit(false);
 
 			DbDataObject labSampleObject = rdr.getLabSampleBySampleId("101171230001", svr);
@@ -6234,7 +6116,7 @@ public class NaitsPluginTests {
 			svr = new SvReader(token);
 			svw = new SvWriter(svr);
 			svl = new SvLink(svr);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			svw.setAutoCommit(false);
 			DbDataObject animalObj = svr.getObjectById(2583001L, SvReader.getTypeIdByName(Tc.ANIMAL), null);
 
@@ -6268,7 +6150,7 @@ public class NaitsPluginTests {
 			svr = new SvReader(token);
 			svw = new SvWriter(svr);
 			svl = new SvLink(svr);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			svw.setAutoCommit(false);
 			DbDataObject animalObj = svr.getObjectById(2583001L, SvReader.getTypeIdByName(Tc.ANIMAL), null);
 
@@ -6301,7 +6183,7 @@ public class NaitsPluginTests {
 			svr = new SvReader(token);
 			svw = new SvWriter(svr);
 			svl = new SvLink(svr);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			svw.setAutoCommit(false);
 			DbDataArray diseases = svr.getObjectsByTypeId(SvReader.getTypeIdByName(Tc.DISEASE), null, 0, 0);
 
@@ -6341,7 +6223,7 @@ public class NaitsPluginTests {
 			token = login("A.ADMIN3", "naits1234");
 			svr = new SvReader(token);
 			svw = new SvWriter(svr);
-			String pattern = "yyyy-MM-dd";
+			String pattern = Tc.DATE_PATTERN;
 			svw.setAutoCommit(false);
 			/*
 			 * DbDataObject vaccBook = svr.getObjectById(2584990L,
@@ -6677,21 +6559,56 @@ public class NaitsPluginTests {
 		MassActions ma = new MassActions();
 		// 540752
 		try {
-			token = login("A.ADMIN3", "naits1234");
+			token = login("A.ADMIN3", "1234Naits1234");
 			svr = new SvReader(token);
 			svw = new SvWriter(svr);
 			svw.setAutoCommit(false);
 
-			DbDataObject dboTransfer = svr.getObjectById(3226487L, SvReader.getTypeIdByName(Tc.TRANSFER), null);
-
+			DbDataObject dboTransfer;
 			JsonArray jArr = new JsonArray();
 
-			jArr.add(dboTransfer.toSimpleJson());
-			// jArr.add(dboTransfer2.toSimpleJson());
+			// 100.144 examples
+			/*
+			 * dboTransfer = svr.getObjectById(13310864L,
+			 * SvReader.getTypeIdByName(Tc.TRANSFER), null);
+			 * jArr.add(dboTransfer.toSimpleJson()); dboTransfer =
+			 * svr.getObjectById(13310865L, SvReader.getTypeIdByName(Tc.TRANSFER), null);
+			 * jArr.add(dboTransfer.toSimpleJson()); dboTransfer =
+			 * svr.getObjectById(13310866L, SvReader.getTypeIdByName(Tc.TRANSFER), null);
+			 * jArr.add(dboTransfer.toSimpleJson());
+			 */
+
+			// mepa test param
+			// 12122593
+			// 12158641
+			// 12175440
+			// 12189776
+			// 12197266
+
+			// dboTransfer = svr.getObjectById(12122593L,
+			// SvReader.getTypeIdByName(Tc.TRANSFER), null);
+			// jArr.add(dboTransfer.toSimpleJson());
+			DbSearchCriterion dbc1 = new DbSearchCriterion(Tc.STATUS, DbCompareOperand.EQUAL, Tc.DRAFT);
+			DbSearchCriterion dbc2 = new DbSearchCriterion(Tc.OBJECT_ID, DbCompareOperand.LESS, 13400000);
+			DbSearchExpression dbSearchExp = new DbSearchExpression();
+			DbDataArray allDraftTransfers = svr.getObjects(dbSearchExp.addDbSearchItem(dbc1),
+					SvReader.getTypeIdByName(Tc.TRANSFER), null, 0, 0);
+
+			int count = 0;
+			// for (DbDataObject tempTransfer : allDraftTransfers.getItems()) {
+			// jArr.add(tempTransfer.toSimpleJson());
+			// count++;
+			// if (count == 10) {
+			// break;
+			// }
+			// }
+			// dboTransfer = svr.getObjectById(12546281L,
+			// SvReader.getTypeIdByName(Tc.TRANSFER), null);
+			// jArr.add(dboTransfer.toSimpleJson());
 
 			// String pom = wr.moveInventoryItem(jArr, svr, svw);
 
-			String pom = wr.moveTransferRangeAndGenerateToInventoryItem(jArr, svr.getSessionId());
+			String pom = wr.moveTransferRangeAndGenerateToInventoryItem(allDraftTransfers, svr.getSessionId());
 
 			log4j.debug(pom);
 
@@ -6706,47 +6623,6 @@ public class NaitsPluginTests {
 			}
 			if (svw != null) {
 				svw.release();
-			}
-		}
-	}
-
-	@Test
-	public void testCancelMovement() throws Exception {
-		// 78428 animal obj_id
-		SvReader svr = null;
-		SvWriter svw = null;
-		String token = null;
-		Reader rdr = new Reader();
-		MassActions ma = new MassActions();
-		// 540752
-		try {
-			token = login("A.ADMIN3", "naits1234");
-			svr = new SvReader(token);
-			svw = new SvWriter(svr);
-			svw.setAutoCommit(false);
-
-			DbDataObject dboTransfer = rdr.findAppropriateAnimalByAnimalId("0447556", svr);
-
-			DbDataObject dboTransfer2 = rdr.findAppropriateAnimalByAnimalId("10588973", svr);
-
-			JsonArray jArr = new JsonArray();
-
-			jArr.add(dboTransfer.toSimpleJson());
-			jArr.add(dboTransfer2.toSimpleJson());
-
-			String pom = ma.animalFlockMassHandler("ANIMAL_MOVEMENT", "MOVE", Tc.CANCEL_MOVEMENT, "73831", null, null,
-					null, null, null, null, null, null, null, jArr, svr.getSessionId());
-			// String res = ma.exportCertifiedAnimals(1921235L, svr);//
-			// EXPORT_CERT
-
-			log4j.debug(pom);
-
-		} catch (SvException e) {
-			log4j.error(e.getFormattedMessage());
-			fail();
-		} finally {
-			if (svr != null) {
-				svr.release();
 			}
 		}
 	}
@@ -7159,120 +7035,6 @@ public class NaitsPluginTests {
 	}
 
 	@Test
-	public void testPostMortemGenerate() throws Exception {
-		SvReader svr = null;
-		String token = null;
-		Reader rdr = new Reader();
-		Writer wr = new Writer();
-		MassActions ma = new MassActions();
-		// 540752
-		try {
-			String result = "";
-			token = login("A.ADMIN3", "naits1234");
-			svr = new SvReader(token);
-			OnSaveValidations call = new OnSaveValidations();
-			SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.PRE_SLAUGHT_FORM));
-			// 12331233
-			DbDataObject animalObj = rdr.findAppropriateAnimalByAnimalId("56456645456", svr);
-			DbDataObject animalObj1 = rdr.findAppropriateAnimalByAnimalId("456566777", svr);
-
-			// 1313123000041
-			JsonArray jsonArr = new JsonArray();
-			jsonArr.add(animalObj.toSimpleJson());
-			jsonArr.add(animalObj1.toSimpleJson());
-
-			String res = ma.animalFlockMassHandler("ANIMAL", "OTHER", "GENERATE_POSTMORTEM", "73619", null, null, null,
-					null, null, null, null, null, null, jsonArr, svr.getSessionId());
-			log4j.debug(res);
-		} catch (SvException e) {
-			log4j.error(e.getFormattedMessage());
-			fail();
-		} finally {
-			if (svr != null) {
-				svr.release();
-			}
-		}
-	}
-
-	@Test
-	public void diseaseMovementPermision() throws Exception {
-		SvReader svr = null;
-		SvWriter svw = null;
-		String token = null;
-		Reader rdr = new Reader();
-		Writer wr = new Writer();
-		MassActions ma = new MassActions();
-		ValidationChecks vc = new ValidationChecks();
-		// 540752
-		try {
-			String result = "";
-			token = login("A.ADMIN3", "naits1234");
-			svr = new SvReader(token);
-
-			DbDataObject dboHolding = rdr.findAppropriateHoldingByPic("3225345505532", svr);
-
-			if (!vc.checkIfHoldingIsSlaughterhouse(dboHolding).booleanValue()) {
-				log4j.debug("TRUE");
-			} else {
-				log4j.debug("FALSE");
-			}
-
-		} catch (SvException e) {
-			log4j.error(e.getFormattedMessage());
-			fail();
-		} finally {
-			if (svr != null) {
-				svr.release();
-			}
-
-			if (svw != null) {
-				svw.release();
-			}
-		}
-	}
-
-	@Test
-	public void testFlockUnitMovement() throws Exception {
-		// 78428 animal obj_id
-		SvReader svr = null;
-		SvWriter svw = null;
-		String token = null;
-		Reader rdr = new Reader();
-		MassActions ma = new MassActions();
-		// 540752
-		try {
-			token = login("A.ADMIN3", "naits1234");
-			svr = new SvReader(token);
-			svw = new SvWriter(svr);
-			svw.setAutoCommit(false);
-			OnSaveValidations call = new OnSaveValidations();
-			SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.FLOCK));
-			// DbDataObject dboTransfer = svr.getObjectById(21622977L,
-			// SvReader.getTypeIdByName(Tc.ANIMAL_MOVEMENT), null);
-			DbDataObject dboFlock = svr.getObjectById(21628213L, SvReader.getTypeIdByName(Tc.FLOCK), null);
-
-			JsonArray jArr = new JsonArray();
-
-			jArr.add(dboFlock.toSimpleJson());
-			// jArr.add(dboTransfer2.toSimpleJson());
-
-			String pom = ma.moveFlockUnits("FLOCK", "MOVE", Tc.START_MOVEMENT, "75369", "", null, null, "FOOT", null,
-					"2019-09-27", "2019-09-27", "2019-09-27", "4", 0L, 0L, 3L, 3L, jArr, svr.getSessionId());
-			// FLOCK/move/START_MOVEMENT/75369/null/null/null/FOOT/null/2019-09-27/2019-09-27/2019-09-27/4/0/0/3/3
-
-			log4j.debug(pom);
-
-		} catch (SvException e) {
-			log4j.error(e.getFormattedMessage());
-			fail();
-		} finally {
-			if (svr != null) {
-				svr.release();
-			}
-		}
-	}
-
-	@Test
 	public void testPreOrPostSlaughter() throws Exception {
 		// 78428 animal obj_id
 		SvReader svr = null;
@@ -7515,17 +7277,15 @@ public class NaitsPluginTests {
 			svr = new SvReader(token);
 			String languageId = svr.getSessionLocale(token).getVal("LOCALE_ID").toString();
 			DbDataObject animalFound = rdr.findAppropriateAnimalByAnimalId("46345635", svr);
-			String animalGender = animalFound.getVal(Tc.GENDER) != null
-					? rdr.decodeCodeValue(animalFound.getObject_type(), Tc.GENDER,
-							animalFound.getVal(Tc.GENDER).toString(), languageId, svr)
+			String animalGender = animalFound.getVal(Tc.GENDER) != null ? rdr.decodeCodeValue(
+					animalFound.getObject_type(), Tc.GENDER, animalFound.getVal(Tc.GENDER).toString(), languageId, svr)
 					: "";
 			String animalBreed = animalFound.getVal(Tc.ANIMAL_RACE) != null
 					? rdr.decodeCodeValue(animalFound.getObject_type(), Tc.ANIMAL_RACE,
 							animalFound.getVal(Tc.ANIMAL_RACE).toString(), languageId, svr)
 					: "";
-			String animalColor = animalFound.getVal(Tc.COLOR) != null
-					? rdr.decodeCodeValue(animalFound.getObject_type(), Tc.COLOR,
-							animalFound.getVal(Tc.COLOR).toString(), languageId, svr)
+			String animalColor = animalFound.getVal(Tc.COLOR) != null ? rdr.decodeCodeValue(
+					animalFound.getObject_type(), Tc.COLOR, animalFound.getVal(Tc.COLOR).toString(), languageId, svr)
 					: "";
 			DbDataObject dboSourceHolding = svr.getObjectById(animalFound.getParent_id(),
 					SvReader.getTypeIdByName(Tc.HOLDING), null);
@@ -7745,15 +7505,14 @@ public class NaitsPluginTests {
 
 			/*
 			 * DbDataObject svParamType = svr.getObjectById(21627951L,
-			 * svCONST.OBJECT_TYPE_PARAM_TYPE, null);
-			 * svParamType.setVal(Tc.LABEL_CODE, "param.activity_from");
-			 * svw.saveObject(svParamType, false);
+			 * svCONST.OBJECT_TYPE_PARAM_TYPE, null); svParamType.setVal(Tc.LABEL_CODE,
+			 * "param.activity_from"); svw.saveObject(svParamType, false);
 			 */
 			createParamType("param.pet_archive_id", false, svw);
 
 			/*
-			 * DateTime dateTo = new DateTime("2019-07-11");
-			 * svp.setParamDateTime(dboLink, "param.activity_to", dateTo);
+			 * DateTime dateTo = new DateTime("2019-07-11"); svp.setParamDateTime(dboLink,
+			 * "param.activity_to", dateTo);
 			 */
 			svw.dbCommit();
 		} catch (SvException e) {
@@ -8094,7 +7853,7 @@ public class NaitsPluginTests {
 						SvReader.getTypeIdByName(Tc.EXPORT_CERT), null, 0, 0);
 				if (arrExportCertificatesPerQuarantine != null && arrExportCertificatesPerQuarantine.size() > 0) {
 					for (DbDataObject dboExportCert : arrExportCertificatesPerQuarantine.getItems()) {
-						if (dboExportCert.getStatus().equals(Tc.EXPIRED)) {
+						if (dboExportCert.getStatus().equals("EXPIRED")) {
 							if (!dboExportCert.getStatus().equals(Tc.CANCELED)) {
 								arrExportCertificates.addDataItem(dboExportCert);
 							}
@@ -8181,9 +7940,8 @@ public class NaitsPluginTests {
 			svw.dbSetAutoCommit(false);
 
 			/*
-			 * DbDataObject dboAnimal =
-			 * rdr.findAppropriateAnimalByAnimalId("000012345", svr); Boolean
-			 * pom = vc.checkIfAnimalMotherAgeIsAppropriate(dboAnimal, svr);
+			 * DbDataObject dboAnimal = rdr.findAppropriateAnimalByAnimalId("000012345",
+			 * svr); Boolean pom = vc.checkIfAnimalMotherAgeIsAppropriate(dboAnimal, svr);
 			 */
 
 			testTest(svr, svw);
@@ -8215,8 +7973,8 @@ public class NaitsPluginTests {
 			// DbDataObject dboAnimal =
 			// rdr.findAppropriateAnimalByAnimalId("020202122", svr);
 			/*
-			 * if (!vc.checkIfPeriodBetweenNewbornsIsAppropriate(dboAnimal,
-			 * svr)) { throw (new SvException(
+			 * if (!vc.checkIfPeriodBetweenNewbornsIsAppropriate(dboAnimal, svr)) { throw
+			 * (new SvException(
 			 * "naits.error.periodBetweenNewBornAnimalAndLastBornAnimalAreNotAppropriate",
 			 * svCONST.systemUser, null, null)); }
 			 */
@@ -8470,13 +8228,11 @@ public class NaitsPluginTests {
 			svw.saveObject(dboPrivateVets, false);
 			/*
 			 * UserManager um = new UserManager(); DbDataObject dboUser2 =
-			 * svr.getObjectById(24456341L, svCONST.OBJECT_TYPE_USER, null);
-			 * DbDataObject dboUser = svr.getObjectById(24456254L,
-			 * svCONST.OBJECT_TYPE_USER, null);
+			 * svr.getObjectById(24456341L, svCONST.OBJECT_TYPE_USER, null); DbDataObject
+			 * dboUser = svr.getObjectById(24456254L, svCONST.OBJECT_TYPE_USER, null);
 			 * 
 			 * ArrayList<String> currUserPermissions = um
-			 * .getCurrentUserPermissions(dboUser2.getVal("USER_NAME").toString(
-			 * ), svr);
+			 * .getCurrentUserPermissions(dboUser2.getVal("USER_NAME").toString( ), svr);
 			 * 
 			 * ArrayList<String> currGroupPermissions =
 			 * um.getCurrentGroupPermissions("USERS", svr);
@@ -8889,10 +8645,9 @@ public class NaitsPluginTests {
 			DbDataArray notificationsPerUser = new DbDataArray();
 			DbDataObject userObj = svr.getUserBySession(svr.getSessionId());
 			/*
-			 * if (userObj != null && userObj.getObject_id() != 0L) {
-			 * notificationsPerUser = svn.getNotificationPerUser(userObj);
-			 * result = notificationsPerUser.toJson().toString(); }
-			 * System.out.println(result);
+			 * if (userObj != null && userObj.getObject_id() != 0L) { notificationsPerUser =
+			 * svn.getNotificationPerUser(userObj); result =
+			 * notificationsPerUser.toJson().toString(); } System.out.println(result);
 			 */
 			DbDataObject svLinkObj = svr.getObjectById(24457919L, svCONST.OBJECT_TYPE_LINK, null);
 			wr.invalidateLink(svLinkObj, true, svr);
@@ -8956,8 +8711,8 @@ public class NaitsPluginTests {
 			Object pom = new Object();
 			/*
 			 * pom = r.getEntity(); log4j.debug(pom.toString()); r =
-			 * apps.getLabSamplesAccordingGeostatCode(svr.getSessionId(), "29");
-			 * pom = r.getEntity(); log4j.debug(pom.toString());
+			 * apps.getLabSamplesAccordingGeostatCode(svr.getSessionId(), "29"); pom =
+			 * r.getEntity(); log4j.debug(pom.toString());
 			 */
 			r = apps.getHoldingsAccordingGeostatCode(svr.getSessionId(), "47");
 			pom = r.getEntity();
@@ -9106,9 +8861,8 @@ public class NaitsPluginTests {
 
 			/*
 			 * String localeId = svr.getUserLocaleId(svr.getInstanceUser());
-			 * log4j.debug(I18n.getText(localeId,
-			 * "naits.main.inventory_item.general") + "brojce 1" + " " +
-			 * "en.appliedOn" + " " + "123213321213");
+			 * log4j.debug(I18n.getText(localeId, "naits.main.inventory_item.general") +
+			 * "brojce 1" + " " + "en.appliedOn" + " " + "123213321213");
 			 */
 
 			DateTime dt1 = new DateTime("2019-12-20T02:02:02");
@@ -9151,34 +8905,6 @@ public class NaitsPluginTests {
 
 		} catch (SvException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			if (svr != null)
-				svr.release();
-			if (svw != null)
-				svw.release();
-		}
-	}
-
-	@Test
-	public void testReverseTransfer() throws Exception {
-		SvReader svr = null;
-		SvWriter svw = null;
-		String sessionId = login("A.ADMIN3", "naits1234");
-		MassActions ma = new MassActions();
-		try {
-			OnSaveValidations call = new OnSaveValidations();
-			SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName("TRANSFER"));
-			svr = new SvReader(sessionId);
-			svr.dbSetAutoCommit(false);
-			svw = new SvWriter(svr);
-
-			DbDataObject dboTransfer = svr.getObjectById(24466033L, SvReader.getTypeIdByName(Tc.TRANSFER), null);
-			JsonArray arrJson = new JsonArray();
-			arrJson.add(dboTransfer.toSimpleJson());
-			String result = ma.createReverseTransfer(10000003L, 10000004L, "", arrJson, svr.getSessionId());
-			svw.dbCommit();
-		} catch (SvException e) {
 			e.printStackTrace();
 		} finally {
 			if (svr != null)
@@ -9362,12 +9088,10 @@ public class NaitsPluginTests {
 			svr = new SvReader(sessionId);
 			svr.dbSetAutoCommit(false);
 			/*
-			 * DbDataObject dbo = svr.getObjectById(1361503L,
-			 * svCONST.OBJECT_TYPE_ORG_UNITS, null); DbDataArray arr = new
-			 * DbDataArray(); arr.addDataItem(dbo);
+			 * DbDataObject dbo = svr.getObjectById(1361503L, svCONST.OBJECT_TYPE_ORG_UNITS,
+			 * null); DbDataArray arr = new DbDataArray(); arr.addDataItem(dbo);
 			 * log4j.debug("**********************************************" +
-			 * "/n***********************" +
-			 * "/n****"+rdr.convertDbDataArrayToGridJson(arr,
+			 * "/n***********************" + "/n****"+rdr.convertDbDataArrayToGridJson(arr,
 			 * "SVAROG_ORG_UNITS", svr));
 			 */
 
@@ -10319,7 +10043,6 @@ public class NaitsPluginTests {
 		SvReader svr = null;
 		SvWriter svw = null;
 		String sessionId = login("A.ADMIN3", "naits1234");
-		ApplicationServices app = new ApplicationServices();
 		Reader rdr = new Reader();
 		ValidationChecks vc = new ValidationChecks();
 		Writer wr = new Writer();
@@ -10328,7 +10051,7 @@ public class NaitsPluginTests {
 		try {
 			svr = new SvReader(sessionId);
 			svw = new SvWriter(svr);
-			// rp.generatePdfOrExcel(svr.getSessionId(), "15311111", "PDF",
+			// rp.generatePdfOrExcel(svr.getSessionId(), "15311111", Tc.PDF,
 			// "2020-04-04", null, "STAT_ASBV", null);
 
 			//
@@ -10357,7 +10080,6 @@ public class NaitsPluginTests {
 		SvReader svr = null;
 		SvWriter svw = null;
 		String sessionId = login("R.PEJOV", "naits1234");
-		ApplicationServices app = new ApplicationServices();
 		Reader rdr = new Reader();
 		ValidationChecks vc = new ValidationChecks();
 		Writer wr = new Writer();
@@ -10467,7 +10189,6 @@ public class NaitsPluginTests {
 			}
 
 			log4j.debug(query.toString());
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			log4j.error(e.getMessage());
@@ -10483,7 +10204,6 @@ public class NaitsPluginTests {
 		SvReader svr = null;
 		SvWriter svw = null;
 		String sessionId = login("R.PEJOV", "naits1234");
-		ApplicationServices app = new ApplicationServices();
 		Reader rdr = new Reader();
 		ValidationChecks vc = new ValidationChecks();
 		Writer wr = new Writer();
@@ -10545,7 +10265,6 @@ public class NaitsPluginTests {
 		SvReader svr = null;
 		SvWriter svw = null;
 		String sessionId = login("R.PEJOV", "naits1234");
-		ApplicationServices app = new ApplicationServices();
 		Reader rdr = new Reader();
 		ValidationChecks vc = new ValidationChecks();
 		Writer wr = new Writer();
@@ -10590,8 +10309,7 @@ public class NaitsPluginTests {
 	public void testLinkAreaWithPopulation() throws Exception {
 		SvReader svr = null;
 		SvWriter svw = null;
-		String sessionId = login("A.ADMIN3", "naits1234");
-		ApplicationServices app = new ApplicationServices();
+		String sessionId = login("M.ZHIVKOVIKJ", "naits1234");
 		Reader rdr = new Reader();
 		ValidationChecks vc = new ValidationChecks();
 		Writer wr = new Writer();
@@ -10616,8 +10334,9 @@ public class NaitsPluginTests {
 			DbDataObject dboPopulation = svr.getObjectById(11031296L, SvReader.getTypeIdByName(Tc.POPULATION), null);
 			DbDataObject dboPopulationHolding = svr.getObjectById(11002994L, SvReader.getTypeIdByName(Tc.POPULATION),
 					null);
+			DbDataObject dboPopulation2 = svr.getObjectById(13382863L, SvReader.getTypeIdByName(Tc.POPULATION), null);
 
-			wr.createExcelFileForSampleState(dboPopulation, "my_sheet_bro", null, svr);
+			wr.createExcelFileForSampleState(dboPopulation2, "my_sheet_bro", null, svr);
 			// String pom =
 			// PopulationQueryBuilder.buildQueryAccordingGeolocationFilters(dboPopulation,
 			// svr).toString();
@@ -10723,44 +10442,6 @@ public class NaitsPluginTests {
 	}
 
 	@Test
-	public void testMovementsBug1333() throws Exception {
-		SvReader svr = null;
-		SvWriter svw = null;
-		String sessionId = login("A.ADMIN3", "naits1234");
-		ApplicationServices app = new ApplicationServices();
-		Reader rdr = new Reader();
-		ValidationChecks vc = new ValidationChecks();
-		Writer wr = new Writer();
-		MassActions ma = new MassActions();
-		Report rp = new Report();
-		try {
-			svr = new SvReader(sessionId);
-			svw = new SvWriter(svr);
-			svw.dbSetAutoCommit(false);
-
-			DbDataObject dboPopulation = svr.getObjectById(11023642L, SvReader.getTypeIdByName(Tc.POPULATION), null);
-			DbDataObject pom = rdr.getDbPopulationHoldingNumParam(dboPopulation, svr);
-			if (pom != null) {
-				log4j.debug(pom.toSimpleJson());
-			}
-
-			String pomString = rdr.getPopulationHoldingNumParamValue(dboPopulation, svr);
-			if (pomString != null) {
-				log4j.debug(pomString);
-			}
-
-		} catch (SvException e) {
-			fail();
-			e.printStackTrace();
-			log4j.error(e.getMessage());
-		} finally {
-			if (svr != null) {
-				svr.release();
-			}
-		}
-	}
-
-	@Test
 	public void testForFikjo() {
 		SvReader svr = null;
 		SvWriter svw = null;
@@ -10844,7 +10525,6 @@ public class NaitsPluginTests {
 		SvReader svr = null;
 		SvWriter svw = null;
 		String sessionId = login("R.PEJOV", "naits1234");
-		ApplicationServices app = new ApplicationServices();
 		Reader rdr = new Reader();
 		ValidationChecks vc = new ValidationChecks();
 		Writer wr = new Writer();
@@ -10884,11 +10564,10 @@ public class NaitsPluginTests {
 	 * @throws Exception
 	 */
 	@Test
-	public void testInstallParamTypeForPopulation() throws Exception {
+	public void testHoldingKeeperProblem() throws Exception {
 		SvReader svr = null;
 		SvWriter svw = null;
-		String sessionId = login("R.PEJOV", "naits1234");
-		ApplicationServices app = new ApplicationServices();
+		String sessionId = login("K.STOJANOVSKI", "naits1234");
 		Reader rdr = new Reader();
 		ValidationChecks vc = new ValidationChecks();
 		Writer wr = new Writer();
@@ -10897,14 +10576,31 @@ public class NaitsPluginTests {
 		try {
 			svr = new SvReader(sessionId);
 			svw = new SvWriter(svr);
-			svw.dbSetAutoCommit(false);
-
-			// installed on:
-			// 100.160
-			createParamType("param.population_sample.is_running", true, svw);
-			createParamType("param.population_sample.num_holdings", true, svw);
-			createParamType("param.population_sample.num_animals", true, svw);
-			svw.dbCommit();
+			DbDataObject dboHolding = svr.getObjectById(13260168L, SvReader.getTypeIdByName("HOLDING"), null);
+			DbDataObject dboOwner = svr.getObjectById(316332L, SvReader.getTypeIdByName("HOLDING_RESPONSIBLE"), null);
+			// wr.linkObjects(dboHolding, dboOwner, Tc.HOLDING_KEEPER, "test",
+			// svr);
+			DbDataObject dboOwner1 = svr.getObjectById(316360L, SvReader.getTypeIdByName("HOLDING_RESPONSIBLE"), null);
+			// wr.linkObjects(dboHolding, dboOwner1, Tc.HOLDING_KEEPER, "test",
+			// svr);
+			DbDataObject dboOwner2 = svr.getObjectById(316365L, SvReader.getTypeIdByName("HOLDING_RESPONSIBLE"), null);
+			// wr.linkObjects(dboHolding, dboOwner2, Tc.HOLDING_KEEPER, "test",
+			// svr);
+			DbDataObject dboOwner3 = svr.getObjectById(316366L, SvReader.getTypeIdByName("HOLDING_RESPONSIBLE"), null);
+			// wr.linkObjects(dboHolding, dboOwner3, Tc.HOLDING_KEEPER, "test",
+			// svr);
+			DbDataObject dboOwner4 = svr.getObjectById(316334L, SvReader.getTypeIdByName("HOLDING_RESPONSIBLE"), null);
+			// wr.linkObjects(dboHolding, dboOwner4, Tc.HOLDING_KEEPER, "test",
+			// svr);
+			DbDataObject dboOwner5 = svr.getObjectById(316362L, SvReader.getTypeIdByName("HOLDING_RESPONSIBLE"), null);
+			// wr.linkObjects(dboHolding, dboOwner5, Tc.HOLDING_KEEPER, "test",
+			// svr);
+			DbDataObject dboOwner6 = svr.getObjectById(316367L, SvReader.getTypeIdByName("HOLDING_RESPONSIBLE"), null);
+			// wr.linkObjects(dboHolding, dboOwner6, Tc.HOLDING_KEEPER, "test",
+			// svr);
+			DbDataObject dboOwner7 = svr.getObjectById(316341L, SvReader.getTypeIdByName("HOLDING_RESPONSIBLE"), null);
+			wr.linkObjects(dboHolding, dboOwner7, Tc.HOLDING_KEEPER, "test", svr);
+			svr.dbCommit();
 		} catch (SvException e) {
 			e.printStackTrace();
 			log4j.error(e.getMessage());
@@ -10915,4 +10611,909 @@ public class NaitsPluginTests {
 		}
 	}
 
+	@Test
+	public void testPublicApiAnimal() throws Exception {
+		String responseResult = "";
+		PublicServices aps = null;
+		aps = new PublicServices();
+		// Response response = aps.searchAnimalById("756756747");
+		// klanica 10730600
+		// so > 5 dvizenja 12552533
+		// so > 3 vakcini 11795062
+		// so > 10 vakcini 11958071
+		Response response = aps.searchAnimalById("12197533", "en_US");
+		// test - so 2 bolesi, 13300849L
+		// test - nema bolesti 13300860L
+		Object responseObject = new Object();
+		responseObject = response.getEntity();
+		responseResult = response.getEntity().toString();
+		log4j.info(responseResult);
+		responseResult = responseObject.toString();
+		log4j.debug(responseResult);
+	}
+
+	@Test
+	public void testCreatePet() throws Exception {
+		SvReader svr = null;
+		SvWriter svw = null;
+		String sessionId = login("T.USR_PET", "naits1234");
+		try {
+			svw = new SvWriter(svr);
+			DbDataObject dboPet = new DbDataObject();
+			dboPet.setObject_type(svr.getTypeIdByName(Tc.PET));
+			dboPet.setVal("PET_ID", "123");
+			dboPet.setVal("PET_TYPE", "1");
+			dboPet.setVal("PET_TAG_TYPE", "EAR_TAG");
+			svw.saveObject(dboPet);
+		} catch (SvException e) {
+			e.printStackTrace();
+			log4j.error(e.getMessage());
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+	}
+
+	@Test
+	public void testDeleteLink() throws Exception {
+		initPlugin();
+		SvReader svr = null;
+		SvWriter svw = null;
+		String sessionId = login("K.STOJANOVSKI", "naits1234");
+		try {
+			svr = new SvReader(sessionId);
+			svw = new SvWriter(svr);
+			DbDataObject dboLink = svr.getObjectById(12648938L, svCONST.OBJECT_TYPE_LINK, null);
+			Writer wr = new Writer();
+			wr.invalidateLink(dboLink, false, svr);
+		} catch (SvException e) {
+			e.printStackTrace();
+			log4j.error(e.getMessage());
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+	}
+
+	@Test
+	public void testDirectInvenotryTransfer() throws Exception {
+		SvReader svr = null;
+		SvWriter svw = null;
+		String sessionId = login("K.STOJANOVSKI", "naits1234");
+		Reader rdr = new Reader();
+		Writer wr = new Writer();
+		ValidationChecks vc = new ValidationChecks();
+		try {
+			OnSaveValidations onSave = new OnSaveValidations();
+			SvCore.registerOnSaveCallback(onSave, SvReader.getTypeIdByName(Tc.TRANSFER));
+			svr = new SvReader(sessionId);
+			svw = new SvWriter(svr);
+			svw.dbSetAutoCommit(false);
+
+			DbDataObject dboTransfer = new DbDataObject();
+			dboTransfer.setObject_type(SvReader.getTypeIdByName(Tc.TRANSFER));
+			String tagType = "1";
+			Long startTagId = 1500L;
+			Long endTagId = 1502L;
+			String subjectTo = "შიდა ქართლი";
+			Long destinationObjId = 6460342L;
+
+			dboTransfer = wr.createTransferObject(tagType, startTagId, endTagId, null, null, null, subjectTo, null,
+					null, null, null, String.valueOf(destinationObjId));
+			dboTransfer.setVal(Tc.DIRECT_TRANSFER, true);
+			// dboTransfer.setVal(Tc.CACHE_PARENT_ID,
+			// dboParentObjectToHandle.getObject_id());
+			dboTransfer.setVal(Tc.TRANSFER_TYPE, Tc.DIRECT_TRANSFER);
+			svw.saveObject(dboTransfer, true);
+
+			wr.directInventoryTransfer(dboTransfer, true, svr, svw);
+			log4j.debug("OKD");
+			svw.dbCommit();
+		} catch (SvException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+			if (svw != null)
+				svw.release();
+		}
+	}
+
+	@Test
+	public void test() {
+		SvReader svr = null;
+		SvWriter svw = null;
+		String sessionId = login("K.STOJANOVSKI", "naits1234");
+		try {
+			svr = new SvReader(sessionId);
+			ValidationChecks vc = new ValidationChecks();
+			ArrayList<String> test = vc.checkIfAllItemsInTransferRangeBelongToOrgUnit2(49L, 1258L, 1258L, "4", svr);
+			log4j.info(test.size());
+
+			ArrayList<String> missingInvItemsInRange = vc.checkIfAllItemsInTransferRangeBelongToOrgUnit(49L, 500L,
+					1420L, "4", svr);
+			if (missingInvItemsInRange.size() > 0) {
+				String result = "naits.error.senderDoesNotHaveInventoryItemsDefinedInTheRange";
+				result += missingInvItemsInRange.toString();
+				log4j.info(result);
+			}
+
+		} catch (SvException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+			if (svw != null)
+				svw.release();
+		}
+	}
+
+	@Test
+	public void fixAnimalInvItemsBug() throws FileNotFoundException {
+		SvReader svr = null;
+		SvWriter svw = null;
+		String sessionId = login("A.ADMIN3", "1234Naits1234");
+		try {
+			svr = new SvReader(sessionId);
+			svw = new SvWriter(svr);
+			Scanner sc = new Scanner(new File("C:\\Users\\zpetr\\Downloads\\data-1615887359687-2.csv"));
+			sc.useDelimiter("\n"); // sets the delimiter pattern
+			int count = 0;
+			int total = 0;
+			while (sc.hasNext()) // returns a boolean value
+			{
+				String s = sc.next().replace("\"", "").toString();
+				s = s.substring(0, s.length() - 1);
+				Long tempInvTagObjId = Long.valueOf(s);
+				DbDataObject dboNow = svr.getObjectById(tempInvTagObjId, SvReader.getTypeIdByName(Tc.INVENTORY_ITEM),
+						null);
+				DbDataObject dboFIfthOfMarch = svr.getObjectById(tempInvTagObjId,
+						SvReader.getTypeIdByName(Tc.INVENTORY_ITEM), new DateTime("2021-03-05"));
+				if (!dboFIfthOfMarch.getParent_id().equals(dboNow.getParent_id())) {
+					dboNow.setParent_id(dboFIfthOfMarch.getParent_id());
+					svw.saveObject(dboNow, false);
+					count++;
+				}
+				if (count == 100) {
+					total += count;
+					svw.dbCommit();
+					log4j.info("100 items commited");
+					log4j.info("Total number items commited:" + total);
+					count = 0;
+				}
+			}
+			total += count;
+			svw.dbCommit();
+			log4j.info(count + " items commited");
+			log4j.info("Total number items commited:" + total);
+			count = 0;
+			log4j.info(count);
+		} catch (SvException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+			if (svw != null)
+				svw.release();
+		}
+
+	}
+
+	@Test
+	public void test33() throws Exception {
+
+		SvReader svr = null;
+		SvWriter svw = null;
+		String sessionId = login("K.STOJANOVSKI", "naits1234");
+		try {
+			svr = new SvReader(sessionId);
+			ValidationChecks vc = new ValidationChecks();
+			Writer wr = new Writer();
+			DbDataObject dboInitTransfer = svr.getObjectById(13314113L, SvReader.getTypeIdByName(Tc.TRANSFER), null);
+
+			if (!dboInitTransfer.getStatus().equals(Tc.RELEASED)) {
+				throw new SvException("naits.error.onlyTransferWithReleasedStatusCanBeReversed", svr.getInstanceUser());
+			}
+
+			ArrayList<String> missingInvItemsInRange = vc.checkIfAllItemsInTransferRangeBelongToOrgUnit(
+					Long.valueOf(dboInitTransfer.getVal(Tc.DESTINATION_OBJ_ID).toString()),
+					Long.valueOf(dboInitTransfer.getVal(Tc.START_TAG_ID).toString()),
+					Long.valueOf(dboInitTransfer.getVal(Tc.END_TAG_ID).toString()),
+					dboInitTransfer.getVal(Tc.TAG_TYPE).toString(), svr);
+			if (!missingInvItemsInRange.isEmpty()) {
+				throw new SvException("naits.error.senderDoesNotHaveInventoryItemsDefinedInTheRange",
+						svr.getInstanceUser());
+			}
+
+			if (dboInitTransfer != null) {
+				DbDataObject dboReverseTransfer = wr.createReverseTransferObject(dboInitTransfer, wr, svr);
+				svw.saveObject(dboReverseTransfer, false);
+				wr.directInventoryTransfer(dboReverseTransfer, false, svr, svw);
+				// resultMsgLbl = "naits.success.createRevereseTransfer";
+			}
+
+		} catch (SvException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+			if (svw != null)
+				svw.release();
+		}
+
+	}
+
+	@Test
+	public void customCreateNewMessageWs() throws ParseException {
+		SvReader svr = null;
+		SvWriter svw = null;
+		String token = login("M.ZHIVKOVIKJ", "naits1234");
+		MsgServices mm = new MsgServices();
+		try {
+			svr = new SvReader(token);
+			svw = new SvWriter(svr);
+
+			Object responseObject = new Object();
+			String responseResult = "";
+			MultivaluedHashMap<String, String> form = new MultivaluedHashMap<String, String>();
+
+			// 1st,no
+			// form.add("{\"objectArray\": [{ \"subject.basic_info\":
+			// {\"MODULE_NAME\":\"ANIMALS\", \"TITLE\":\"TEST\",
+			// \"ID_SUBJECT\":5},"
+			// + "\"subject.additional_info\": {\"PRIORITY\":\"LOW\",
+			// \"CATEGORY\":\"INFO\"},"
+			// + "\"message.basic_info\": {\"TEXT\":\"Hello\"},"
+			// + "\"message.assignment_info\": {\"TO\":[123]},"
+			// + "\"message.additional_info\": {\"PRIORITY\":\"LOW\"} }]}", "");
+
+			// 2nd
+
+			/*
+			 * form.add("{\"objectArray\": " +
+			 * "[{ \"subject.basic_info\": {\"MODULE_NAME\":\"ANIMALS\", \"TITLE\":\"Subject\"},"
+			 * +
+			 * "\"subject.additional_info\": {\"PRIORITY\":\"LOW\", \"CATEGORY\":\"REMARK\"},"
+			 * + "\"message.basic_info\": {\"TEXT\":\"Test test test test\"}," +
+			 * "\"message.assignment_info\": {\"TO\":[11023485, 13291183], \"CC\": [11023485]},"
+			 * + "\"subject.objId\": {\"OBJ_ID\":\"0\"}," +
+			 * "\"message.additional_info\": {\"ATCH_OBJ_TYPE\":\"HOLDING_RESPONSIBLE\"}," +
+			 * "\"message.attachment_info\": {\"PRIORITY\":\"\"}," + " }]}", "");
+			 */
+
+			/*
+			 * form.add(
+			 * "{\"objectArray\":[{\"subject.basic_info\":{\"MODULE_NAME\":\"ANIMALS\",\"TITLE\":\"Test title\"},\"subject.additional_info\":{\"PRIORITY\":\"LOW\",\"CATEGORY\":\"REMARK\"},\"message.basic_info\":{\"TEXT\":\"This is reply\"},\"message.assignment_info\":{\"TO\":[11023485,13291183],\"CC\":[11023485]},\"subject.objId\":{\"OBJ_ID\":\"0\"},\"message.additional_info\":{\"PRIORITY\":\"LOW\"},\"message.attachment_info\":{\"ATCH_OBJ_TYPE\":28568,\"ATCH_OBJ_ID\":421500,\"NAME\":\"00599397569\"}}]}"
+			 * , "");
+			 * 
+			 * form.add(
+			 * "{\"SUBJECT_OBJ_ID\":\"0\",\"SUBJECT_MODULE_NAME\":\"ANIMALS\",\"SUBJECT_TITLE\":\"Test title\",\"SUBJECT_PRIORITY\":\"LOW\",\"SUBJECT_CATEGORY\":\"REMARK\",\"MSG_TEXT\":\"This is reply\",\"MSG_PRIORITY\":\"LOW\",\"MSG_TO\":[11023485,13291183],\"MSG_CC\":[11023485],\"message.attachment_info\":[{\"NAME\":\"00599397569\",\"ATCH_OBJ_ID\":421500,\"ATCH_OBJ_TYPE\":28568},{\"NAME\":\"00599397570\",\"ATCH_OBJ_ID\":421501,\"ATCH_OBJ_TYPE\":28568}]}"
+			 * , "");
+			 */
+
+			form.add("SUBJECT_OBJ_ID", "0");
+			form.add("SUBJECT_MODULE_NAME", "ANIMALS");
+			form.add("SUBJECT_TITLE", "0");
+			form.add("SUBJECT_PRIORITY", "LOW");
+			form.add("SUBJECT_CATEGORY", "REMARK");
+			form.add("MSG_TEXT", "TEST - THIS IS A REPLY");
+			form.add("MSG_PRIORITY", "LOW");
+			form.add("MSG_TO", "[11023485, 13291183]");
+			form.add("MSG_CC", "[11023485]");
+			form.add("MSG_BCC", "[]");
+			form.add("MSG_ATTACHMENT",
+					"[{\"NAME\":\"00599397569\",\"ATCH_OBJ_ID\":421500,\"ATCH_OBJ_TYPE\":28568},{\"NAME\":\"00599397570\",\"ATCH_OBJ_ID\":421501,\"ATCH_OBJ_TYPE\":28568}]");
+
+			Response response = mm.createNewMessage(login("M.ZHIVKOVIKJ", "naits1234"), form);
+			responseObject = response.getEntity();
+			responseResult = response.getEntity().toString();
+			log4j.debug(responseResult);
+			responseResult = responseObject.toString();
+			log4j.debug(responseResult);
+			//
+		} catch (
+
+		SvException e) {
+			log4j.error(e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+			if (svw != null) {
+				svw.release();
+			}
+		}
+	}
+
+	@Test
+	public void testGetInbox() {
+		MsgServices msg = new MsgServices();
+		Response response = msg.getInboxMessages(login("T.ADMIN0", "naits1234"));
+	}
+
+	@Test
+	public void testGetTerminatedAnimals() throws Exception {
+		SvReader svr = null;
+		String token = login("M.ZHIVKOVIKJ", "naits1234");
+		Reader rdr = new Reader();
+		try {
+			svr = new SvReader(token);
+			DbDataArray terminatedAnimals = rdr.getTerminatedAnimals(6767434L, "2015-12-12", "2022-12-12", 5000, svr);
+			// DbDataArray terminatedAnimals =
+			// rdr.getTerminatedAnimals(6767434L, "null",
+			// "null", svr);
+			String result = rdr.convertDbDataArrayToGridJsonWithoutSorting(terminatedAnimals, Tc.ANIMAL, false, svr);
+			log4j.info(terminatedAnimals.size());
+			// System.out.println(result);
+		} catch (SvException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testFilteredHoldings() throws Exception {
+		SvReader svr = null;
+		String token = login("M.ZHIVKOVIKJ", "naits1234");
+		Reader rdr = new Reader();
+		try {
+			svr = new SvReader(token);
+			// DbDataArray terminatedAnimals =
+			// rdr.getTerminatedAnimals(6767434L,
+			// "2015-12-12", "2022-12-12", 10000, svr);
+			DbDataArray filteredHoldings = rdr.getFiltratedHoldings("7", null, null, null, "32", null, 1000, svr);
+			String result = rdr.convertDbDataArrayToGridJson(filteredHoldings, Tc.HOLDING, false, Tc.PKID, Tc.DESC,
+					svr);
+			log4j.info(filteredHoldings.size());
+			// System.out.println(result);
+		} catch (SvException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testFinishedMovementDocs() throws Exception {
+		SvReader svr = null;
+		String token = login("M.ZHIVKOVIKJ", "naits1234");
+		Reader rdr = new Reader();
+		String result;
+		try {
+			svr = new SvReader(token);
+			int rowLimit = 1000;
+			// DbDataArray terminatedAnimals =
+			// rdr.getTerminatedAnimals(6767434L,
+			// "2015-12-12", "2022-12-12", 10000, svr);
+			DbDataArray finishedMovementDocs = rdr.getFinishedMovementDocuments("2930633100018", "2019-01-01",
+					"2023-01-01", rowLimit, svr);
+			finishedMovementDocs = rdr.revertDbDataArray(finishedMovementDocs);
+			log4j.info(finishedMovementDocs.size());
+			log4j.info(finishedMovementDocs.get(0).getPkid());
+			log4j.info(finishedMovementDocs.get(finishedMovementDocs.size() - 1).getPkid());
+			finishedMovementDocs = rdr.alignDbDataArrayToSpecificSize(finishedMovementDocs, 1000);
+			log4j.info(finishedMovementDocs.size());
+			log4j.info(finishedMovementDocs.get(0).getPkid());
+			log4j.info(finishedMovementDocs.get(rowLimit - 1).getPkid());
+			result = rdr.convertDbDataArrayToGridJson(finishedMovementDocs, Tc.MOVEMENT_DOC, false, Tc.PKID, Tc.DESC,
+					svr);
+			// System.out.println(result);
+		} catch (SvException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testFinishedMovementDocsWS() throws Exception {
+		// configure the core to clean up every 5 seconds
+		SvReader svr = null;
+		String sessionId = login("M.ZHIVKOVIKJ", "naits1234");
+		Reader rdr = new Reader();
+		ApplicationServices rea = new ApplicationServices();
+		try {
+			svr = new SvReader(sessionId);
+			Object temp = null;
+			String result = "";
+			Response responseHtml = rea.getFinishedMovementDocuments(sessionId, "2930633100018", "null", "null", 1000);
+			temp = responseHtml.getEntity();
+			result = temp.toString();
+			log4j.debug(result);
+		} catch (SvException e) {
+			fail("Test failed");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testTerminatedAnimalsWS() throws Exception {
+		// configure the core to clean up every 5 seconds
+		SvReader svr = null;
+		String sessionId = login("M.ZHIVKOVIKJ", "naits1234");
+		Reader rdr = new Reader();
+		ApplicationServices rea = new ApplicationServices();
+		try {
+			svr = new SvReader(sessionId);
+			Object temp = null;
+			String result = "";
+			Response responseHtml = rea.getTerminatedAnimals(sessionId, 5015557L, null, null, 5000);
+			temp = responseHtml.getEntity();
+			result = temp.toString();
+			log4j.debug(result);
+		} catch (SvException e) {
+			fail("Test failed");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testFinishedAnimalMovementsWS() throws Exception {
+		// configure the core to clean up every 5 seconds
+		SvReader svr = null;
+		String sessionId = login("M.ZHIVKOVIKJ", "naits1234");
+		Reader rdr = new Reader();
+		ApplicationServices rea = new ApplicationServices();
+		try {
+			svr = new SvReader(sessionId);
+			Object temp = null;
+			String result = "";
+			Response responseHtml = rea.getFinishedAnimalMovements(sessionId, 6767434L, "2022-12-10", "2022-12-13",
+					5000);
+			temp = responseHtml.getEntity();
+			result = temp.toString();
+			log4j.debug(result);
+		} catch (SvException e) {
+			fail("Test failed");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testPersonsWS() throws Exception {
+		// configure the core to clean up every 5 seconds
+		SvReader svr = null;
+		String sessionId = login("M.ZHIVKOVIKJ", "naits1234");
+		Reader rdr = new Reader();
+		ApplicationServices rea = new ApplicationServices();
+		try {
+			svr = new SvReader(sessionId);
+			Object temp = null;
+			String result = "";
+			Response responseHtml = rea.getPersonsByCriteria(sessionId, "240", "null", "null", "null", "null", "null",
+					5000);
+			temp = responseHtml.getEntity();
+			result = temp.toString();
+			log4j.debug(result);
+		} catch (SvException e) {
+			fail("Test failed");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testAnimalsWS() throws Exception {
+		// configure the core to clean up every 5 seconds
+		SvReader svr = null;
+		String sessionId = login("M.ZHIVKOVIKJ", "naits1234");
+		Reader rdr = new Reader();
+		ApplicationServices rea = new ApplicationServices();
+		try {
+			svr = new SvReader(sessionId);
+			Object temp = null;
+			String result = "";
+			Response responseHtml = rea.getAnimalsByCriteria(sessionId, "1234", "VALID", "1", "null", "null", "GE",
+					5000);
+			temp = responseHtml.getEntity();
+			result = temp.toString();
+			log4j.debug(result);
+		} catch (SvException e) {
+			fail("Test failed");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testOutgoingTransferWS() throws Exception {
+		// configure the core to clean up every 5 seconds
+		SvReader svr = null;
+		String sessionId = login("A.ADMIN3", "1234Naits1234");
+		Reader rdr = new Reader();
+		ApplicationServices rea = new ApplicationServices();
+		try {
+			svr = new SvReader(sessionId);
+			Object temp = null;
+			String result = "";
+			/*
+			 * Response responseHtml = rea.getOutgoingTransfersPerOrgUnit(sessionId, 49L,
+			 * "null", "null", "null", "null", "null", 5000);
+			 */
+			Response responseHtml = rea.getOutgoingTransfersPerOrgUnit(sessionId, 49L, "1", "72273000", "72273999",
+					"null", "null", 5000);
+			temp = responseHtml.getEntity();
+			result = temp.toString();
+			log4j.debug(result);
+		} catch (SvException e) {
+			fail("Test failed");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testIncomingTransferWS() throws Exception {
+		// configure the core to clean up every 5 seconds
+		SvReader svr = null;
+		String sessionId = login("M.ZHIVKOVIKJ", "naits1234");
+		Reader rdr = new Reader();
+		ApplicationServices rea = new ApplicationServices();
+		try {
+			svr = new SvReader(sessionId);
+			Object temp = null;
+			String result = "";
+			Response responseHtml = rea.getIncomingTransfersPerOrgUnit(sessionId, "49", "null", "null", "null", "null",
+					"null", 5000);
+			temp = responseHtml.getEntity();
+			result = temp.toString();
+			log4j.debug(result);
+		} catch (SvException e) {
+			fail("Test failed");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testUNDO_LAST_TRANSFER() throws Exception {
+		SvReader svr = null;
+		String sessionId = login("M.ZHIVKOVIKJ", "naits1234");
+		Reader rdr = new Reader();
+		Writer wr = new Writer();
+		try {
+			svr = new SvReader(sessionId);
+			DbDataObject dboObjectToHandle = svr.getObjectById(6109109L, SvReader.getTypeIdByName(Tc.ANIMAL), null);
+			DbDataObject dboObjToHandleParent = svr.getObjectById(dboObjectToHandle.getParent_id(),
+					SvReader.getTypeIdByName(Tc.HOLDING), null);
+			DbSearchExpression dbse = new DbSearchExpression();
+			DbSearchCriterion dbc1 = new DbSearchCriterion(Tc.STATUS, DbCompareOperand.EQUAL, Tc.FINISHED);
+			DbSearchCriterion dbc2 = new DbSearchCriterion(Tc.ANIMAL_EAR_TAG, DbCompareOperand.EQUAL,
+					dboObjectToHandle.getVal(Tc.ANIMAL_ID));
+			DbSearchCriterion dbc3 = new DbSearchCriterion(Tc.DESTINATION_HOLDING_ID, DbCompareOperand.EQUAL,
+					dboObjToHandleParent.getVal(Tc.PIC));
+			dbse.addDbSearchItem(dbc1).addDbSearchItem(dbc2).addDbSearchItem(dbc3);
+			DbQueryObject query = new DbQueryObject(SvReader.getDbtByName(Tc.ANIMAL_MOVEMENT), dbse, null, null);
+			ArrayList<String> orderBy = new ArrayList<String>();
+			orderBy.add(Tc.PKID + " " + Tc.DESC);
+			query.setOrderByFields(orderBy);
+			DbDataArray dboAnimalOrFlockMovementsArr = svr.getObjects(query, 0, 0);
+			DbDataObject lastAnimalOrFlockMovementObj = new DbDataObject();
+			if (dboAnimalOrFlockMovementsArr.size() > 0) {
+				lastAnimalOrFlockMovementObj = dboAnimalOrFlockMovementsArr.getItems().get(0);
+			}
+			String lastMovementOriginPic = lastAnimalOrFlockMovementObj.getVal(Tc.SOURCE_HOLDING_ID).toString();
+			DbDataObject lastMovementOriginHoldingObj = rdr.findAppropriateHoldingByPic(lastMovementOriginPic, svr);
+			JsonObject jObj = new JsonObject();
+			JsonArray subJsonParams = new JsonArray();
+			JsonObject jObj1 = new JsonObject();
+			jObj1.addProperty(Tc.MASS_PARAM_ANIMAL_FLOCK_ID, dboObjectToHandle.getVal(Tc.ANIMAL_ID).toString());
+			subJsonParams.add(jObj1);
+			JsonObject jObj2 = new JsonObject();
+			jObj2.addProperty(Tc.MASS_PARAM_HOLDING_OBJ_ID, lastMovementOriginHoldingObj.getObject_id());
+			subJsonParams.add(jObj2);
+			JsonObject jObj3 = new JsonObject();
+			jObj3.addProperty(Tc.MASS_PARAM_ANIMAL_CLASS, dboObjectToHandle.getVal(Tc.ANIMAL_CLASS).toString());
+			subJsonParams.add(jObj3);
+			jObj.add(Tc.OBJ_PARAMS, subJsonParams);
+			wr.moveAnimalOrFlockViaDirectTransfer(jObj, sessionId);
+		} catch (SvException e) {
+			fail("Test failed");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testPubliWsGetLabSamples() throws Exception {
+		String sessionId = login("M.ZHIVKOVIKJ", "naits1234");
+		SvReader svr = null;
+		try {
+			// configure the core to clean up every 5 seconds
+			PublicServices pblserv = new PublicServices();
+			Object temp = null;
+			Response responseHtml = pblserv.getLabSampleDetails(sessionId, "12080761", "1");
+			temp = responseHtml.getEntity();
+			String result = temp.toString();
+			log4j.debug(result);
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testPubliWsGetLabSampleResults() throws Exception {
+		String sessionId = login("M.ZHIVKOVIKJ", "naits1234");
+		SvReader svr = null;
+		try {
+			// configure the core to clean up every 5 seconds
+			PublicServices pblserv = new PublicServices();
+			Object temp = null;
+			Response responseHtml = pblserv.getLabSampleResults(sessionId, "11958071-63");
+			temp = responseHtml.getEntity();
+			String result = temp.toString();
+			log4j.debug(result);
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testPubliWsCreateLabSampleResults() throws Exception {
+		String sessionId = login("M.ZHIVKOVIKJ", "naits1234");
+		SvReader svr = null;
+		try {
+			// configure the core to clean up every 5 seconds
+			PublicServices pblserv = new PublicServices();
+			Object temp = null;
+			Response responseHtml = pblserv.getLabSampleResults(sessionId, "11958071-63");
+			responseHtml = pblserv.createLabSampleResult(sessionId, "11958071-63", "1", "Test: Brucellosis-Blood",
+					"2021-06-30", "1", "2");
+			temp = responseHtml.getEntity();
+			String result = temp.toString();
+			log4j.debug(result);
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testPubliWsCreateLabSamples() throws Exception {
+		String sessionId = login("M.ZHIVKOVIKJ", "naits1234");
+		SvReader svr = null;
+		try {
+			// configure the core to clean up every 5 seconds
+			PublicServices pblserv = new PublicServices();
+			Object temp = null;
+			Response responseHtml = pblserv.getLabSampleDetails(sessionId, "12080761", "1");
+			responseHtml = pblserv.createLabSample(sessionId, "1", "2020-05-14", "12080761", "1",
+					svr.getUserBySession(sessionId).getVal(Tc.USER_NAME).toString(), "hodlingPic", "ბუხუტი კაპანაძე",
+					null, "3", "0", "1", null);
+			temp = responseHtml.getEntity();
+			String result = temp.toString();
+			log4j.debug(result);
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testWS_moveGroupOfIndividualInventoryItems() throws Exception {
+		SvReader svr = null;
+		// String sessionId = login("M.ZHIVKOVIKJ", "naits1234");
+		String sessionId = login("A.ADMIN3", "1234Naits1234");
+		Reader rdr = new Reader();
+		MassActions massAction = new MassActions();
+		ApplicationServices appSrvc = new ApplicationServices();
+		try {
+			svr = new SvReader(sessionId);
+			Object temp = null;
+			String result = "";
+			JsonArray jArr = new JsonArray();
+
+			String json = "{\r\n" + "	\"INVENTORY_ITEM.PKID\": 51432075,\r\n"
+					+ "	\"INVENTORY_ITEM.OBJECT_ID\": 22708433,\r\n" + "	\"INVENTORY_ITEM.PARENT_ID\": 6460336,\r\n"
+					+ "	\"INVENTORY_ITEM.OBJECT_TYPE\": 1354034,\r\n" + "	\"INVENTORY_ITEM.STATUS\": \"VALID\",\r\n"
+					+ "	\"INVENTORY_ITEM.TAG_TYPE\": \"1\",\r\n"
+					+ "	\"INVENTORY_ITEM.EAR_TAG_NUMBER\": \"14143501\",\r\n"
+					+ "	\"INVENTORY_ITEM.TAG_STATUS\": \"NON_APPLIED\",\r\n"
+					+ "	\"INVENTORY_ITEM.ORDER_NUMBER\": \"011 2022 Cattle\"\r\n" + "}";
+
+			JsonObject jsonObject = new Gson().fromJson(json, JsonObject.class);
+
+			jArr.add(jsonObject);
+
+			String resultMsgLbl = massAction.inventoryIndividualDirectTransfer(6460380L, jArr, sessionId);
+			result = resultMsgLbl;
+			log4j.debug(result);
+		} catch (SvException e) {
+			fail("Test failed");
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (svr != null)
+				svr.release();
+		}
+	}
+
+	@Test
+	public void testSlaughterAnimalAsSlaughterhouseOperator() throws Exception {
+		SvReader svr = null;
+		String token = null;
+		Reader rdr = new Reader();
+		Writer wr = new Writer();
+		MassActions massAct = new MassActions();
+		// 540752
+		try {
+			String result = "";
+			token = login("S.TEST2", "Naits123");
+			svr = new SvReader(token);
+			String resultMsgLbl = "naits.error.massAnimalsAction";
+			ValidationChecks vc = new ValidationChecks();
+			DbDataObject dboAnimal = rdr.findAppropriateAnimalByAnimalId("13386983", svr);
+			/*
+			 * boolean isSlaughterhouseOperator = false; DbDataArray arrAdditionalGroup =
+			 * svr.getAllUserGroups(svr.getUserBySession(token), false); if
+			 * (!arrAdditionalGroup.getItems().isEmpty()) { for (DbDataObject dboUserGroup :
+			 * arrAdditionalGroup.getItems()) { if (dboUserGroup.getVal(Tc.GROUP_NAME) !=
+			 * null && dboUserGroup.getVal(Tc.GROUP_NAME).toString().equals(Tc.
+			 * SLAUGHTERHOUSE_OPERATOR)) { isSlaughterhouseOperator = true; break; } } }
+			 * vc.slaughterhouseHoldingValidationSet(dboAnimal.getParent_id(), dboAnimal,
+			 * "animal", isSlaughterhouseOperator, svr);
+			 */
+
+			JsonObject jsonData = null;
+			JSONParser parser = new JSONParser();
+			Object obj = parser.parse(new FileReader(
+					"C:\\Users\\zpetr\\git\\svarog2\\naits_triglav_plugin\\conf\\json_cases\\MassAnimalFlockHandler_animalCaseJson"));
+			JSONObject jsonObject = (JSONObject) obj;
+
+			JsonParser parser2 = new JsonParser();
+			JsonElement jsonElement = parser2.parse(new FileReader(
+					"C:\\Users\\zpetr\\git\\svarog2\\naits_triglav_plugin\\conf\\json_cases\\MassAnimalFlockHandler_animalCaseJson"));
+			jsonData = jsonElement.getAsJsonObject();
+
+			resultMsgLbl = massAct.animalFlockMassHandler(jsonData, token);
+
+		} catch (Exception e) {
+			log4j.error(e);
+			fail();
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+	}
+
+	@Test
+	public void testPetServicesNabageQuarantine() throws Exception {
+		SvReader svr = null;
+		String token = null;
+		Reader rdr = new Reader();
+		Writer wr = new Writer();
+		PetServices petServices = new PetServices();
+		// 540752
+		try {
+			String result = "";
+			token = login("M.ZHIVKOVIKJ", "naits1234");
+			svr = new SvReader(token);
+			String resultMsgLbl = "naits.error.massAnimalsAction";
+			ValidationChecks vc = new ValidationChecks();
+			DbDataObject dboAnimal = rdr.findAppropriateAnimalByAnimalId("13386983", svr);
+
+			JsonObject jsonData = null;
+			JSONParser parser = new JSONParser();
+			Object obj = parser.parse(new FileReader(
+					"C:\\Users\\zpetr\\git\\svarog2\\naits_triglav_plugin\\conf\\json_cases\\PetServices"));
+			JSONObject jsonObject = (JSONObject) obj;
+
+			JsonParser parser2 = new JsonParser();
+			JsonElement jsonElement = parser2.parse(new FileReader(
+					"C:\\Users\\zpetr\\git\\svarog2\\naits_triglav_plugin\\conf\\json_cases\\PetServices"));
+			jsonData = jsonElement.getAsJsonObject();
+
+			resultMsgLbl = petServices.petMassHandler(jsonData, token);
+
+		} catch (Exception e) {
+			log4j.error(e);
+			fail();
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+	}
+
+	@Test
+	public void testInvItemGeneration() throws Exception {
+		SvReader svr = null;
+		String token = null;
+		Reader rdr = new Reader();
+		Writer wr = new Writer();
+		PetServices petServices = new PetServices();
+		String resultMsgLbl = "naits.error.generalError";
+		// 540752
+		try {
+			String result = "";
+			token = login("A.ADMIN3", "1234Naits1234");
+			svr = new SvReader(token);
+			svr.setAutoCommit(false);
+			SvWriter svw = new SvWriter(svr);
+			JsonObject jsonData = null;
+			JsonParser parser2 = new JsonParser();
+			JsonElement jsonElement = parser2.parse(new FileReader(
+					"C:\\Users\\zpetr\\git\\svarog2\\naits_triglav_plugin\\conf\\json_cases\\InventoryItemGeneration2"));
+			jsonData = jsonElement.getAsJsonObject();
+
+			if (jsonData != null && jsonData.has(Tc.OBJ_ARRAY)) {
+				resultMsgLbl = wr.generateInventoryItem(jsonData.get(Tc.OBJ_ARRAY).getAsJsonArray(), svr, svw);
+				if (resultMsgLbl.trim().equals("")) {
+					resultMsgLbl = "naits.success.saveInventoryItem";
+				}
+			} else {
+				resultMsgLbl = Tc.error_admConsoleBadJson;
+			}
+
+
+		} catch (Exception e) {
+			log4j.error(e);
+			fail();
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+	}
+
+	@Test
+	public void testNaitsDbConnection() throws Exception {
+		SvReader svr = null;
+		String token = null;
+		try {
+			token = login("A.ADMIN3", "WelcomeNaits123");
+			svr = new SvReader(token);
+		} catch (Exception e) {
+			log4j.error(e);
+			fail();
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+	}
+	
 }

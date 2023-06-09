@@ -6,12 +6,13 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.lang.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
+import org.json.JSONObject;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.prtech.svarog.I18n;
 import com.prtech.svarog.SvCore;
@@ -48,566 +49,6 @@ public class MassActions {
 		return true;
 	}
 
-	public String animalFlockMassHandler(String tableName, String actionName, String subActionName, String actionParam,
-			String dateOfMovement, String dateOfAdmission, String transporterPersonId, String movementTransportType,
-			String transporterLicense, String estmDateArrival, String estmDateDeparture, String disinfectionDate,
-			String animalMvmReason, Long totalUnits, Long maleUnits, Long femaleUnits, Long adultsUnits,
-			JsonArray jsonData, String sessionId) throws Exception {
-		String result = "naits.success.massAnimalsAction";
-		SvReader svr = null;
-		SvWriter svw = null;
-		SvWorkflow sww = null;
-		Writer wr = new Writer();
-		Reader rdr = new Reader();
-		ValidationChecks vc = new ValidationChecks();
-		Long holdingObjectId = 0L;
-		DbDataObject movementDocObject = null;
-		ArrayList<String> animalOrFlockIds = new ArrayList<>();
-		int counter = 0;
-		ReentrantLock lock = null;
-		DbDataObject dboObjectToHandle = null;
-		try {
-			String action = (actionName != null ? actionName.toUpperCase() : null);
-			String param = (actionParam != null ? actionParam.toUpperCase() : null);
-
-			svr = new SvReader(sessionId);
-			svw = new SvWriter(svr);
-			sww = new SvWorkflow(svr);
-
-			svw.setAutoCommit(false);
-			sww.setAutoCommit(false);
-
-			DbDataObject animalTypeDesc = SvReader.getDbtByName(Tc.ANIMAL);
-			DbDataObject flockTypeDesc = SvReader.getDbtByName(Tc.FLOCK);
-			DbDataObject vaccEvenetTypeDesc = SvReader.getDbtByName(Tc.VACCINATION_EVENT);
-			DbDataObject dboHolding = null;
-			DbDataObject dboDestinationHolding = null;
-			DbDataObject dboMovementDoc = null;
-			DbDataObject dboAnimalOrFlockMovement = null;
-			String objectTypeLabel = "";
-			String regex = Tc.NUMBER_REGEX;
-
-			// check if parent exist
-			for (int i = 0; i < jsonData.size(); i++) {
-				try {
-					JsonObject obj = jsonData.get(i).getAsJsonObject();
-
-					if (obj.get(Tc.ANIMAL + "." + Tc.OBJECT_ID) != null) {
-						dboObjectToHandle = svr.getObjectById(obj.get(Tc.ANIMAL + "." + Tc.OBJECT_ID).getAsLong(),
-								animalTypeDesc, null);
-					}
-					if (obj.get(Tc.ANIMAL_MOVEMENT + "." + Tc.PARENT_ID) != null) {
-						dboObjectToHandle = svr.getObjectById(
-								obj.get(Tc.ANIMAL_MOVEMENT + "." + Tc.PARENT_ID).getAsLong(), animalTypeDesc, null);
-					}
-					if (obj.get(Tc.ANIMAL_MOVEMENT + "." + Tc.DESTINATION_HOLDING_ID) != null) {
-						dboDestinationHolding = rdr.findAppropriateHoldingByPic(obj
-								.get(Tc.ANIMAL_MOVEMENT + "." + Tc.DESTINATION_HOLDING_ID).toString().replace("\"", ""),
-								svr);
-					}
-					if (obj.get(Tc.FLOCK_MOVEMENT + "." + Tc.PARENT_ID) != null) {
-						dboObjectToHandle = svr.getObjectById(
-								obj.get(Tc.FLOCK_MOVEMENT + "." + Tc.PARENT_ID).getAsLong(), flockTypeDesc, null);
-					}
-					if (obj.get(Tc.FLOCK_MOVEMENT + "." + Tc.DESTINATION_HOLDING_ID) != null) {
-						dboDestinationHolding = rdr.findAppropriateHoldingByPic(obj
-								.get(Tc.FLOCK_MOVEMENT + "." + Tc.DESTINATION_HOLDING_ID).toString().replace("\"", ""),
-								svr);
-					}
-					if (obj.get(Tc.FLOCK + "." + Tc.OBJECT_ID) != null) {
-						dboObjectToHandle = svr.getObjectById(obj.get(Tc.FLOCK + "." + Tc.OBJECT_ID).getAsLong(),
-								flockTypeDesc, new DateTime());
-					}
-
-					if (dboObjectToHandle != null && action.equals(Tc.MOVE)
-							&& subActionName.equalsIgnoreCase(Tc.FINISH_MOVEMENT)) {
-						DbDataObject refreshDbo = svr.getObjectById(dboObjectToHandle.getObject_id(),
-								dboObjectToHandle.getObject_type(), new DateTime());
-						dboObjectToHandle = refreshDbo;
-					}
-					DbDataObject dboVaccEvent = null;
-					if (param != null && param.matches(regex)) {
-						dboVaccEvent = svr.getObjectById(Long.valueOf(param), vaccEvenetTypeDesc, null);
-					}
-
-					if (dboObjectToHandle == null) {
-						throw (new SvException("naits.error.no_animal_found", svr.getInstanceUser()));
-					}
-					if (dboObjectToHandle.getObject_type().equals(SvReader.getTypeIdByName(Tc.ANIMAL))) {
-						objectTypeLabel = "animal";
-					} else if (dboObjectToHandle.getObject_type().equals(SvReader.getTypeIdByName(Tc.FLOCK))) {
-						objectTypeLabel = "flock";
-						if (subActionName.equalsIgnoreCase(Tc.START_MOVEMENT)) {
-							dboObjectToHandle = wr.createFlockMovementUnit(dboObjectToHandle, totalUnits, femaleUnits,
-									maleUnits, adultsUnits, svw, svr);
-						}
-					}
-					lock = SvLock.getLock(String.valueOf(dboObjectToHandle.getObject_id()), false, 0);
-
-					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
-					}
-					DbDataObject dboObjToHandleParent = svr.getObjectById(dboObjectToHandle.getParent_id(),
-							SvReader.getTypeIdByName(Tc.HOLDING), null);
-
-					if (dboObjToHandleParent != null
-							&& (tableName.equalsIgnoreCase(Tc.ANIMAL) || tableName.equalsIgnoreCase(Tc.FLOCK))) {
-						if (!vc.checkIfHoldingIsSlaughterhouse(dboObjToHandleParent)
-								&& !dboObjectToHandle.getStatus().equals(Tc.VALID)
-								&& !action.equalsIgnoreCase(Tc.UNDO_RETIRE) && !action.equalsIgnoreCase(Tc.MOVE)) {
-							throw (new SvException("naits.error.onlyValidAnimalCanBeHandledWithChoosenAction",
-									svr.getInstanceUser()));
-						}
-					}
-					if (holdingObjectId.equals(0L)) {
-						holdingObjectId = dboObjToHandleParent.getObject_id();
-					}
-
-					if (action.equalsIgnoreCase(Tc.MOVE) && subActionName.equalsIgnoreCase(Tc.START_MOVEMENT)
-							&& !holdingObjectId.equals(0L)) {
-						counter++;
-						if (counter == 1) {
-							movementDocObject = wr.createMovementDocument(holdingObjectId, svr);
-							movementDocObject.setVal(Tc.MOVEMENT_TYPE, objectTypeLabel.toUpperCase());
-							if (movementDocObject != null) {
-								svw.saveObject(movementDocObject, false);
-							}
-						}
-					}
-
-					switch (action.toUpperCase()) {
-					case Tc.RETIRE:
-						if (!(subActionName.equalsIgnoreCase(Tc.SLAUGHTRD)
-								|| subActionName.equalsIgnoreCase(Tc.DESTROYED))
-								&& vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getParent_id(), svr)) {
-							throw (new SvException("naits.error.thisStatusIsNotAllowedForSlaughterHouse",
-									svr.getInstanceUser()));
-						}
-						switch (subActionName.toUpperCase()) {
-						case Tc.LOST:
-							wr.createAnimalOrFlockMovementWithoutDestination(dboObjectToHandle, Tc.LOST, dateOfMovement,
-									svr, svw, sww);
-							break;
-						case Tc.SOLD:
-							wr.createAnimalOrFlockMovementWithoutDestination(dboObjectToHandle, Tc.SOLD, dateOfMovement,
-									svr, svw, sww);
-							break;
-						// cases: SLAUGHTRD, DIED, ABSENT DESTROYED
-						default:
-							if (subActionName.equalsIgnoreCase(Tc.SLAUGHTRD)) {
-								if (objectTypeLabel.equalsIgnoreCase(Tc.FLOCK)
-										&& vc.isFlockSlaughterable(dboObjectToHandle)) {
-									throw (new SvException("naits.error.cannotSlaughterFlockOfTypeBeehives",
-											svCONST.systemUser, null, null));
-								}
-								if (!dboObjectToHandle.getStatus().equals(Tc.VALID)
-										&& !vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getParent_id(), svr)) {
-									throw (new SvException("naits.error.onlyValidAnimalsCanBeHandledWithChoosenAction",
-											svr.getInstanceUser()));
-								}
-								vc.slaughterhouseHoldingValidationSet(dboObjectToHandle.getParent_id(),
-										dboObjectToHandle, objectTypeLabel, svr);
-								if (vc.checkIfAnimalHasAnyActiveVaccEventForSpecificDisease(dboObjectToHandle,
-										dateOfMovement, rdr, svr)) {
-									throw (new SvException("naits.error.animalBelongsToCampaignAgainstSpecificDisease",
-											svr.getInstanceUser()));
-								}
-							}
-							if (subActionName.equalsIgnoreCase(Tc.DESTROYED)) {
-								if (!vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getParent_id(), svr)) {
-									throw (new SvException("naits.error.itemCanNotBeDestroyed", svr.getInstanceUser()));
-								}
-								if (!dboObjectToHandle.getStatus().equals(Tc.VALID)) {
-									throw (new SvException("naits.error.onlyValidAnimalsCanBeHandledWithChoosenAction",
-											svr.getInstanceUser()));
-								}
-							}
-							dboObjectToHandle.setStatus(subActionName.toUpperCase());
-							if (!dboObjectToHandle.getObject_id().equals(0L)
-									&& dboObjectToHandle.getObject_type().equals(SvReader.getTypeIdByName(Tc.ANIMAL))
-									&& (subActionName.equalsIgnoreCase(Tc.DIED)
-											|| subActionName.equalsIgnoreCase(Tc.SLAUGHTRD)
-											|| subActionName.equalsIgnoreCase(Tc.DESTROYED))) {
-								if (dateOfMovement != null && !dateOfMovement.equals("")
-										&& !dateOfMovement.equals("null")) {
-									DateTime dtDeathDate = new DateTime(dateOfMovement);
-									if (dtDeathDate.isAfter(new DateTime())) {
-										throw (new SvException("naits.error.deathDateCannotBeInTheFuture",
-												svr.getInstanceUser()));
-									}
-									dboObjectToHandle.setVal(Tc.DEATH_DATE, dtDeathDate);
-								} else {
-									wr.setAutoDate(dboObjectToHandle, Tc.DEATH_DATE, true);
-								}
-							}
-							if (dboObjectToHandle.getIs_dirty()) {
-								svw.saveObject(dboObjectToHandle, false);
-							}
-							break;
-						}
-						wr.updateHoldingStatus(dboObjToHandleParent, Tc.VALID, Tc.SUSPENDED, true, svr);
-						break;
-					case Tc.UNDO_RETIRE:
-						// inapplicable on following statuses
-						switch (dboObjectToHandle.getStatus()) {
-						case Tc.TRANSITION:
-							throw (new SvException("naits.error.cantUndoRetireOnAnimalWithStatusTransition",
-									svr.getInstanceUser()));
-						case Tc.PREMORTEM:
-							throw (new SvException("naits.error.cantUndoRetireOnAnimalWithStatusPremortem",
-									svr.getInstanceUser()));
-						case Tc.POSTMORTEM:
-							throw (new SvException("naits.error.cantUndoRetireOnAnimalWithStatusPostmortem",
-									svr.getInstanceUser()));
-						case Tc.SLAUGHTRD:
-							if (vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getParent_id(), svr)) {
-								throw (new SvException("naits.error.cantUndoRetireOnAnimalWithStatusSlaughter",
-										svr.getInstanceUser()));
-							}
-							break;
-						case Tc.EXPORTED:
-							throw (new SvException("naits.error." + objectTypeLabel + "CantBeUndoBecaseIsExported",
-									svCONST.systemUser, null, null));
-						case Tc.DESTROYED:
-							DbDataArray arrPremortem = svr.getObjectsByParentId(dboObjectToHandle.getObject_id(),
-									SvReader.getTypeIdByName(Tc.PRE_SLAUGHT_FORM), new DateTime(), 0, 0);
-							if (!arrPremortem.getItems().isEmpty()) {
-								for (DbDataObject dboPreMortem : arrPremortem.getItems()) {
-									svw.deleteObject(dboPreMortem, false);
-								}
-							}
-							break;
-						case Tc.LOST:
-						case Tc.SOLD:
-							DbDataArray arrMovements = svr.getObjectsByParentId(dboObjectToHandle.getObject_id(),
-									SvReader.getTypeIdByName(Tc.ANIMAL_MOVEMENT), null, 0, 0);
-							if (arrMovements != null && arrMovements.size() > 0) {
-								for (DbDataObject animalMovement : arrMovements.getItems()) {
-									if (animalMovement != null && animalMovement.getStatus().equals(Tc.VALID)
-											&& animalMovement.getVal(Tc.MOVEMENT_REASON)
-													.equals(dboObjectToHandle.getStatus())
-											&& animalMovement.getVal(Tc.DESTINATION_HOLDING_ID) == null) {
-										wr.finishAnimalOrFlockMovement(dboObjectToHandle, dboObjToHandleParent, null,
-												null, null, svw, sww);
-										break;
-									}
-								}
-							}
-							break;
-						default:
-							break;
-						}
-						wr.finishAnimalOrFlockMovement(dboObjectToHandle, dboObjToHandleParent, null, null, null, svw,
-								sww);
-						wr.undoAnimalPendingExport(dboObjectToHandle, rdr, svr, svw);
-						wr.setDateFieldToNull(dboObjectToHandle, Tc.DEATH_DATE, svw);
-						// force refresh on animal
-						@SuppressWarnings("unused")
-						DbDataObject dboAnimal = svr.getObjectById(dboObjectToHandle.getObject_id(),
-								dboObjectToHandle.getObject_type(), new DateTime());
-						result = "naits.success.massAnimalsActionUndoRetirement";
-						if (dboObjToHandleParent.getStatus().equals(Tc.SUSPENDED)
-								&& vc.checkIfHoldingIsCommercialOrSubsistenceFarmType(dboObjToHandleParent)) {
-							DbDataArray arrAnimals = rdr.getValidAnimalsOrFlockByParentId(
-									dboObjToHandleParent.getObject_id(), SvReader.getTypeIdByName(Tc.ANIMAL), svr);
-							DbDataArray arrFlocks = rdr.getValidAnimalsOrFlockByParentId(
-									dboObjToHandleParent.getObject_id(), SvReader.getTypeIdByName(Tc.FLOCK), svr);
-							if (!arrAnimals.getItems().isEmpty() || !arrFlocks.getItems().isEmpty()) {
-								wr.updateHoldingStatus(dboObjToHandleParent, Tc.SUSPENDED, Tc.VALID, svr);
-							}
-						}
-						break;
-					case Tc.ACTIVITY:
-						if (!NumberUtils.isDigits(transporterLicense)) {
-							transporterLicense = "0";
-						}
-						DateTime dtAction = new DateTime(dateOfMovement);
-						if (dtAction.isAfter(new DateTime())) {
-							throw (new SvException("naits.error.actionDateCannotBeInTheFuture", svr.getInstanceUser()));
-						}
-						// for activity: VACCINE
-						if (dboObjectToHandle != null && !subActionName.equalsIgnoreCase(Tc.PHYSICAL_CHECK)) {
-							if (dboVaccEvent != null) {
-								List<String> animalTypes = rdr.getMultiSelectFieldValueAsList(dboVaccEvent,
-										Tc.ANIMAL_TYPE);
-								if (!vc.checkIfAnimalTypeScopeIsApplicableOnSelectedAnimal(animalTypes,
-										dboObjectToHandle)) {
-									throw (new SvException(
-											"naits.error." + objectTypeLabel + "CampaignNotApplicableOnSelectedObjects",
-											svr.getInstanceUser()));
-								}
-								wr.createVaccTreatmentRecord(dboObjectToHandle, dboVaccEvent, dateOfMovement,
-										transporterLicense, svw);
-							}
-						}
-
-						// for physical exam
-						if (subActionName.equalsIgnoreCase(Tc.PHYSICAL_CHECK)) {
-							Calendar calendar = Calendar.getInstance();
-							java.sql.Date dtNow = new java.sql.Date(calendar.getTime().getTime());
-							String dateOfAction = dtNow.toString();
-							if (dateOfMovement != null && !dateOfMovement.equals("")
-									&& !dateOfMovement.equals("null")) {
-								dateOfAction = dateOfMovement;
-							}
-							DbDataObject vaccBookPhysicalCheck = wr.createVaccinationBook(dateOfAction, "", "", svw);
-							vaccBookPhysicalCheck.setVal(Tc.NOTE, "Physical exam");
-							if (objectTypeLabel.equalsIgnoreCase(Tc.FLOCK)) {
-								// transporterLicense in this case is used as
-								// number of units treated
-								if (transporterLicense != null && !transporterLicense.equals("0")
-										&& !transporterLicense.equals("") && !transporterLicense.equals("null")
-										&& dboObjectToHandle.getVal(Tc.TOTAL) != null) {
-									if (Long.valueOf(transporterLicense) > Long
-											.valueOf(dboObjectToHandle.getVal(Tc.TOTAL).toString())) {
-										throw (new SvException("naits.error.numberOfUnitsCantBeLargerThanTotalUnits",
-												svr.getInstanceUser()));
-									}
-									vaccBookPhysicalCheck.setVal(Tc.NO_ITEMS_TREATED, Long.valueOf(transporterLicense));
-								} else {
-									if (dboObjectToHandle.getVal(Tc.TOTAL) != null) {
-										vaccBookPhysicalCheck.setVal(Tc.NO_ITEMS_TREATED,
-												Long.valueOf(dboObjectToHandle.getVal(Tc.TOTAL).toString()));
-									}
-								}
-							} else {
-								vaccBookPhysicalCheck.setVal(Tc.NO_ITEMS_TREATED, 1L);
-							}
-							svw.saveObject(vaccBookPhysicalCheck, false);
-							wr.linkObjects(dboObjectToHandle, vaccBookPhysicalCheck,
-									objectTypeLabel.toUpperCase() + "_VACC_BOOK",
-									"link between " + objectTypeLabel.toUpperCase() + " and VACC_BOOK by physical exam",
-									svr);
-						}
-						break;
-					case Tc.MOVE:
-						if (actionParam == null) {
-							throw (new SvException("naits.error.destination_holding_missing", svr.getInstanceUser()));
-						}
-						dboHolding = svr.getObjectById(Long.valueOf(actionParam), SvReader.getTypeIdByName(Tc.HOLDING),
-								null);
-						if (subActionName.equalsIgnoreCase(Tc.CANCEL_MOVEMENT)
-								&& (dboObjectToHandle.getStatus().equals(Tc.LOST)
-										|| dboObjectToHandle.getStatus().equals(Tc.SOLD))) {
-							throw (new SvException(
-									"naits.error.actionCancelMovementCannotBeExecutedOnAnimalsWithStatusSoldOrLost",
-									svr.getInstanceUser()));
-						}
-
-						if (!(dboObjectToHandle.getStatus().equalsIgnoreCase(Tc.VALID)
-								|| dboObjectToHandle.getStatus().equalsIgnoreCase(Tc.TRANSITION))
-								&& !(subActionName.equalsIgnoreCase(Tc.FINISH_MOVEMENT)
-										|| subActionName.equalsIgnoreCase(Tc.START_MOVEMENT))) {
-							if (!subActionName.equalsIgnoreCase(Tc.CANCEL_MOVEMENT)) {
-								if (!subActionName.equalsIgnoreCase(Tc.FINISH_MOVEMENT_SLAUGHTR)) {
-									throw (new SvException("naits.error." + objectTypeLabel + "IsNotValidForMovement",
-											svr.getInstanceUser()));
-								}
-							}
-						}
-						// Movement doc of current movement
-						if (dboObjectToHandle != null && !subActionName.equals(Tc.START_MOVEMENT)
-								&& dboDestinationHolding != null && dboDestinationHolding.getVal(Tc.PIC) != null) {
-							String destinationHoldingPic = dboDestinationHolding.getVal(Tc.PIC).toString();
-							DbDataArray dboAnimalOrFlockMovementsArr = rdr.getExistingAnimalOrFlockMovements(
-									dboObjectToHandle, destinationHoldingPic, Tc.VALID, svr);
-							if (dboAnimalOrFlockMovementsArr != null && dboAnimalOrFlockMovementsArr.size() > 0) {
-								dboAnimalOrFlockMovement = dboAnimalOrFlockMovementsArr.get(0);
-								if (dboAnimalOrFlockMovement.getVal(Tc.MOVEMENT_DOC_ID) != null) {
-									dboMovementDoc = rdr.searchForObject(SvReader.getTypeIdByName(Tc.MOVEMENT_DOC),
-											Tc.MOVEMENT_DOC_ID,
-											dboAnimalOrFlockMovement.getVal(Tc.MOVEMENT_DOC_ID).toString(), svr);
-								}
-							}
-						}
-
-						// IMPORTANT: when there is active export quarantine,
-						// the
-						// source
-						// holding can move animals out, issue #177, block is
-						// present only for disease/blacklist quarantine
-
-						if (dboObjectToHandle.getParent_id().equals(dboHolding.getObject_id())
-								&& !subActionName.equalsIgnoreCase(Tc.CANCEL_MOVEMENT)) {
-							throw (new SvException("naits.error.sourceAndDestinationHoldingAreSame",
-									svr.getInstanceUser()));
-						}
-						if (dboObjectToHandle != null && subActionName.equals(Tc.START_MOVEMENT)) {
-							if (!rdr.checkIfAnimalOrFlockMovementExist(dboObjectToHandle, dboHolding, svr) && vc
-									.checkIfAnimalOrFlockDoesNotBelongToDraftMovementDoc(dboObjectToHandle, rdr, svr)) {
-								if (movementDocObject.getVal(Tc.DESTINATION_HOLDING_PIC) == null) {
-									movementDocObject.setVal(Tc.DESTINATION_HOLDING_PIC,
-											dboHolding.getVal(Tc.PIC) != null ? dboHolding.getVal(Tc.PIC).toString()
-													: null);
-									svw.saveObject(movementDocObject, false);
-								}
-								wr.startAnimalOrFlockMovement(dboObjectToHandle, dboHolding, Tc.TRANSFER,
-										dateOfMovement, movementDocObject.getVal(Tc.MOVEMENT_DOC_ID).toString(),
-										movementTransportType, transporterLicense, estmDateArrival, estmDateDeparture,
-										disinfectionDate, animalMvmReason, svr, svw, sww);
-							} else {
-								throw (new SvException("naits.error.movementForSelectedAnimalAlreadyExists",
-										svr.getInstanceUser()));
-							}
-						} else if (dboObjectToHandle != null && subActionName.equals(Tc.FINISH_MOVEMENT)) {
-							wr.finishAnimalOrFlockMovement(dboObjectToHandle, dboHolding, dateOfMovement, null, null,
-									svw, sww);
-						} else if (dboObjectToHandle != null && subActionName.equals(Tc.FINISH_MOVEMENT_SLAUGHTR)) {
-							wr.finishAnimalOrFlockMovement(dboObjectToHandle, dboHolding, dateOfMovement,
-									dateOfAdmission, transporterPersonId, svw, sww);
-						} else if (dboObjectToHandle != null && subActionName.equals(Tc.CANCEL_MOVEMENT)) {
-							if (// !dboObjectToHandle.getStatus().equals(Tc.TRANSITION)
-								// &&
-							(dboMovementDoc != null && dboMovementDoc.getStatus().equals(Tc.INVALID))) {
-								throw (new SvException("naits.error." + objectTypeLabel + "invalidStatus",
-										svr.getInstanceUser()));
-							}
-							wr.cancelMovement(dboObjectToHandle, sww, svr);
-							sww.moveObject(dboMovementDoc, Tc.CANCELED, false);
-						} else {
-							throw (new SvException("naits.error.no_" + objectTypeLabel + "_found",
-									svr.getInstanceUser()));
-						}
-
-						if (dboObjectToHandle != null && dboDestinationHolding != null
-								&& dboDestinationHolding.getVal(Tc.PIC) != null
-								&& (subActionName.equals(Tc.CANCEL_MOVEMENT) || subActionName.equals(Tc.FINISH_MOVEMENT)
-										|| subActionName.equals(Tc.FINISH_MOVEMENT_SLAUGHTR))) {
-							if (dboMovementDoc != null
-									&& vc.calcMovDocumentStatusAccordingMovements(dboMovementDoc, rdr, svr)
-											.equals(Tc.RELEASED)) {
-								if (dboMovementDoc.getStatus().equals(Tc.INVALID)) {
-									throw (new SvException("naits.error.mvmDocHaveMvmDocBlocked" + objectTypeLabel,
-											svr.getInstanceUser()));
-								}
-								// TODO this is quick fix for #1325, should be
-								// additionally reviewed and properly modified.
-								// @ZPE
-								if (!subActionName.equals(Tc.CANCEL_MOVEMENT))
-									sww.moveObject(dboMovementDoc, Tc.RELEASED, false);
-							} else if (dboMovementDoc != null
-									&& vc.calcMovDocumentStatusAccordingMovements(dboMovementDoc, rdr, svr)
-											.equals(Tc.CANCELED)) {
-								sww.moveObject(dboMovementDoc, Tc.CANCELED, false);
-							}
-						}
-						break;
-					case "OTHER":
-						switch (subActionName.toUpperCase()) {
-						case "GENERATE_PREMORTEM":
-							DbDataArray arrPreMortemForm = svr.getObjectsByParentId(dboObjectToHandle.getObject_id(),
-									SvReader.getTypeIdByName(Tc.PRE_SLAUGHT_FORM), null, 0, 0);
-							if (!vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getParent_id(), svr)) {
-								throw (new SvException("naits.error.selectedAnimalsDoesNotBelongToSlaughterhouse",
-										svr.getInstanceUser()));
-							}
-							if (!dboObjectToHandle.getStatus().equals(Tc.VALID)
-									&& arrPreMortemForm.getItems().isEmpty()) {
-								throw (new SvException("naits.error.selectedAnimalIsNotAllowedForPreMortemAction",
-										svr.getInstanceUser()));
-							}
-							if (dboObjectToHandle != null
-									&& vc.checkIfAnimalOrFlockHasAlreadyValidPreMortem(dboObjectToHandle, svr)) {
-								throw (new SvException("naits.error.animalOrFlockAlreadyHasValidPreMortemForm",
-										svCONST.systemUser, null, null));
-							}
-							if (vc.checkIfAnimalHasBlockingDiseaseInPremortemForm(dboObjectToHandle, svr)) {
-								throw (new SvException("naits.error.blockingDiseaseInPreMortem", svCONST.systemUser,
-										null, null));
-							}
-							if (dboObjectToHandle != null && (dboObjectToHandle.getStatus().equals(Tc.VALID)
-									|| dboObjectToHandle.getStatus().equals(Tc.PREMORTEM))) {
-								DbDataObject preMortem = wr.createPreMortemForm("CLINIC_EXAM", "1",
-										dboObjectToHandle.getObject_id());
-								preMortem.setVal(Tc.IS_AUTO_GEN, "true");
-								svw.saveObject(preMortem, false);
-							} else {
-								result = "naits.error.animalOrFlockWithPermissableToKillPreMortemForm";
-							}
-							break;
-						case "GENERATE_POSTMORTEM":
-							if (!(dboObjectToHandle.getStatus().equals(Tc.SLAUGHTRD)
-									|| dboObjectToHandle.getStatus().equals(Tc.POSTMORTEM))) {
-								throw (new SvException(
-										"naits.error.onlyValidSlaughteredAnimalCanBeHandledWithChoosenAction",
-										svr.getInstanceUser()));
-							}
-							if (dboObjectToHandle != null) {
-								DbDataObject postMortemObj = wr.createPostMortem(null, "2", "1", "1",
-										dboObjectToHandle.getObject_id());
-								postMortemObj.setVal(Tc.IS_AUTO_GEN, "true");
-								svw.saveObject(postMortemObj, false);
-							}
-							break;
-						default:
-							break;
-						}
-						break;
-					default:
-						break;
-					}
-					if (dboObjectToHandle != null) {
-						@SuppressWarnings("unused")
-						DbDataObject refreshMovementCache = svr.getObjectById(dboObjectToHandle.getObject_id(),
-								dboObjectToHandle.getObject_type(), new DateTime());
-					}
-					if (dboObjToHandleParent != null) {
-						@SuppressWarnings("unused")
-						DbDataObject refreshMovementCache2 = svr.getObjectById(dboObjToHandleParent.getObject_id(),
-								dboObjToHandleParent.getObject_type(), new DateTime());
-					}
-				} finally {
-					if (lock != null && dboObjectToHandle != null) {
-						SvLock.releaseLock(String.valueOf(dboObjectToHandle.getObject_id()), lock);
-					}
-				}
-			}
-			if (animalOrFlockIds != null && !animalOrFlockIds.isEmpty()) {
-				result = I18n.getText(svr.getUserLocaleId(svr.getInstanceUser()),
-						"naits.info.unsuccessfullyFinishedAnimalMovements") + " " + animalOrFlockIds.toString();
-			}
-			svw.dbCommit();
-			sww.dbCommit();
-			if (action.equalsIgnoreCase(Tc.MOVE) && subActionName.equalsIgnoreCase(Tc.START_MOVEMENT)) {
-				if (movementDocObject != null) {
-					result = checkAnimalOrFlockMovementsInMovementDocument(movementDocObject, svr.getSessionId());
-					// this means that movement document was generated/exists
-					if (!result.equals("naits.success.checkMovementsInMvmDoc")) {
-						movementDocObject.setStatus(Tc.INVALID);
-					} else {
-						result = result + "_" + movementDocObject.getObject_id().toString();
-					}
-					svw.saveObject(movementDocObject);
-					svw.dbCommit();
-				}
-			}
-		} catch (SvException sve) {
-			log4j.error(sve.getFormattedMessage(), sve);
-			result = sve.getLabelCode();
-		} finally {
-			if (svr != null) {
-				svr.release();
-			}
-			if (svw != null) {
-				svw.release();
-			}
-			if (sww != null) {
-				sww.release();
-			}
-
-		}
-		return result;
-	}
-
-	public String animalFlockMassHandler(String tableName, String actionName, String subActionName, String actionParam,
-			String dateOfMovement, String dateOfAdmission, String transporterPersonId, String movementTransportType,
-			String transporterLicense, String estmDateArrival, String estmDateDeparture, String disinfectionDate,
-			String animalMvmReason, JsonArray jsonData, String sessionId) throws Exception {
-		return animalFlockMassHandler(tableName, actionName, subActionName, actionParam, dateOfMovement,
-				dateOfAdmission, transporterPersonId, movementTransportType, transporterLicense, estmDateArrival,
-				estmDateDeparture, disinfectionDate, animalMvmReason, null, null, null, null, jsonData, sessionId);
-	}
-
 	public void userMassHandler(String actionName, String subActionName, String actionNote, JsonArray jsonData,
 			String sessionId) throws SvException {
 		SvReader svr = null;
@@ -633,8 +74,8 @@ public class MassActions {
 			DbDataObject currentDboUser = SvReader.getUserBySession(sessionId);
 
 			// check if parent exist
-			for (int i = 0; i < jsonData.size(); i++) {
-				JsonObject obj = jsonData.get(i).getAsJsonObject();
+			for (JsonElement jsonElement : jsonData) {
+				JsonObject obj = jsonElement.getAsJsonObject();
 				DbDataObject dboObjectToHandle = null;
 				if (obj.get("SVAROG_USERS.OBJECT_ID") != null) {
 					dboObjectToHandle = svr.getObjectById(obj.get("SVAROG_USERS.OBJECT_ID").getAsLong(), userTypeDesc,
@@ -648,18 +89,15 @@ public class MassActions {
 				// array, do appropriate action
 				// the current user which is logged in can not do any action
 				// implicitly for himself
-				if (currentDboUser.getObject_id() != dboObjectToHandle.getObject_id()) {
+				if (!currentDboUser.getObject_id().equals(dboObjectToHandle.getObject_id())) {
 					userMassAction(dboObjectToHandle, action, subActionName, actionNote, svw, sww, svn, wr);
 				}
 				svw.dbCommit();
 				sww.dbCommit();
 				svn.dbCommit();
-				// force refresh on user
-				if (dboObjectToHandle != null) {
-					@SuppressWarnings("unused")
-					DbDataObject dboUser = svr.getObjectById(dboObjectToHandle.getObject_id(),
-							dboObjectToHandle.getObject_type(), new DateTime());
-				}
+				@SuppressWarnings(Tc.UNUSED)
+				DbDataObject dboUser = svr.getObjectById(dboObjectToHandle.getObject_id(),
+						dboObjectToHandle.getObject_type(), new DateTime());
 			}
 
 		} catch (SvException sve) {
@@ -687,13 +125,13 @@ public class MassActions {
 			lock = SvLock.getLock(String.valueOf(dboUser.getObject_id()), false, 0);
 
 			if (lock == null) {
-				throw (new SvException("naits.error.objectUsedByOtherSession", svw.getInstanceUser()));
+				throw (new SvException(Tc.objectUsedByOtherSession, svw.getInstanceUser()));
 			}
 			switch (action.toUpperCase()) {
 			case "RESET_PASS":
 				// TODO:Put the default password and its hash into
 				// svarog.properties file
-				dboUser.setVal(Tc.PASSWORD_HASH, "480FA232A3FDDFA31A5696DB829A90D7");
+				dboUser.setVal(Tc.PASS_HSH, "480FA232A3FDDFA31A5696DB829A90D7");
 				svw.saveObject(dboUser, false);
 				break;
 			case "CHANGE_STATUS":
@@ -733,15 +171,65 @@ public class MassActions {
 		}
 	}
 
+	public void inventoryItemsMassStatusChange(String newStatus, JsonArray jsonData, String sessionId)
+			throws SvException {
+		SvReader svr = null;
+		SvWriter svw = null;
+		try {
+			svr = new SvReader(sessionId);
+			svw = new SvWriter(svr);
+			svr.setAutoCommit(false);
+			svw.setAutoCommit(false);
+			int commitCount = 0;
+			DbDataObject tempInvItem = null;
+			DbDataArray invItemsToSave = new DbDataArray();
+			DbDataObject invItemDesc = SvReader.getDbt(SvReader.getTypeIdByName(Tc.INVENTORY_ITEM));
+			for (JsonElement jsonElement : jsonData) {
+				JsonObject obj = jsonElement.getAsJsonObject();
+				tempInvItem = null;
+				if (obj.get("INVENTORY_ITEM.OBJECT_ID") != null) {
+					tempInvItem = svr.getObjectById(obj.get("INVENTORY_ITEM.OBJECT_ID").getAsLong(), invItemDesc, null);
+				}
+				if (tempInvItem == null) {
+					throw (new SvException("naits.error.no_inv_item_found", svr.getInstanceUser()));
+				}
+				if (tempInvItem.getVal(Tc.TAG_STATUS) != null
+						&& tempInvItem.getVal(Tc.TAG_STATUS).toString().equals(newStatus)) {
+					continue;
+				}
+				tempInvItem.setVal(Tc.TAG_STATUS, newStatus);
+				invItemsToSave.addDataItem(tempInvItem);
+				commitCount++;
+				if (commitCount == 100) {
+					svw.saveObject(invItemsToSave);
+					svw.dbCommit();
+					commitCount = 0;
+					invItemsToSave = new DbDataArray();
+				}
+			}
+			svw.saveObject(invItemsToSave);
+			svw.dbCommit();
+		} catch (SvException sve) {
+			log4j.error(sve.getFormattedMessage(), sve);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+			if (svw != null) {
+				svw.release();
+			}
+		}
+	}
+
 	public void generateSuspensionNotePerUser(DbDataObject dboUser, String suspensionNote, SvNote svn)
 			throws SvException {
 		ReentrantLock lock = null;
 		try {
 			lock = SvLock.getLock(String.valueOf(dboUser.getObject_id()), false, 0);
 			if (lock == null) {
-				throw (new SvException("naits.error.objectUsedByOtherSession", svn.getInstanceUser()));
+				throw (new SvException(Tc.objectUsedByOtherSession, svn.getInstanceUser()));
 			}
-			svn.setNote(dboUser.getObject_id(), "SUSPENSION_NOTE", suspensionNote);
+			svn.setNote(dboUser.getObject_id(), Tc.SUSPENSION_NOTE, suspensionNote);
 		} finally {
 			if (lock != null) {
 				SvLock.releaseLock(String.valueOf(dboUser.getObject_id()), lock);
@@ -751,14 +239,13 @@ public class MassActions {
 
 	public String moveAndLinkAnimals(String actionName, String actionParam, JsonArray jsonData, String sessionId)
 			throws SvException {
-		String result = "naits.success.massAnimalsAction";
+		String resultMessage = Tc.successMassAnimalsAction;
 		SvReader svr = null;
 		SvWriter svw = null;
 		SvWorkflow sww = null;
 		Writer wr = new Writer();
 		Reader rdr = new Reader();
 		try {
-
 			String regex = Tc.NUMBER_REGEX;
 
 			svr = new SvReader(sessionId);
@@ -769,16 +256,16 @@ public class MassActions {
 			DbDataObject animalTypeDesc = SvReader.getDbtByName(Tc.ANIMAL);
 			DbDataObject exportCertTypeDesc = SvReader.getDbtByName(Tc.EXPORT_CERT);
 
-			DbDataObject dboExportCert = null;
+			DbDataObject dboExportCertificate = null;
 			if (actionParam.matches(regex)) {
-				dboExportCert = svr.getObjectById(Long.valueOf(actionParam), exportCertTypeDesc, null);
+				dboExportCertificate = svr.getObjectById(Long.valueOf(actionParam), exportCertTypeDesc, null);
 			}
-			if (dboExportCert == null) {
+			if (dboExportCertificate == null) {
 				throw (new SvException("naits.error.no_export_cert_found", svr.getInstanceUser()));
 			}
 
-			for (int i = 0; i < jsonData.size(); i++) {
-				JsonObject obj = jsonData.get(i).getAsJsonObject();
+			for (JsonElement jsonElement : jsonData) {
+				JsonObject obj = jsonElement.getAsJsonObject();
 				DbDataObject dboObjectToHandle = null;
 				if (obj.get("ANIMAL.OBJECT_ID") != null) {
 					dboObjectToHandle = svr.getObjectById(obj.get("ANIMAL.OBJECT_ID").getAsLong(), animalTypeDesc,
@@ -791,25 +278,11 @@ public class MassActions {
 				try {
 					lock = SvLock.getLock(String.valueOf(dboObjectToHandle.getObject_id()), false, 0);
 					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+						throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 					}
 					switch (actionName.toUpperCase()) {
 					case "PENDINGEXPORT":
-						if (!rdr.checkIfLinkExists(dboObjectToHandle, dboExportCert, Tc.ANIMAL_EXPORT_CERT, null,
-								svr)) {
-							if (dboExportCert.getStatus().equals(Tc.PROCESSED)) {
-								throw (new SvException("naits.error.actionUnavailableSinceExportCertHasStatusProcessed",
-										svr.getInstanceUser()));
-							} else if (dboExportCert.getStatus().equals(Tc.EXPIRED)) {
-								throw (new SvException("naits.error.actionUnavailableSinceExportCertHasStatusExpired",
-										svr.getInstanceUser()));
-							} else if (dboExportCert.getStatus().equals(Tc.CANCELED)) {
-								throw (new SvException("naits.error.actionUnavailableSinceExportCertHasStatusCanceled",
-										svr.getInstanceUser()));
-							}
-							wr.linkObjects(dboObjectToHandle, dboExportCert, Tc.ANIMAL_EXPORT_CERT, null, svr);
-						}
-						sww.moveObject(dboObjectToHandle, Tc.PENDING_EX, false);
+						wr.movePotentionalAnimalsToExportCertificate(dboObjectToHandle, dboExportCertificate, rdr, svr);
 						break;
 					case "EXORT":
 						sww.moveObject(dboObjectToHandle, Tc.EXPORTED, false);
@@ -821,16 +294,14 @@ public class MassActions {
 						break;
 					}
 				} finally {
-					if (lock != null && dboObjectToHandle != null) {
-						SvLock.releaseLock(String.valueOf(dboObjectToHandle.getObject_id()), lock);
-					}
+					SvLock.releaseLock(String.valueOf(dboObjectToHandle.getObject_id()), lock);
 				}
 			}
 			svw.dbCommit();
 			sww.dbCommit();
 		} catch (SvException sve) {
 			log4j.error(sve.getFormattedMessage(), sve);
-			result = sve.getLabelCode();
+			resultMessage = sve.getLabelCode();
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -842,12 +313,12 @@ public class MassActions {
 				sww.release();
 			}
 		}
-		return result;
+		return resultMessage;
 	}
 
 	public String labSampleHandler(String actionName, String subActionName, String actionParam, JsonArray jsonData,
 			String sessionId) throws SvException {
-		String result = "naits.success.labSampleMassAction";
+		String resultMessage = "naits.success.labSampleMassAction";
 		SvReader svr = null;
 		SvWriter svw = null;
 		SvWorkflow sww = null;
@@ -860,8 +331,8 @@ public class MassActions {
 			sww = new SvWorkflow(svr);
 			DbDataObject labSampleTypeDesc = SvReader.getDbtByName(Tc.LAB_SAMPLE);
 
-			for (int i = 0; i < jsonData.size(); i++) {
-				JsonObject obj = jsonData.get(i).getAsJsonObject();
+			for (JsonElement jsonElement : jsonData) {
+				JsonObject obj = jsonElement.getAsJsonObject();
 				DbDataObject dboObjectToHandle = null;
 				if (obj.get("LAB_SAMPLE.OBJECT_ID") != null) {
 					dboObjectToHandle = svr.getObjectById(obj.get("LAB_SAMPLE.OBJECT_ID").getAsLong(),
@@ -874,10 +345,10 @@ public class MassActions {
 				try {
 					lock = SvLock.getLock(String.valueOf(dboObjectToHandle.getObject_id()), false, 0);
 					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+						throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 					}
 					switch (actionName.toUpperCase()) {
-					case "CHANGE_THE_STATUS_OF_LAB_SAMPLE":
+					case Tc.CHANGE_THE_STATUS_OF_LAB_SAMPLE:
 						switch (subActionName.toUpperCase()) {
 						case Tc.RECEIVED:
 							dboObjectToHandle.setStatus(Tc.RECEIVED);
@@ -890,31 +361,29 @@ public class MassActions {
 							break;
 						}
 						break;
-					case "SAMPLE_ACTION":
-						// code
-						switch (subActionName.toUpperCase()) {
-						case "ASSIGN_LAB":
+					case Tc.SAMPLE_ACTION:
+						if (Tc.ASSIGN_LAB.equals(subActionName)) {
 							if (actionParam == null || actionParam.equals("")) {
 								throw (new SvException("naits.error.cantAssignWithoutLaboratory",
 										svr.getInstanceUser()));
 							}
-							result = wr.createLinkBetweenLaboratoryAndLabSampleByLabName(dboObjectToHandle, actionParam,
-									rdr, svr, svw);
-							break;
-						default:
-							break;
+							resultMessage = wr.createLinkBetweenLaboratoryAndLabSampleByLabName(dboObjectToHandle,
+									actionParam, rdr, svr, svw);
 						}
 						break;
-					case "SET_HEALTH_STATUS_TO_RESULTS":
+					case Tc.SET_HEALTH_STATUS_TO_RESULTS:
 						switch (subActionName.toUpperCase()) {
-						case "NEGATIVE":
-							result = wr.setHealthStatusOfTestResults(dboObjectToHandle.getObject_id(), "1", svr, svw);
+						case Tc.NEGATIVE:
+							resultMessage = wr.setHealthStatusOfTestResults(dboObjectToHandle.getObject_id(), "1", svr,
+									svw);
 							break;
-						case "POSITIVE":
-							result = wr.setHealthStatusOfTestResults(dboObjectToHandle.getObject_id(), "0", svr, svw);
+						case Tc.POSITIVE:
+							resultMessage = wr.setHealthStatusOfTestResults(dboObjectToHandle.getObject_id(), "0", svr,
+									svw);
 							break;
-						case "INCONCLUSIVE":
-							result = wr.setHealthStatusOfTestResults(dboObjectToHandle.getObject_id(), "2", svr, svw);
+						case Tc.INCONCLUSIVE:
+							resultMessage = wr.setHealthStatusOfTestResults(dboObjectToHandle.getObject_id(), "2", svr,
+									svw);
 							break;
 						default:
 							break;
@@ -933,7 +402,7 @@ public class MassActions {
 			sww.dbCommit();
 		} catch (SvException sve) {
 			log4j.error(sve.getFormattedMessage(), sve);
-			result = sve.getLabelCode();
+			resultMessage = sve.getLabelCode();
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -945,94 +414,74 @@ public class MassActions {
 				sww.release();
 			}
 		}
-		return result;
+		return resultMessage;
 	}
 
 	public String exportCertMassHandler(JsonArray jsonData, String sessionId, Long exportCertObjectId)
 			throws SvException {
-		String result = "naits.info.exportAnimal";
+		String resultMessage = "naits.success.exportAnimal";
 		SvReader svr = null;
 		SvWriter svw = null;
 		SvWorkflow sww = null;
 		ValidationChecks vc = null;
-		Reader rdr = null;
-		String flagString = "";
-		Boolean flagResult = true;
-		DbDataObject exportCertObj = null;
-		DbDataObject quarantine = null;
-		DbDataArray exportedAnimals = null;
-		DbDataObject linkAnimalExportCert = null;
 		try {
-
 			svr = new SvReader(sessionId);
 			svw = new SvWriter(svr);
-			sww = new SvWorkflow(svr);
-			vc = new ValidationChecks();
-			rdr = new Reader();
 			svw.setAutoCommit(false);
-			sww.setAutoCommit(false);
+			sww = new SvWorkflow(svw);
 
-			DbDataObject animalTypeDesc = SvReader.getDbtByName(Tc.ANIMAL);
-			exportCertObj = svr.getObjectById(exportCertObjectId, SvReader.getTypeIdByName(Tc.EXPORT_CERT), null);
-			quarantine = svr.getObjectById(exportCertObj.getParent_id(), SvReader.getTypeIdByName(Tc.QUARANTINE), null);
+			vc = new ValidationChecks();
 
-			for (int i = 0; i < jsonData.size(); i++) {
-				JsonObject obj = jsonData.get(i).getAsJsonObject();
-				String getStatusOfObject = "";
+			DbDataObject dboAnimalDesc = SvReader.getDbtByName(Tc.ANIMAL);
+			DbDataObject dboExportCertificate = svr.getObjectById(exportCertObjectId,
+					SvReader.getTypeIdByName(Tc.EXPORT_CERT), null);
+			DbDataObject dboQuarantine = svr.getObjectById(dboExportCertificate.getParent_id(),
+					SvReader.getTypeIdByName(Tc.QUARANTINE), null);
+			for (JsonElement jsonElement : jsonData) {
+				JsonObject obj = jsonElement.getAsJsonObject();
+				String dboToHandleStatus = Tc.EMPTY_STRING;
 				DbDataObject dboObjectToHandle = null;
-
 				if (obj.get("ANIMAL.OBJECT_ID") != null) {
-					dboObjectToHandle = svr.getObjectById(obj.get("ANIMAL.OBJECT_ID").getAsLong(), animalTypeDesc,
+					dboObjectToHandle = svr.getObjectById(obj.get("ANIMAL.OBJECT_ID").getAsLong(), dboAnimalDesc,
 							new DateTime());
 				}
-
-				if (exportCertObj == null) {
+				if (dboExportCertificate == null) {
 					throw (new SvException("naits.error.exportCertDoesntExist", svr.getInstanceUser()));
 				}
-
 				if (obj.get("ANIMAL.STATUS") != null) {
-					getStatusOfObject = obj.get("ANIMAL.STATUS").getAsString().toString();
+					dboToHandleStatus = obj.get("ANIMAL.STATUS").getAsString();
 				}
-
 				if (dboObjectToHandle == null) {
 					throw (new SvException("naits.error.no_animal_found", svr.getInstanceUser()));
 				}
-
-				if (exportCertObj.getStatus().equals(Tc.PROCESSED)) {
+				if (dboExportCertificate.getStatus().equals(Tc.PROCESSED)) {
 					throw (new SvException("naits.info.exportCertAlreadyProcessed", svr.getInstanceUser()));
 				}
-				if (exportCertObj.getStatus().equals(Tc.EXPIRED)) {
+				if (dboExportCertificate.getStatus().equals(Tc.EXPIRED)) {
 					throw (new SvException("naits.info.exportCertAlreadyExpired", svr.getInstanceUser()));
+				}
+				if (dboQuarantine != null && dboQuarantine.getVal(Tc.DATE_TO) != null) {
+					if (vc.checkIfDateOfInsertIsBeforeEndDate(dboQuarantine, svr)) {
+						throw (new SvException("naits.error.animalCantBeCertifiedBeforeEndDateOfQuarantine",
+								svCONST.systemUser, null, null));
+					}
+					DateTime dtDateTo = new DateTime(dboQuarantine.getVal(Tc.DATE_TO).toString());
+					DateTime dtNow = new DateTime();
+					Long numDaysAfterQuarantineExpired = ValidationChecks.getDateDiff(dtNow, dtDateTo, TimeUnit.DAYS);
+					if (numDaysAfterQuarantineExpired > 1) {
+						throw (new SvException("naits.error.animalsCanBeCertified24HoursAfterEndDateOfQuarantine",
+								svCONST.systemUser, null, null));
+					}
 				}
 				ReentrantLock lock = null;
 				try {
 					lock = SvLock.getLock(String.valueOf(dboObjectToHandle.getObject_id()), false, 0);
 					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+						throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 					}
-					if (quarantine != null && quarantine.getVal(Tc.DATE_TO) != null) {
-						String currentDate = new DateTime().toString().substring(0, 10);
-						if (!vc.checkIfDateOfInsertIsBeforeEndDate(quarantine, svr)) {
-							String endDateOfQuarantine = quarantine.getVal(Tc.DATE_TO).toString();
-							Integer daysAfterQuarantineExpired = rdr.getDayDiffBetweenDates(currentDate,
-									endDateOfQuarantine);
-							if (daysAfterQuarantineExpired > 1) {
-								throw (new SvException(
-										"naits.error.animalsCanBeCertified24HoursAfterEndDateOfQuarantine",
-										svCONST.systemUser, null, null));
-							}
-						} else {
-							throw (new SvException("naits.error.animalCantBeCertifiedBeforeEndDateOfQuarantine",
-									svCONST.systemUser, null, null));
-						}
-					}
-					if (getStatusOfObject.equals(Tc.EXPORTED)) {
-						result = "naits.error.cantExportExportedAnimal";
-					}
-					if (!getStatusOfObject.equals("") && getStatusOfObject.equals(Tc.PENDING_EX)) {
+					if (!dboToHandleStatus.equals(Tc.EMPTY_STRING) && dboToHandleStatus.equals(Tc.PENDING_EX)) {
 						dboObjectToHandle.setStatus(Tc.EXPORTED);
 						svw.saveObject(dboObjectToHandle, false);
-						result = "naits.success.exportAnimal";
 					}
 				} finally {
 					if (lock != null && dboObjectToHandle != null) {
@@ -1040,34 +489,32 @@ public class MassActions {
 					}
 				}
 			}
-			linkAnimalExportCert = SvReader.getLinkType(Tc.ANIMAL_EXPORT_CERT, SvReader.getTypeIdByName(Tc.ANIMAL),
-					SvReader.getTypeIdByName(Tc.EXPORT_CERT));
-			exportedAnimals = svr.getObjectsByLinkedId(exportCertObjectId, SvReader.getTypeIdByName(Tc.EXPORT_CERT),
-					linkAnimalExportCert, SvReader.getTypeIdByName(Tc.ANIMAL), true, null, 0, 0);
-			// check if all animals are exported to change
-			// the status of the export_cert
+			DbDataObject linkAnimalExportCert = SvReader.getLinkType(Tc.ANIMAL_EXPORT_CERT,
+					SvReader.getTypeIdByName(Tc.ANIMAL), SvReader.getTypeIdByName(Tc.EXPORT_CERT));
+			DbDataArray exportedAnimals = svr.getObjectsByLinkedId(exportCertObjectId,
+					SvReader.getTypeIdByName(Tc.EXPORT_CERT), linkAnimalExportCert, SvReader.getTypeIdByName(Tc.ANIMAL),
+					true, null, 0, 0);
+			boolean isProcessedQuarantine = true;
 			for (DbDataObject animalObj : exportedAnimals.getItems()) {
 				if (animalObj != null && !animalObj.getStatus().equals(Tc.EXPORTED)) {
-					flagResult = false;
+					isProcessedQuarantine = false;
 					break;
 				}
 			}
-			if (flagResult) {
-				sww.moveObject(exportCertObj, Tc.PROCESSED, false);
-				flagString = "StatusProcessed";
+			if (isProcessedQuarantine) {
+				sww.moveObject(dboExportCertificate, Tc.PROCESSED, false);
+				resultMessage = "naits.success.exportAnimalStatusProcessed";
 			}
-			result = "naits.success.exportAnimal" + flagString;
-			if (exportCertObj != null) {
-				@SuppressWarnings("unused")
+			if (dboExportCertificate != null) {
+				@SuppressWarnings(Tc.UNUSED)
 				DbDataObject refreshExportCertCache = svr.getObjectById(exportCertObjectId,
-						exportCertObj.getObject_type(), new DateTime());
+						dboExportCertificate.getObject_type(), new DateTime());
 			}
-			sww.dbCommit();
 			svw.dbCommit();
-
+			sww.dbCommit();
 		} catch (SvException sve) {
 			log4j.error(sve.getFormattedMessage(), sve);
-			result = sve.getLabelCode();
+			resultMessage = sve.getLabelCode();
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -1079,7 +526,7 @@ public class MassActions {
 				sww.release();
 			}
 		}
-		return result;
+		return resultMessage;
 	}
 
 	public String updateStatusOfMovementDoc(JsonArray jsonData, String nextStatus, SvReader svr) throws SvException {
@@ -1089,7 +536,7 @@ public class MassActions {
 		Reader rdr = new Reader();
 		Writer wr = new Writer();
 		DbDataArray animalOrFlockMovements = null;
-		String mvmDocType = "";
+		String mvmDocType = Tc.EMPTY_STRING;
 		try {
 			svw = new SvWriter(svr);
 			sww = new SvWorkflow(svw);
@@ -1098,8 +545,8 @@ public class MassActions {
 			String action = nextStatus.toUpperCase().trim();
 			DbDataObject movementDocTypeDesc = SvReader.getDbtByName(Tc.MOVEMENT_DOC);
 
-			for (int i = 0; i < jsonData.size(); i++) {
-				JsonObject obj = jsonData.get(i).getAsJsonObject();
+			for (JsonElement jsonElement : jsonData) {
+				JsonObject obj = jsonElement.getAsJsonObject();
 				DbDataObject dboObjectToHandle = null;
 				if (obj.get("MOVEMENT_DOC.OBJECT_ID") != null) {
 					dboObjectToHandle = svr.getObjectById(obj.get("MOVEMENT_DOC.OBJECT_ID").getAsLong(),
@@ -1119,7 +566,7 @@ public class MassActions {
 				try {
 					lock = SvLock.getLock(String.valueOf(dboObjectToHandle.getObject_id()), false, 0);
 					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+						throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 					}
 					switch (action) {
 					case Tc.RELEASED:
@@ -1131,7 +578,7 @@ public class MassActions {
 									dboObjectToHandle.getObject_id(), SvReader.getTypeIdByName(Tc.MOVEMENT_DOC_BLOCK),
 									null, 0, 0);
 
-							if (movementDocBlocksArr != null && movementDocBlocksArr.size() > 0) {
+							if (movementDocBlocksArr != null && !movementDocBlocksArr.getItems().isEmpty()) {
 								for (DbDataObject mvmDocBlockObj : movementDocBlocksArr.getItems()) {
 									if (mvmDocBlockObj.getStatus().equals(Tc.UNRESOLVED)) {
 										resolvedFlag = false;
@@ -1203,10 +650,10 @@ public class MassActions {
 
 	/**
 	 * Method that checks Animal Movements in Movement Document. If some of the
-	 * animals/flock in movement have sign of disease, Movement Document Block
-	 * is generated. Initial status of Movement Document Block is "UNRESOLVED".
-	 * If all of the blocking reasons are resolved, and we check the document
-	 * again, status of the Movement Document Block will change into "RESOLVED"
+	 * animals/flock in movement have sign of disease, Movement Document Block is
+	 * generated. Initial status of Movement Document Block is "UNRESOLVED". If all
+	 * of the blocking reasons are resolved, and we check the document again, status
+	 * of the Movement Document Block will change into "RESOLVED"
 	 * 
 	 * @param dboMovementDoc
 	 * @param sessionId
@@ -1215,15 +662,14 @@ public class MassActions {
 	 */
 	public String checkAnimalOrFlockMovementsInMovementDocument(DbDataObject dboMovementDoc, String sessionId)
 			throws SvException {
-		String result = "naits.success.checkMovementsInMvmDoc";
+		String resultMessage = Tc.successCheckMovementsInMvmDoc;
 		SvReader svr = null;
 		SvWriter svw = null;
 		SvWorkflow sww = null;
 		Reader rdr = null;
-		ValidationChecks vc = null;
 		Writer wr = null;
 		DbDataArray animalOrFlockMovements = null;
-		String tableName = "";
+		String tableName = Tc.EMPTY_STRING;
 		try {
 			svr = new SvReader(sessionId);
 
@@ -1235,7 +681,6 @@ public class MassActions {
 
 			rdr = new Reader();
 			wr = new Writer();
-			vc = new ValidationChecks();
 			int counter = 0;
 
 			Long movementDocObjectId = dboMovementDoc.getObject_id();
@@ -1257,23 +702,23 @@ public class MassActions {
 					try {
 						lock = SvLock.getLock(String.valueOf(animalOrFlockMovementObj.getObject_id()), false, 0);
 						if (lock == null) {
-							throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+							throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 						}
 						DbDataObject existingMovementDocBlockObject = rdr.getMovementDocBlockByMovementObjId(
 								movementDocObjectId, animalOrFlockMovementObj.getObject_id(), svr);
 						DbDataObject mvmDocBlockObj = movementDocProhibitionChecks(animalOrFlockMovementObj,
-								movementDocObjectId, tableName, vc, rdr, wr, svw, svr);
+								movementDocObjectId, tableName, rdr, wr, svr);
 						if (mvmDocBlockObj != null && existingMovementDocBlockObject == null) {
-							result = "naits.info.checkMovementsInNewMvmDocGeneratedBlock";
+							resultMessage = "naits.info.checkMovementsInNewMvmDocGeneratedBlock";
 							svw.saveObject(mvmDocBlockObj, false);
 						} else if (mvmDocBlockObj != null && existingMovementDocBlockObject != null) {
-							result = "naits.info.checkMovementsInMvmDocGeneratedBlock";
+							resultMessage = "naits.info.successCheckMovementsInMvmDocGeneratedBlock";
 						} else if (mvmDocBlockObj == null && existingMovementDocBlockObject != null) {
 							// if there are no more blocks, change the status of
 							// the
 							// existing one
 							if (existingMovementDocBlockObject.getStatus().equals(Tc.UNRESOLVED)) {
-								result = "naits.success.checkMovementsInMvmDoc";
+								resultMessage = Tc.successCheckMovementsInMvmDoc;
 								sww.moveObject(existingMovementDocBlockObject, Tc.RESOLVED, false);
 							}
 						}
@@ -1295,7 +740,7 @@ public class MassActions {
 			sww.dbCommit();
 		} catch (SvException sve) {
 			log4j.error(sve.getFormattedMessage(), sve);
-			result = sve.getLabelCode();
+			resultMessage = sve.getLabelCode();
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -1307,12 +752,11 @@ public class MassActions {
 				sww.release();
 			}
 		}
-		return result;
+		return resultMessage;
 	}
 
 	public DbDataObject movementDocProhibitionChecks(DbDataObject movementObj, Long movementDocObjectId,
-			String tableName, ValidationChecks vc, Reader rdr, Writer wr, SvWriter svw, SvReader svr)
-			throws SvException {
+			String tableName, Reader rdr, Writer wr, SvReader svr) throws SvException {
 		DbDataObject mvmDocBlockObj = null;
 
 		ArrayList<String> blockReasons = new ArrayList<>();
@@ -1320,8 +764,8 @@ public class MassActions {
 
 		DbDataObject dboMovementDoc = svr.getObjectById(movementDocObjectId, SvReader.getTypeIdByName(Tc.MOVEMENT_DOC),
 				null);
-		String tempBlockReason = "";
-		String diseaseCausePerLabSample = "";
+		String tempBlockReason = Tc.EMPTY_STRING;
+		String diseaseCausePerLabSample = Tc.EMPTY_STRING;
 
 		DbDataObject animalOrFlockObj = svr.getObjectById(movementObj.getParent_id(),
 				SvReader.getTypeIdByName(tableName), null);
@@ -1389,7 +833,7 @@ public class MassActions {
 								|| diseaseCausePerLabSample.equalsIgnoreCase(Tc.ANTHRAX_SUSPECT)) {
 							// ANTHRAX
 							diseaseObj = rdr.getDiseaseObjByDiseaseName("2", svr);
-							Boolean allAnimalsVaccinatedBetweenPeriod = rdr
+							boolean allAnimalsVaccinatedBetweenPeriod = rdr
 									.checkIfAnimalsHasValidImmunizationPeriodInAnimalHealthBook(sourceHoldingObj,
 											labSample.getVal(Tc.DATE_OF_COLLECTION).toString(), 10, svr);
 
@@ -1422,7 +866,7 @@ public class MassActions {
 								|| diseaseCausePerLabSample.equalsIgnoreCase(Tc.FMD_SUSPECT)) {
 							// FOOT AND MOUTH DISEASE
 							diseaseObj = rdr.getDiseaseObjByDiseaseName("1", svr);
-							Boolean allAnimalsVaccinatedBetweenPeriod = rdr
+							boolean allAnimalsVaccinatedBetweenPeriod = rdr
 									.checkIfAnimalsHasValidImmunizationPeriodInAnimalHealthBook(sourceHoldingObj,
 											labSample.getVal(Tc.DATE_OF_COLLECTION).toString(), 6, svr);
 
@@ -1458,32 +902,20 @@ public class MassActions {
 			String blckRsn = blockReasons.toString().replace("[", "").replace("]", "").replace(" ", "");
 			String recomm = recommendBlck.toString().replace("[", "").replace("]", "").replace(" ", "");
 			mvmDocBlockObj = wr.createMovementDocBlock(movementDocObjectId, movementObj, blckRsn, recomm, svr);
-			if (blockReasons != null) {
-				if ((blockReasons.size() == 1 && (blockReasons.contains(Tc.SOURCE_HOLDING_AFFECTED_AREA)
-						|| blockReasons.contains(Tc.DESTINATION_HOLDING_AFFECTED_AREA)))
-						|| ((blockReasons.size() == 2 && blockReasons.contains(Tc.SOURCE_HOLDING_AFFECTED_AREA)
-								&& blockReasons.contains(Tc.DESTINATION_HOLDING_AFFECTED_AREA)))) {
-					mvmDocBlockObj = null;
-				}
+			if ((blockReasons.size() == 1 && (blockReasons.contains(Tc.SOURCE_HOLDING_AFFECTED_AREA)
+					|| blockReasons.contains(Tc.DESTINATION_HOLDING_AFFECTED_AREA)))
+					|| (blockReasons.size() == 2 && blockReasons.contains(Tc.SOURCE_HOLDING_AFFECTED_AREA)
+							&& blockReasons.contains(Tc.DESTINATION_HOLDING_AFFECTED_AREA))) {
+				mvmDocBlockObj = null;
 			}
+
 		}
 		return mvmDocBlockObj;
 	}
 
-	public String moveFlockUnits(String tableName, String actionName, String subActionName, String actionParam,
-			String dateOfMovement, String dateOfAdmission, String transporterPersonId, String movementTransportType,
-			String transporterLicense, String estmDateArrival, String estmDateDeparture, String disinfectionDate,
-			String flockMvmReason, Long totalUnits, Long maleUnits, Long femaleUnits, Long adultsUnits,
-			JsonArray jsonData, String sessionId) throws Exception {
-		return animalFlockMassHandler(tableName, actionName, subActionName, actionParam, dateOfMovement,
-				dateOfAdmission, transporterPersonId, movementTransportType, transporterLicense, estmDateArrival,
-				estmDateDeparture, disinfectionDate, flockMvmReason, totalUnits, maleUnits, femaleUnits, adultsUnits,
-				jsonData, sessionId);
-	}
-
 	public String createActivityPeriod(Long holdingObjId, String dateFrom, String dateTo, JsonArray jsonData,
 			String sessionId) {
-		String result = "naits.success.createActivityPeriod";
+		String resultMessage = "naits.success.createActivityPeriod";
 		SvReader svr = null;
 		SvParameter svp = null;
 		Reader rdr = null;
@@ -1517,7 +949,7 @@ public class MassActions {
 				try {
 					lock = SvLock.getLock(String.valueOf(dboObjectToHandle.getObject_id()), false, 0);
 					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+						throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 					}
 					DbDataObject linkBetweenHerderAndHolding = SvReader.getLinkType(Tc.HOLDING_HERDER,
 							SvReader.getTypeIdByName(Tc.HOLDING), SvReader.getTypeIdByName(Tc.HOLDING_RESPONSIBLE));
@@ -1535,7 +967,7 @@ public class MassActions {
 			svp.dbCommit();
 		} catch (SvException sve) {
 			log4j.error(sve.getFormattedMessage(), sve);
-			result = sve.getLabelCode();
+			resultMessage = sve.getLabelCode();
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -1544,31 +976,31 @@ public class MassActions {
 				svp.release();
 			}
 		}
-		return result;
+		return resultMessage;
 	}
 
 	public String updateStatusMassAction(String tableName, String nextStatus, JsonArray jsonData, String sessionId) {
-		String result = "naits.success.massTransferAction";
+		String resultMessage = "naits.success.massTransferAction";
 		SvReader svr = null;
 		SvWriter svw = null;
 		SvWorkflow sww = null;
 		Reader rdr = null;
 		try {
 			svr = new SvReader(sessionId);
-			svr.setAutoCommit(false);
 			svw = new SvWriter(svr);
-			sww = new SvWorkflow(svr);
+			sww = new SvWorkflow(svw);
 			rdr = new Reader();
 
 			DbDataObject dbObjectType = SvReader.getDbtByName(tableName);
 			DbDataObject dboUser = SvReader.getUserBySession(sessionId);
-
-			for (int i = 0; i < jsonData.size(); i++) {
-				JsonObject obj = jsonData.get(i).getAsJsonObject();
+			DbDataArray arrDbObjectsToSave = new DbDataArray();
+			int count = 0;
+			for (JsonElement jsonElement : jsonData) {
+				JsonObject obj = jsonElement.getAsJsonObject();
 				DbDataObject dboObjectToHandle = null;
 				if (obj.get(tableName + "." + Tc.OBJECT_ID) != null) {
 					dboObjectToHandle = svr.getObjectById(obj.get(tableName + "." + Tc.OBJECT_ID).getAsLong(),
-							dbObjectType, null);
+							dbObjectType, new DateTime());
 				}
 				if (dboObjectToHandle == null) {
 					throw (new SvException("naits.error." + tableName + "_missing", svr.getInstanceUser()));
@@ -1581,24 +1013,31 @@ public class MassActions {
 				try {
 					lock = SvLock.getLock(String.valueOf(dboObjectToHandle.getObject_id()), false, 0);
 					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+						throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 					}
 					switch (tableName) {
 					case Tc.TRANSFER:
-						if (!dboObjectToHandle.getStatus().equals(Tc.DRAFT) && (nextStatus.equalsIgnoreCase(Tc.CANCELED)
-								|| nextStatus.equalsIgnoreCase(Tc.DELIVERED))) {
+						if (!dboObjectToHandle.getStatus().equalsIgnoreCase(Tc.DRAFT)
+								&& (nextStatus.equalsIgnoreCase(Tc.CANCELED)
+										|| nextStatus.equalsIgnoreCase(Tc.DELIVERED))) {
 							throw (new SvException("naits.error.onlyDraftTransferCanBeCanceled",
 									svr.getInstanceUser()));
 						}
 						if (nextStatus.equalsIgnoreCase(Tc.DELIVERED)) {
 							dboObjectToHandle.setVal(Tc.RECEIVED_BY, dboUser.getVal(Tc.USER_NAME).toString());
 							dboObjectToHandle.setVal(Tc.DATE_RECEIVED, new DateTime());
-							svw.saveObject(dboObjectToHandle, false);
 						}
-						sww.moveObject(dboObjectToHandle, nextStatus, false);
+						dboObjectToHandle.setStatus(nextStatus.toUpperCase());
+						arrDbObjectsToSave.addDataItem(dboObjectToHandle);
+						count++;
+						if (count == COMMIT_COUNT) {
+							svw.saveObject(arrDbObjectsToSave, true, true);
+							arrDbObjectsToSave = new DbDataArray();
+							count = 0;
+						}
 						break;
 					default:
-						sww.moveObject(dboObjectToHandle, nextStatus, false);
+						sww.moveObject(dboObjectToHandle, nextStatus.toUpperCase(), true);
 						break;
 					}
 				} finally {
@@ -1607,11 +1046,12 @@ public class MassActions {
 					}
 				}
 			}
-			svw.dbCommit();
-			sww.dbCommit();
+			if (!arrDbObjectsToSave.getItems().isEmpty()) {
+				svw.saveObject(arrDbObjectsToSave, true, true);
+			}
 		} catch (SvException sve) {
 			log4j.error(sve.getFormattedMessage(), sve);
-			result = sve.getLabelCode();
+			resultMessage = sve.getLabelCode();
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -1623,12 +1063,12 @@ public class MassActions {
 				sww.release();
 			}
 		}
-		return result;
+		return resultMessage;
 	}
 
 	public String assignOrUnassignNotification(String userOrGroupName, String actionType, JsonArray jsonData,
 			String sessionId) {
-		String result = "naits.success.successfullyAssignedNotification";
+		String resultMessage = "naits.success.successfullyAssignedNotification";
 		SvReader svr = null;
 		SvWriter svw = null;
 		SvNotification svn = null;
@@ -1670,7 +1110,7 @@ public class MassActions {
 				try {
 					lock = SvLock.getLock(String.valueOf(dboObjectToHandle.getObject_id()), false, 0);
 					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+						throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 					}
 					if (dboUserOrUserGroup != null) {
 						// get link between notification and user or user_group
@@ -1684,17 +1124,18 @@ public class MassActions {
 							if (dboLink == null) {
 								svn.createLinkBetweenNotificationAndUserOrUserGroup(dboObjectToHandle,
 										dboUserOrUserGroup, true);
-								result += objectType;
+								resultMessage += objectType;
 							} else {
-								result = "naits.error.selectedNotificationAlreadyAssignedToSelected" + objectType;
+								resultMessage = "naits.error.selectedNotificationAlreadyAssignedToSelected"
+										+ objectType;
 							}
 
 						} else if (paramActionType.equals(Tc.UNASSIGN)) {
 							if (dboLink != null) {
 								wr.invalidateLink(dboLink, true, svr);
-								result = "naits.success.successfullyUnassignedNotification" + objectType;
+								resultMessage = "naits.success.successfullyUnassignedNotification" + objectType;
 							} else {
-								result = "naits.error.selectedNotificationIsNotAssignedToSelected" + objectType;
+								resultMessage = "naits.error.selectedNotificationIsNotAssignedToSelected" + objectType;
 							}
 						}
 					}
@@ -1708,7 +1149,7 @@ public class MassActions {
 			svn.dbCommit();
 		} catch (SvException sve) {
 			log4j.error(sve.getFormattedMessage(), sve);
-			result = sve.getLabelCode();
+			resultMessage = sve.getLabelCode();
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -1720,7 +1161,7 @@ public class MassActions {
 				svn.release();
 			}
 		}
-		return result;
+		return resultMessage;
 	}
 
 	/**
@@ -1736,113 +1177,97 @@ public class MassActions {
 	 * @return
 	 * @throws Exception
 	 */
-	public String objectMassAction(String tableName, String actionName, String subActionName, String param,
-			JsonArray jsonData, String sessionId) throws Exception {
-		String result = "naits.success." + tableName.toLowerCase() + "MassAction";
+	public String inventoryIndividualDirectTransfer(Long destinationObjId, JsonArray jsonData, String sessionId)
+			throws Exception {
+		String result = "naits.success." + Tc.INVENTORY_ITEM + "MassAction";
 		SvReader svr = null;
 		SvWriter svw = null;
-		SvWorkflow sww = null;
 		Reader rdr = null;
 		Writer wr = null;
+		ValidationChecks vc = null;
 		try {
 			svr = new SvReader(sessionId);
-			svr.setAutoCommit(false);
 			svw = new SvWriter(svr);
-			sww = new SvWorkflow(svr);
+
 			wr = new Writer();
 			rdr = new Reader();
+			vc = new ValidationChecks();
 
-			String action = actionName != null ? actionName.toUpperCase() : "";
+			if (jsonData.size() > 100) {
+				throw (new SvException("naits.error.individualTransferNumberIsOverLimit", svr.getInstanceUser()));
+			}
 
-			DbDataObject dbObjectTypeDesc = SvReader.getDbtByName(tableName);
-			DbDataObject dboOrgUnitTypeDesc = SvReader.getDbt(svCONST.OBJECT_TYPE_ORG_UNITS);
-			DbDataObject dboHoldingTypeDesc = SvReader.getDbt(SvReader.getTypeIdByName(Tc.HOLDING));
-			// DbDataObject dboUser = SvReader.getUserBySession(sessionId);
+			DbDataArray arrDbObjectsToSave = new DbDataArray();
 
-			for (int i = 0; i < jsonData.size(); i++) {
-				JsonObject obj = jsonData.get(i).getAsJsonObject();
+			for (JsonElement jsonElement : jsonData) {
+				JsonObject obj = jsonElement.getAsJsonObject();
 				DbDataObject dboObjectToHandle = null;
 				DbDataObject dboParentObjectToHandle = null;
-				if (obj.get(tableName + "." + Tc.OBJECT_ID) != null) {
-					dboObjectToHandle = svr.getObjectById(obj.get(tableName + "." + Tc.OBJECT_ID).getAsLong(),
-							dbObjectTypeDesc, null);
+				if (obj.get(Tc.INVENTORY_ITEM + "." + Tc.OBJECT_ID) != null) {
+					dboObjectToHandle = svr.getObjectById(obj.get(Tc.INVENTORY_ITEM + "." + Tc.OBJECT_ID).getAsLong(),
+							SvReader.getTypeIdByName(Tc.INVENTORY_ITEM), null);
 				}
-				if (obj.get(tableName + "." + Tc.PARENT_ID) != null) {
-					dboParentObjectToHandle = svr.getObjectById(obj.get(tableName + "." + Tc.PARENT_ID).getAsLong(),
-							dboOrgUnitTypeDesc, null);
+				if (obj.get(Tc.INVENTORY_ITEM + "." + Tc.PARENT_ID) != null) {
+					dboParentObjectToHandle = svr.getObjectById(
+							obj.get(Tc.INVENTORY_ITEM + "." + Tc.PARENT_ID).getAsLong(), svCONST.OBJECT_TYPE_ORG_UNITS,
+							null);
 				}
 				if (dboObjectToHandle == null) {
-					throw (new SvException("naits.error." + tableName + "_missing", svr.getInstanceUser()));
+					throw (new SvException("naits.error." + Tc.INVENTORY_ITEM + "_missing", svr.getInstanceUser()));
 				}
 				if (dboParentObjectToHandle == null) {
-					dboParentObjectToHandle = svr.getObjectById(obj.get(tableName + "." + Tc.PARENT_ID).getAsLong(),
-							dboHoldingTypeDesc, null);
+					dboParentObjectToHandle = svr.getObjectById(
+							obj.get(Tc.INVENTORY_ITEM + "." + Tc.PARENT_ID).getAsLong(),
+							SvReader.getTypeIdByName(Tc.HOLDING), null);
 				}
 				if (dboParentObjectToHandle == null) {
-					throw (new SvException("naits.error." + tableName + "_missing", svr.getInstanceUser()));
+					throw (new SvException("naits.error." + Tc.INVENTORY_ITEM + "_missing", svr.getInstanceUser()));
 				}
-				ReentrantLock lock = null;
-				try {
-					lock = SvLock.getLock(String.valueOf(dboObjectToHandle.getObject_id()), false, 0);
-					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+				DbDataObject dboTransfer = null;
+
+				String tagType = dboObjectToHandle.getVal(Tc.TAG_TYPE).toString();
+				Long startTagId = Long.valueOf(dboObjectToHandle.getVal(Tc.EAR_TAG_NUMBER).toString());
+				Long endTagId = Long.valueOf(dboObjectToHandle.getVal(Tc.EAR_TAG_NUMBER).toString());
+				result = "naits.error.arrivalPlaceNotFound";
+				DbDataObject dboDestinationOrgUnit = svr.getObjectById(Long.valueOf(destinationObjId),
+						svCONST.OBJECT_TYPE_ORG_UNITS, null);
+				if (dboDestinationOrgUnit == null) {
+					dboDestinationOrgUnit = svr.getObjectById(Long.valueOf(destinationObjId),
+							SvReader.getTypeIdByName(Tc.HOLDING), null);
+				}
+				if (dboDestinationOrgUnit != null && dboParentObjectToHandle != null) {
+					if (dboDestinationOrgUnit.getObject_id().equals(dboParentObjectToHandle.getObject_id())) {
+						throw (new SvException("naits.error.cantSendInventoryItemsToSameOrgUnit", svCONST.systemUser,
+								null, null));
 					}
-					switch (tableName) {
-					case Tc.INVENTORY_ITEM:
-						DbDataObject dboTransfer = null;
-						if ("".equalsIgnoreCase(action)) {
-							result = "naits.error.arrivalPlaceNotFound";
-							DbDataObject dboDestinationOrgUnit = svr.getObjectById(Long.valueOf(param),
-									svCONST.OBJECT_TYPE_ORG_UNITS, null);
-							if (dboDestinationOrgUnit == null) {
-								dboDestinationOrgUnit = svr.getObjectById(Long.valueOf(param),
-										dboHoldingTypeDesc.getObject_id(), null);
-							}
-							if (dboDestinationOrgUnit != null && dboParentObjectToHandle != null) {
-								if (dboDestinationOrgUnit.getObject_id()
-										.equals(dboParentObjectToHandle.getObject_id())) {
-									throw (new SvException("naits.error.cantSendInventoryItemsToSameOrgUnit",
-											svCONST.systemUser, null, null));
-								}
-								dboTransfer = wr.createTransferObject(dboObjectToHandle.getVal(Tc.TAG_TYPE).toString(),
-										Long.valueOf(dboObjectToHandle.getVal(Tc.EAR_TAG_NUMBER).toString()),
-										Long.valueOf(dboObjectToHandle.getVal(Tc.EAR_TAG_NUMBER).toString()), null,
-										null, dboParentObjectToHandle.getVal(Tc.NAME).toString(),
-										dboDestinationOrgUnit.getVal(Tc.NAME).toString(), null, null, null,
-										String.valueOf(dboParentObjectToHandle.getObject_id()),
-										String.valueOf(dboDestinationOrgUnit.getObject_id()));
-								dboTransfer.setParent_id(dboParentObjectToHandle.getObject_id());
-								dboTransfer.setVal(Tc.DIRECT_TRANSFER, true);
-								dboTransfer.setVal(Tc.CACHE_PARENT_ID, dboParentObjectToHandle.getObject_id());
-								dboTransfer.setVal(Tc.TRANSFER_TYPE, Tc.DEFAULT);
-								svw.saveObject(dboTransfer, false);
-								result = "naits.success.moveInventoryItemToOtherOrgUnit";
-							}
-						} else if (Tc.REVERSE.equals(action)) {
-							dboTransfer = rdr.getTransferAccordingInventoryItem(dboObjectToHandle.getParent_id(),
-									dboObjectToHandle.getVal(Tc.TAG_TYPE).toString(),
-									dboObjectToHandle.getVal(Tc.EAR_TAG_NUMBER).toString(), Tc.RELEASED, svr);
-							result = "naits.error.noIntialTransferFound";
-							if (dboTransfer != null) {
-								DbDataObject dboReverseTransfer = wr.createReverseTransferObject(dboTransfer,
-										Long.valueOf(dboObjectToHandle.getVal(Tc.EAR_TAG_NUMBER).toString()),
-										Long.valueOf(dboObjectToHandle.getVal(Tc.EAR_TAG_NUMBER).toString()), wr, svr);
-								svw.saveObject(dboReverseTransfer, false);
-								result = "naits.success.reversedIndividualTransfer";
-							}
-						}
-						break;
-					default:
-						break;
+					String destinationName = dboDestinationOrgUnit.getVal(Tc.NAME).toString();
+					if (dboDestinationOrgUnit.getObject_type().equals(SvReader.getTypeIdByName(Tc.HOLDING))) {
+						destinationName = dboDestinationOrgUnit.getVal(Tc.PIC).toString();
 					}
-				} finally {
-					if (lock != null && dboObjectToHandle != null) {
-						SvLock.releaseLock(String.valueOf(dboObjectToHandle.getObject_id()), lock);
+					dboTransfer = wr.createTransferObject(dboObjectToHandle.getVal(Tc.TAG_TYPE).toString(), startTagId,
+							endTagId, null, null, dboParentObjectToHandle.getVal(Tc.NAME).toString(), destinationName,
+							null, null, null, String.valueOf(dboParentObjectToHandle.getObject_id()),
+							String.valueOf(dboDestinationOrgUnit.getObject_id()));
+					dboTransfer.setParent_id(dboParentObjectToHandle.getObject_id());
+					dboTransfer.setVal(Tc.DIRECT_TRANSFER, true);
+					dboTransfer.setVal(Tc.CACHE_PARENT_ID, dboParentObjectToHandle.getObject_id());
+					dboTransfer.setVal(Tc.TRANSFER_TYPE, Tc.DIRECT_TRANSFER);
+					if (vc.checkIfTransferIsOverlapping(dboTransfer.getObject_type(),
+							dboParentObjectToHandle.getObject_id(), tagType, startTagId, endTagId, rdr, svr)) {
+						throw new SvException("naits.error.beforeSaveCheck_range_overlapping_transfer",
+								svr.getInstanceUser());
 					}
+					arrDbObjectsToSave.addDataItem(dboTransfer);
 				}
 			}
-			svw.dbCommit();
-			sww.dbCommit();
+			// expected max 10 transfer in one call
+			if (!arrDbObjectsToSave.getItems().isEmpty()) {
+				svw.saveObject(arrDbObjectsToSave, true, true);
+			}
+			for (DbDataObject tempTransfer : arrDbObjectsToSave.getItems()) {
+				wr.directInventoryTransfer(tempTransfer, false, svr, svw);
+			}
+			result = "naits.success.moveInventoryItemToOtherOrgUnit";
 		} catch (SvException sve) {
 			log4j.error(sve.getFormattedMessage(), sve);
 			result = sve.getLabelCode();
@@ -1852,68 +1277,22 @@ public class MassActions {
 			}
 			if (svw != null) {
 				svw.release();
-			}
-			if (sww != null) {
-				sww.release();
 			}
 		}
 		return result;
 	}
 
-	public String createReverseTransfer(Long rangeFrom, Long rangeTo, String param, JsonArray jsonData,
-			String sessionId) throws Exception {
-		String result = "naits.success.reverseTransferMassAction";
+	public String inventoryDirectTransfer(Long transferObjId, String sessionId) throws Exception {
+		String result = "naits.success.inventoryItemDirectTransfer";
 		SvReader svr = null;
 		SvWriter svw = null;
-		SvWorkflow sww = null;
 		Writer wr = null;
-		ValidationChecks vc = null;
 		try {
 			svr = new SvReader(sessionId);
-			svr.setAutoCommit(false);
 			svw = new SvWriter(svr);
-			sww = new SvWorkflow(svr);
 			wr = new Writer();
-			vc = new ValidationChecks();
-			DbDataObject dboTransferTypeDesc = SvReader.getDbtByName(Tc.TRANSFER);
-			for (int i = 0; i < jsonData.size(); i++) {
-				JsonObject obj = jsonData.get(i).getAsJsonObject();
-				DbDataObject dboObjectToHandle = null;
-				if (obj.get("TRANSFER.OBJECT_ID") != null) {
-					dboObjectToHandle = svr.getObjectById(obj.get("TRANSFER.OBJECT_ID").getAsLong(),
-							dboTransferTypeDesc, new DateTime());
-				}
-				if (dboObjectToHandle == null) {
-					throw (new SvException("naits.error.transfer_missing", svr.getInstanceUser()));
-				}
-				if (!dboObjectToHandle.getStatus().equals(Tc.RELEASED)) {
-					throw (new SvException("naits.error.transferMustBeReleasedToExecuteReverseTransferAction",
-							svr.getInstanceUser()));
-				}
-				if (dboObjectToHandle.getVal(Tc.TRANSFER_TYPE) == null) {
-					throw (new SvException("naits.error.undefinedTransferType", svr.getInstanceUser()));
-				} else if (dboObjectToHandle.getVal(Tc.TRANSFER_TYPE).toString().equals(Tc.REVERSE)) {
-					throw (new SvException("naits.error.cannotExecuteActionReverseTransferOnTransferOfTypeReversed",
-							svr.getInstanceUser()));
-				}
-				ReentrantLock lock = null;
-				try {
-					lock = SvLock.getLock(String.valueOf(dboObjectToHandle.getObject_id()), false, 0);
-					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
-					}
-					vc.reverseTransferOnSaveValidationSet(dboObjectToHandle, rangeFrom, rangeTo, svr);
-					DbDataObject dboReverseTransfer = wr.createReverseTransferObject(dboObjectToHandle, rangeFrom,
-							rangeTo, wr, svr);
-					svw.saveObject(dboReverseTransfer, false);
-				} finally {
-					if (lock != null) {
-						SvLock.releaseLock(String.valueOf(dboObjectToHandle.getObject_id()), lock);
-					}
-				}
-			}
-			svw.dbCommit();
-			sww.dbCommit();
+			DbDataObject dboTransfer = svr.getObjectById(transferObjId, SvReader.getTypeIdByName(Tc.TRANSFER), null);
+			result = wr.directInventoryTransfer(dboTransfer, true, svr, svw);
 		} catch (SvException sve) {
 			log4j.error(sve.getFormattedMessage(), sve);
 			result = sve.getLabelCode();
@@ -1923,9 +1302,6 @@ public class MassActions {
 			}
 			if (svw != null) {
 				svw.release();
-			}
-			if (sww != null) {
-				sww.release();
 			}
 		}
 		return result;
@@ -1938,7 +1314,7 @@ public class MassActions {
 	 * @throws Exception
 	 */
 
-	public String massObjectHandler(JsonObject jsonData, String sessionId) throws Exception {
+	public String massObjectHandler(JsonObject jsonData, String sessionId) throws SvException {
 		SvReader svr = null;
 		SvWriter svw = null;
 		SvGeometry svg = null;
@@ -1972,10 +1348,11 @@ public class MassActions {
 
 			JsonArray jsonArrayData = jsonData.get(Tc.OBJ_ARRAY).getAsJsonArray();
 			JsonArray jsonParams = jsonData.get(Tc.OBJ_PARAMS).getAsJsonArray();
+			JsonObject petLocationAdditionalData = null;
 
 			// set parameters
-			for (int i = 0; i < jsonParams.size(); i++) {
-				JsonObject obj = jsonParams.get(i).getAsJsonObject();
+			for (JsonElement jsonElement : jsonParams) {
+				JsonObject obj = jsonElement.getAsJsonObject();
 				if (obj.has(Tc.MASS_PARAM_TBL_NAME)) {
 					tableName = obj.get(Tc.MASS_PARAM_TBL_NAME).getAsString();
 				}
@@ -1991,6 +1368,9 @@ public class MassActions {
 				if (obj.has(Tc.MASS_PARAM_ACTION_DATE)) {
 					actionDate = obj.get(Tc.MASS_PARAM_ACTION_DATE).getAsString();
 				}
+				if (obj.has(Tc.PET_LOCATION_DETAILS)) {
+					petLocationAdditionalData = obj.get(Tc.PET_LOCATION_DETAILS).getAsJsonObject();
+				}
 			}
 
 			DbDataObject dboTypeDesc = SvReader.getDbt(SvReader.getTypeIdByName(tableName));
@@ -1998,8 +1378,8 @@ public class MassActions {
 			DbDataObject currentDboUser = SvReader.getUserBySession(sessionId);
 
 			// selected row elements
-			for (int i = 0; i < jsonArrayData.size(); i++) {
-				JsonObject obj = jsonArrayData.get(i).getAsJsonObject();
+			for (JsonElement jsonElement : jsonArrayData) {
+				JsonObject obj = jsonElement.getAsJsonObject();
 				DbDataObject dboObjectToHandle = null;
 				DbDataObject dboParentObjectToHandle = null;
 
@@ -2015,7 +1395,7 @@ public class MassActions {
 				try {
 					lock = SvLock.getLock(String.valueOf(dboObjectToHandle.getObject_id()), false, 0);
 					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+						throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 					}
 					switch (tableName) {
 					case Tc.PET:
@@ -2023,7 +1403,8 @@ public class MassActions {
 							dboParentObjectToHandle = svr.getObjectById(
 									obj.get(tableName + "." + Tc.PARENT_ID).getAsLong(), dboHoldingTypeDesc, null);
 						}
-						if (dboObjectToHandle.getVal(Tc.PET_ID) == null && !Tc.DIED_EUTHANASIA.equals(subActionName)) {
+						if (dboObjectToHandle.getVal(Tc.PET_TAG_ID) == null
+								&& !Tc.DIED_EUTHANASIA.equals(subActionName)) {
 							throw (new SvException("naits.error.onlyEuthanizeActionCanBeExecutedOnPetsWithoutId",
 									svr.getInstanceUser()));
 						}
@@ -2063,6 +1444,11 @@ public class MassActions {
 								break;
 							case Tc.DISINFECTION:
 								break;
+							case Tc.CASTRATION:
+								dboObjectToHandle.setVal(Tc.DT_CASTRATION, new DateTime(actionDate));
+								dboObjectToHandle.setVal(Tc.IS_CASTRATED, "1");
+								svw.saveObject(dboObjectToHandle, false);
+								break;
 							default:
 								break;
 							}
@@ -2072,23 +1458,32 @@ public class MassActions {
 								throw (new SvException("naits.error.actionDateCannotBeInTheFuture",
 										svr.getInstanceUser()));
 							}
-							if (Tc.RELEASED.equals(subActionName)) {
-								DateTime dateOfMovement = new DateTime(actionDate);
+							switch (subActionName) {
+							case Tc.RELEASED:
 								dboObjectToHandle.setStatus(subActionName);
-								wr.createPetMovement(dboObjectToHandle, null, null, dateOfMovement, Tc.RELEASED,
-										currentDboUser.getVal(Tc.USER_NAME).toString(), false, svw, svr);
-								DbDataObject dboReleaseLocation = wr.createPetLocationAccordingAnimalShelterHolding(
-										dboObjectToHandle, dboParentObjectToHandle, "2", svr);
-								svg.saveGeometry(dboReleaseLocation);
-							} else if (Tc.DIED.equals(subActionName)) {
-								DateTime dateOfDeath = new DateTime(actionDate);
+								String sourceArchiveNumber = wr.generateArchiveNumber(dboObjectToHandle,
+										dboParentObjectToHandle, Tc.RELEASE_EVENT, svr);
+								wr.createPetMovement(dboObjectToHandle, null, null, new DateTime(actionDate),
+										Tc.RELEASED, currentDboUser.getVal(Tc.USER_NAME).toString(), Tc.RELEASE,
+										sourceArchiveNumber, null, false, svw, svr);
+								break;
+							case Tc.DIED:
 								dboObjectToHandle.setStatus(subActionName);
-								dboObjectToHandle.setVal(Tc.DEATH_DATE, dateOfDeath);
-							} else if (Tc.DIED_EUTHANASIA.equals(subActionName)) {
-								DateTime dateOfDeath = new DateTime(actionDate);
+								dboObjectToHandle.setVal(Tc.DEATH_DATE, new DateTime(actionDate));
+								break;
+							case Tc.DIED_EUTHANASIA:
 								dboObjectToHandle.setStatus(Tc.EUTHANIZED);
-								dboObjectToHandle.setVal(Tc.DEATH_DATE, dateOfDeath);
-								dboObjectToHandle.setVal(Tc.DT_EUTHANASIA, dateOfDeath);
+								dboObjectToHandle.setVal(Tc.DEATH_DATE, new DateTime(actionDate));
+								dboObjectToHandle.setVal(Tc.DT_EUTHANASIA, new DateTime(actionDate));
+								break;
+							case Tc.EXPORTED:
+								dboObjectToHandle.setStatus(Tc.EXPORTED);
+								break;
+							case Tc.INACTIVE:
+								dboObjectToHandle.setStatus(Tc.INACTIVE);
+								break;
+							default:
+								break;
 							}
 							if (dboObjectToHandle.getIs_dirty()) {
 								svw.saveObject(dboObjectToHandle, false);
@@ -2109,9 +1504,14 @@ public class MassActions {
 								throw (new SvException("naits.error.sourceAndDestinationShelterAreSame",
 										svr.getInstanceUser()));
 							}
+							String sourceArchiveNumber = wr.generateArchiveNumber(dboObjectToHandle,
+									dboParentObjectToHandle, Tc.RELEASE_EVENT, svr);
+							String destinationArchiveNumber = wr.generateArchiveNumber(dboObjectToHandle,
+									dboDestinationHolding, Tc.COLLECTION_EVENT, svr);
 							wr.createPetMovement(dboObjectToHandle, dboDestinationHolding.getVal(Tc.PIC).toString(),
 									dboDestinationHolding.getObject_id(), dateOfMovement, Tc.FINISHED,
-									currentDboUser.getVal(Tc.USER_NAME).toString(), false, svw, svr);
+									currentDboUser.getVal(Tc.USER_NAME).toString(), Tc.RELEASE, sourceArchiveNumber,
+									destinationArchiveNumber, false, svw, svr);
 							dboObjectToHandle.setParent_id(dboDestinationHolding.getObject_id());
 							svw.saveObject(dboObjectToHandle, false);
 							break;
@@ -2123,8 +1523,11 @@ public class MassActions {
 							dboObjectToHandle.setVal(Tc.DT_ADOPTION, dateOfAdoption);
 							svw.saveObject(dboObjectToHandle, false);
 							wr.linkObjects(dboObjectToHandle, dboPerson, Tc.PET_OWNER, null, svr);
+							sourceArchiveNumber = wr.generateArchiveNumber(dboObjectToHandle, dboParentObjectToHandle,
+									Tc.RELEASE_EVENT, svr);
 							wr.createPetMovement(dboObjectToHandle, null, null, dateOfAdoption, Tc.ADOPTED,
-									currentDboUser.getVal(Tc.USER_NAME).toString(), false, svw, svr);
+									currentDboUser.getVal(Tc.USER_NAME).toString(), Tc.RELEASE, sourceArchiveNumber,
+									null, false, svw, svr);
 							break;
 						default:
 							break;
@@ -2135,15 +1538,23 @@ public class MassActions {
 							DbDataObject dboPet = svr.getObjectById(dboObjectToHandle.getParent_id(),
 									SvReader.getTypeIdByName(Tc.PET), null);
 							if (dboPet != null) {
-								if (!dboPet.getStatus().equals(Tc.RELEASED)) {
+								if (!dboPet.getStatus().equals(Tc.RELEASED) && !dboPet.getStatus().equals(Tc.ADOPTED)) {
 									throw (new SvException("naits.error.petMustBeReleasedToExecuteThisAction",
 											svr.getInstanceUser()));
 								}
+								String destinationArchiveNumber = wr.generateArchiveNumber(dboPet, dboObjectToHandle,
+										Tc.RELEASE_EVENT, svr);
 								dboObjectToHandle.setStatus(Tc.FINISHED);
-								dboObjectToHandle.setVal(Tc.MOVEMENT_TYPE, "RETIRE_TRANSFER");
+								dboObjectToHandle.setVal(Tc.MOVEMENT_TYPE, Tc.COLLECTED);
 								dboObjectToHandle.setVal(Tc.DESTINATION_HOLDING_PIC,
 										dboObjectToHandle.getVal(Tc.SOURCE_HOLDING_PIC).toString());
 								dboObjectToHandle.setVal(Tc.HOLDING_OBJ_ID, dboPet.getParent_id().toString());
+								dboObjectToHandle.setVal(Tc.DEST_HOLD_ARCH_NO, destinationArchiveNumber);
+								if (dboObjectToHandle.getVal(Tc.SRC_HOLD_ARCH_NO) == null) {
+									String sourceArchiveNumber = wr.generateArchiveNumber(dboPet, null,
+											Tc.COLLECTION_EVENT, svr);
+									dboObjectToHandle.setVal(Tc.SRC_HOLD_ARCH_NO, sourceArchiveNumber);
+								}
 								dboPet.setStatus(Tc.VALID);
 								svw.saveObject(dboObjectToHandle, false);
 								svw.saveObject(dboPet, false);
@@ -2153,7 +1564,7 @@ public class MassActions {
 					case Tc.PASSPORT_REQUEST:
 						if (actionName.equals(Tc.UPDATE_STATUS)) {
 							switch (subActionName) {
-							case "ACCEPT_REQUEST":
+							case Tc.ACCEPT_REQUEST:
 								DbDataObject dboVeterinaryStation = svr.getObjectById(
 										Long.valueOf(dboObjectToHandle.getVal(Tc.HOLDING_OBJ_ID).toString()),
 										SvReader.getTypeIdByName(Tc.HOLDING), null);
@@ -2164,12 +1575,12 @@ public class MassActions {
 								svw.saveObject(dboPetPassport, false);
 								svw.saveObject(dboObjectToHandle, false);
 								break;
-							case "DECLINE_REQUEST":
+							case Tc.DECLINE_REQUEST:
 								dboObjectToHandle.setVal(Tc.DECLINE_REASON, actionParam);
 								dboObjectToHandle.setStatus(Tc.DECLINED);
 								svw.saveObject(dboObjectToHandle, false);
 								break;
-							case "CANCEL_REQUEST":
+							case Tc.CANCEL_REQUEST:
 								if (!dboObjectToHandle.getStatus().equals(Tc.DRAFT)) {
 									throw (new SvException("naits.error.onlyDraftRequestsCanBeCanceled",
 											svr.getInstanceUser()));
@@ -2234,7 +1645,6 @@ public class MassActions {
 						}
 						break;
 					case Tc.HOLDING:
-						// Direct movement
 						if (actionName.equals(Tc.DIRECT_MOVEMENT)) {
 							DateTime dateOfMovement = new DateTime(actionDate);
 							if (dateOfMovement.isAfter(new DateTime())) {
@@ -2243,35 +1653,45 @@ public class MassActions {
 							}
 							DbDataObject dboPet = svr.getObjectById(Long.valueOf(actionParam),
 									SvReader.getTypeIdByName(Tc.PET), null);
+							String petStatus = dboPet.getStatus();
+							if (petStatus.equals(Tc.EUTHANIZED) || petStatus.equals(Tc.DIED)) {
+								throw (new SvException("naits.error.collectionOfDeadAnimalsIsNotAllowed",
+										svr.getInstanceUser()));
+							}
 							DbDataObject dboParentHolding = svr.getObjectById(dboPet.getParent_id(),
 									dboObjectToHandle.getObject_type(), null);
-							DbDataObject dboPetMovement = rdr.getPetMovement(dboPet, Tc.RELEASED, svr);
+							ArrayList<String> arrInStatuses = new ArrayList<>();
+							arrInStatuses.add(Tc.RELEASED);
+							arrInStatuses.add(Tc.ADOPTED);
+							DbDataObject dboPetMovement = rdr.getPetMovement(dboPet, arrInStatuses, svr);
+							String destinationArchiveNumber = wr.generateArchiveNumber(dboPet, dboObjectToHandle,
+									Tc.COLLECTION_EVENT, svr);
 							if (dboPetMovement != null) {
-								dboPetMovement.setStatus(Tc.FINISHED);
-								dboPetMovement.setVal(Tc.MOVEMENT_TYPE, Tc.CAPTURED);
-								dboPetMovement.setVal(Tc.DESTINATION_HOLDING_PIC,
-										dboObjectToHandle.getVal(Tc.PIC).toString());
-								dboPetMovement.setVal(Tc.HOLDING_OBJ_ID, dboObjectToHandle.getObject_id().toString());
-								if (dboPet.getStatus().equals(Tc.RELEASED)) {
-									if (dboParentHolding != null && dboParentHolding.getObject_id()
-											.equals(dboObjectToHandle.getObject_id())) {
+								wr.finishPetMovement(dboPet, dboPetMovement, dboObjectToHandle, svr);
+								if (arrInStatuses.contains(petStatus)) {
+									if (dboParentHolding != null && dboObjectToHandle != null && dboParentHolding
+											.getObject_id().equals(dboObjectToHandle.getObject_id())) {
 										dboParentHolding = dboObjectToHandle;
 									}
-									DbDataObject dboPetCollectionLocation = wr
-											.createPetLocationAccordingAnimalShelterHolding(dboPet, dboParentHolding,
-													"1", svr);
-									svg.saveGeometry(dboPetCollectionLocation);
 								}
 								svw.saveObject(dboPetMovement, false);
 							} else {
 								if (dboParentHolding != null
-										&& dboParentHolding.getObject_id().equals(dboObjectToHandle.getObject_id())) {
+										&& dboParentHolding.getObject_id().equals(dboObjectToHandle.getObject_id())
+										&& !dboPet.getStatus().equals(Tc.ADOPTED)) {
 									throw (new SvException("naits.error.petAlreadyBelongToCurrentAnimalShelter",
 											svr.getInstanceUser()));
 								}
+								String sourceArchiveNumber = wr.generateArchiveNumber(dboPet, null, Tc.RELEASE_EVENT,
+										svr);
 								wr.createPetMovement(dboPet, dboObjectToHandle.getVal(Tc.PIC).toString(),
 										dboObjectToHandle.getObject_id(), dateOfMovement, Tc.FINISHED,
-										currentDboUser.getVal(Tc.USER_NAME).toString(), false, svw, svr);
+										currentDboUser.getVal(Tc.USER_NAME).toString(), Tc.COLLECTION,
+										sourceArchiveNumber, destinationArchiveNumber, false, svw, svr);
+							}
+							if (petStatus.equals(Tc.ADOPTED) && dboPet.getVal(Tc.IS_STRAY_PET) != null
+									&& dboPet.getVal(Tc.IS_STRAY_PET).toString().equals("1")) {
+								dboPet.setVal(Tc.ADDITIONAL_STATUS, Tc.ABANDONED);
 							}
 							dboPet.setStatus(Tc.VALID);
 							dboPet.setParent_id(dboObjectToHandle.getObject_id());
@@ -2286,6 +1706,18 @@ public class MassActions {
 						if (Tc.FINAL.equals(subActionName)) {
 							dboObjectToHandle.setStatus(subActionName);
 							svw.saveObject(dboObjectToHandle, false);
+						}
+						break;
+					case Tc.RFID_INPUT:
+						resultMessage = "naits.success.confirmRfidImportTool";
+						DbDataArray arrRfidInputState = svr.getObjectsByParentId(dboObjectToHandle.getObject_id(),
+								SvReader.getTypeIdByName(Tc.RFID_INPUT_STATE), null, 0, 0);
+						if (!arrRfidInputState.getItems().isEmpty()) {
+							throw new SvException("naits.error.rfidInputAlreadyHavePreprocessedObjects",
+									svr.getInstanceUser());
+						}
+						if (actionName.equals(Tc.ACCEPTED)) {
+							wr.generateRfidInputState(dboObjectToHandle, rdr, svw, svr);
 						}
 						break;
 					default:
@@ -2316,8 +1748,9 @@ public class MassActions {
 		return resultMessage;
 	}
 
-	public String animalFlockMassHandler(JsonObject jsonData, String sessionId) throws Exception {
-		String result = "naits.success.massAnimalsAction";
+	public String animalFlockMassHandler(JsonObject jsonData, String sessionId)
+			throws SvException, InterruptedException {
+		String result = Tc.successMassAnimalsAction;
 		SvReader svr = null;
 		SvWriter svw = null;
 		SvWorkflow sww = null;
@@ -2326,7 +1759,7 @@ public class MassActions {
 		ValidationChecks vc = null;
 		Long holdingObjectId = 0L;
 		int counter = 0;
-		ReentrantLock lock = null;
+		// ReentrantLock lock = null;
 		try {
 			svr = new SvReader(sessionId);
 			svw = new SvWriter(svr);
@@ -2346,16 +1779,20 @@ public class MassActions {
 			String estmDateDeparture = null;
 			String disinfectionDate = null;
 			String animalMvmReason = null;
+			String actionDate = null;
+			String reasonParam = null;
 			Long totalUnits = null;
 			Long maleUnits = null;
 			Long femaleUnits = null;
 			Long adultsUnits = null;
-			String actionDate = null;
-			String reasonParam = null;
+			// list of animal IDs that already participated in selected campaign
+			// and would not be vaccinated once again with the same vaccine
+			ArrayList<String> animalIDsOfAlreadyVaccinatedAnimals = new ArrayList<String>();
 
 			wr = new Writer();
 			rdr = new Reader();
 			vc = new ValidationChecks();
+			UserManager um = new UserManager();
 
 			svw.setAutoCommit(false);
 			sww.setAutoCommit(false);
@@ -2364,8 +1801,8 @@ public class MassActions {
 			JsonArray jsonParams = jsonData.get(Tc.OBJ_PARAMS).getAsJsonArray();
 
 			// set parameters
-			for (int i = 0; i < jsonParams.size(); i++) {
-				JsonObject obj = jsonParams.get(i).getAsJsonObject();
+			for (JsonElement jsonElement : jsonParams) {
+				JsonObject obj = jsonElement.getAsJsonObject();
 				if (obj.has(Tc.MASS_PARAM_TBL_NAME)) {
 					tableName = obj.get(Tc.MASS_PARAM_TBL_NAME).getAsString();
 				}
@@ -2425,27 +1862,27 @@ public class MassActions {
 				}
 			}
 
+			DbDataObject dboUser = svr.getInstanceUser();
 			DbDataObject animalTypeDesc = SvReader.getDbtByName(Tc.ANIMAL);
 			DbDataObject flockTypeDesc = SvReader.getDbtByName(Tc.FLOCK);
 			DbDataObject vaccEvenetTypeDesc = SvReader.getDbtByName(Tc.VACCINATION_EVENT);
 
-			DbDataObject dboObjectToHandle = null;
 			DbDataObject movementDocObject = null;
 			DbDataObject dboHolding = null;
 			DbDataObject dboDestinationHolding = null;
 			DbDataObject dboMovementDoc = null;
 			DbDataObject dboAnimalOrFlockMovement = null;
 
-			String objectTypeLabel = "";
+			String objectTypeLabel = Tc.EMPTY_STRING;
 			String regex = Tc.NUMBER_REGEX;
 
 			ArrayList<String> animalOrFlockIds = new ArrayList<>();
 
 			// check if parent exist
-			for (int i = 0; i < jsonArrayData.size(); i++) {
+			for (JsonElement jsonElement : jsonArrayData) {
+				DbDataObject dboObjectToHandle = null;
 				try {
-					JsonObject obj = jsonArrayData.get(i).getAsJsonObject();
-
+					JsonObject obj = jsonElement.getAsJsonObject();
 					if (obj.get(Tc.ANIMAL + "." + Tc.OBJECT_ID) != null) {
 						dboObjectToHandle = svr.getObjectById(obj.get(Tc.ANIMAL + "." + Tc.OBJECT_ID).getAsLong(),
 								animalTypeDesc, null);
@@ -2472,8 +1909,8 @@ public class MassActions {
 						dboObjectToHandle = svr.getObjectById(obj.get(Tc.FLOCK + "." + Tc.OBJECT_ID).getAsLong(),
 								flockTypeDesc, new DateTime());
 					}
-					if (dboObjectToHandle != null && actionName.equals(Tc.MOVE)
-							&& subActionName.equalsIgnoreCase(Tc.FINISH_MOVEMENT)) {
+					if (dboObjectToHandle != null && Tc.MOVE.equals(actionName)
+							&& Tc.FINISH_MOVEMENT.equalsIgnoreCase(subActionName)) {
 						DbDataObject refreshDbo = svr.getObjectById(dboObjectToHandle.getObject_id(),
 								dboObjectToHandle.getObject_type(), new DateTime());
 						dboObjectToHandle = refreshDbo;
@@ -2482,7 +1919,6 @@ public class MassActions {
 					if (actionParam != null && actionParam.matches(regex)) {
 						dboVaccEvent = svr.getObjectById(Long.valueOf(actionParam), vaccEvenetTypeDesc, null);
 					}
-
 					if (dboObjectToHandle == null) {
 						throw (new SvException("naits.error.no_animal_found", svr.getInstanceUser()));
 					}
@@ -2490,33 +1926,33 @@ public class MassActions {
 						objectTypeLabel = "animal";
 					} else if (dboObjectToHandle.getObject_type().equals(SvReader.getTypeIdByName(Tc.FLOCK))) {
 						objectTypeLabel = "flock";
-						if (subActionName.equalsIgnoreCase(Tc.START_MOVEMENT)) {
+						if (Tc.START_MOVEMENT.equalsIgnoreCase(subActionName)) {
 							dboObjectToHandle = wr.createFlockMovementUnit(dboObjectToHandle, totalUnits, femaleUnits,
 									maleUnits, adultsUnits, svw, svr);
 						}
 					}
-					lock = SvLock.getLock(String.valueOf(dboObjectToHandle.getObject_id()), false, 0);
-					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
-					}
+					/*
+					 * lock = SvLock.getLock(String.valueOf(dboObjectToHandle.getObject_id()),
+					 * false, 0); if (lock == null) { log4j.info(dboObjectToHandle.getObject_id());
+					 * throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
+					 * }
+					 */
 					DbDataObject dboObjToHandleParent = svr.getObjectById(dboObjectToHandle.getParent_id(),
 							SvReader.getTypeIdByName(Tc.HOLDING), null);
 
 					if (dboObjToHandleParent != null
-							&& (tableName.equalsIgnoreCase(Tc.ANIMAL) || tableName.equalsIgnoreCase(Tc.FLOCK))) {
-						if (!vc.checkIfHoldingIsSlaughterhouse(dboObjToHandleParent)
-								&& !dboObjectToHandle.getStatus().equals(Tc.VALID)
-								&& !actionName.equalsIgnoreCase(Tc.UNDO_RETIRE)
-								&& !actionName.equalsIgnoreCase(Tc.MOVE)) {
-							throw (new SvException("naits.error.onlyValidAnimalCanBeHandledWithChoosenAction",
-									svr.getInstanceUser()));
-						}
+							&& (tableName.equalsIgnoreCase(Tc.ANIMAL) || tableName.equalsIgnoreCase(Tc.FLOCK))
+							&& !vc.checkIfHoldingIsSlaughterhouse(dboObjToHandleParent)
+							&& !dboObjectToHandle.getStatus().equals(Tc.VALID)
+							&& !actionName.equalsIgnoreCase(Tc.UNDO_RETIRE) && !actionName.equalsIgnoreCase(Tc.MOVE)) {
+						throw (new SvException("naits.error.onlyValidAnimalCanBeHandledWithChoosenAction",
+								svr.getInstanceUser()));
 					}
 					if (holdingObjectId.equals(0L)) {
 						holdingObjectId = dboObjToHandleParent.getObject_id();
 					}
 
-					if (actionName.equalsIgnoreCase(Tc.MOVE) && subActionName.equalsIgnoreCase(Tc.START_MOVEMENT)
+					if (Tc.MOVE.equalsIgnoreCase(actionName) && Tc.START_MOVEMENT.equalsIgnoreCase(subActionName)
 							&& !holdingObjectId.equals(0L)) {
 						counter++;
 						if (counter == 1) {
@@ -2529,25 +1965,36 @@ public class MassActions {
 					}
 					switch (actionName.toUpperCase()) {
 					case Tc.RETIRE:
-						if (!(subActionName.equalsIgnoreCase(Tc.SLAUGHTRD)
-								|| subActionName.equalsIgnoreCase(Tc.DESTROYED))
+						if (!(Tc.SLAUGHTRD.equalsIgnoreCase(subActionName)
+								|| Tc.DESTROYED.equalsIgnoreCase(subActionName))
 								&& vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getParent_id(), svr)) {
 							throw (new SvException("naits.error.thisStatusIsNotAllowedForSlaughterHouse",
 									svr.getInstanceUser()));
 						}
 						switch (subActionName.toUpperCase()) {
 						case Tc.LOST:
-							wr.createAnimalOrFlockMovementWithoutDestination(dboObjectToHandle, Tc.LOST, dateOfMovement,
+							wr.createAnimalOrFlockMovementWithoutDestination(dboObjectToHandle, Tc.LOST, actionDate,
 									svr, svw, sww);
 							break;
 						case Tc.SOLD:
-							wr.createAnimalOrFlockMovementWithoutDestination(dboObjectToHandle, Tc.SOLD, dateOfMovement,
+							wr.createAnimalOrFlockMovementWithoutDestination(dboObjectToHandle, Tc.SOLD, actionDate,
 									svr, svw, sww);
 							break;
 						// cases: SLAUGHTRD, DIED, ABSENT DESTROYED
 						default:
-							if (subActionName.equalsIgnoreCase(Tc.SLAUGHTRD)) {
-								if (objectTypeLabel.equalsIgnoreCase(Tc.FLOCK)
+							boolean isSlaughterhouseOperator = false;
+							DbDataArray arrAdditionalGroup = svr.getAllUserGroups(dboUser, false);
+							if (!arrAdditionalGroup.getItems().isEmpty()) {
+								for (DbDataObject dboUserGroup : arrAdditionalGroup.getItems()) {
+									if (dboUserGroup.getVal(Tc.GROUP_NAME) != null && dboUserGroup.getVal(Tc.GROUP_NAME)
+											.toString().equals(Tc.SLAUGHTERHOUSE_OPERATOR)) {
+										isSlaughterhouseOperator = true;
+										break;
+									}
+								}
+							}
+							if (Tc.SLAUGHTRD.equalsIgnoreCase(subActionName)) {
+								if (Tc.FLOCK.equalsIgnoreCase(objectTypeLabel)
 										&& vc.isFlockSlaughterable(dboObjectToHandle)) {
 									throw (new SvException("naits.error.cannotSlaughterFlockOfTypeBeehives",
 											svCONST.systemUser, null, null));
@@ -2558,14 +2005,21 @@ public class MassActions {
 											svr.getInstanceUser()));
 								}
 								vc.slaughterhouseHoldingValidationSet(dboObjectToHandle.getParent_id(),
-										dboObjectToHandle, objectTypeLabel, svr);
+										dboObjectToHandle, objectTypeLabel, isSlaughterhouseOperator, svr);
 								if (vc.checkIfAnimalHasAnyActiveVaccEventForSpecificDisease(dboObjectToHandle,
-										dateOfMovement, rdr, svr)) {
+										actionDate, rdr, svr)) {
 									throw (new SvException("naits.error.animalBelongsToCampaignAgainstSpecificDisease",
 											svr.getInstanceUser()));
 								}
+								if (vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getParent_id(), svr)
+										&& vc.checkIfAnimalHasAnyActiveVaccEventForSpecificDisease(dboObjectToHandle,
+												actionDate, rdr, svr)) {
+									throw (new SvException(
+											"naits.warning.animalOrFlockHasActiveWithdrawalPeriodAndCannotBeSlaughtered",
+											svr.getInstanceUser()));
+								}
 							}
-							if (subActionName.equalsIgnoreCase(Tc.DESTROYED)) {
+							if (Tc.DESTROYED.equalsIgnoreCase(subActionName)) {
 								if (!vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getParent_id(), svr)) {
 									throw (new SvException("naits.error.itemCanNotBeDestroyed", svr.getInstanceUser()));
 								}
@@ -2574,13 +2028,26 @@ public class MassActions {
 									throw (new SvException("naits.error.onlyValidAnimalsCanBeHandledWithChoosenAction",
 											svr.getInstanceUser()));
 								}
+								if (isSlaughterhouseOperator) {
+									throw (new SvException("naits.error.slaughterhouseOperatorNotAllowedToDestroy",
+											svr.getInstanceUser()));
+								}
+								if (vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getParent_id(), svr)
+										&& vc.checkIfAnimalHasAnyActiveVaccEventForSpecificDisease(dboObjectToHandle,
+												actionDate, rdr, svr)) {
+									throw (new SvException(
+											"naits.warning.animalOrFlockHasActiveWithdrawalPeriodAndCannotBeDestroyed",
+											svr.getInstanceUser()));
+								}
 							}
-							if (!dboObjectToHandle.getObject_id().equals(0L) && (subActionName.equalsIgnoreCase(Tc.DIED)
-									|| subActionName.equalsIgnoreCase(Tc.SLAUGHTRD)
-									|| subActionName.equalsIgnoreCase(Tc.DESTROYED))) {
-								if (dateOfMovement != null && !dateOfMovement.equals("")
-										&& !dateOfMovement.equals("null")) {
-									DateTime dtDeathDate = new DateTime(dateOfMovement);
+							dboObjectToHandle.setStatus(subActionName.toUpperCase());
+							if (!dboObjectToHandle.getObject_id().equals(0L)
+									&& dboObjectToHandle.getObject_type().equals(SvReader.getTypeIdByName(Tc.ANIMAL))
+									&& (Tc.DIED.equalsIgnoreCase(subActionName)
+											|| Tc.SLAUGHTRD.equalsIgnoreCase(subActionName)
+											|| Tc.DESTROYED.equalsIgnoreCase(subActionName))) {
+								if (actionDate != null) {
+									DateTime dtDeathDate = new DateTime(actionDate);
 									if (dtDeathDate.isAfter(new DateTime())) {
 										throw (new SvException("naits.error.deathDateCannotBeInTheFuture",
 												svr.getInstanceUser()));
@@ -2593,14 +2060,33 @@ public class MassActions {
 								} else {
 									wr.setAutoDate(dboObjectToHandle, Tc.DEATH_DATE, true);
 								}
-								dboObjectToHandle.setStatus(subActionName.toUpperCase());
 							}
-							svw.saveObject(dboObjectToHandle, false);
+							if (dboObjectToHandle.getIs_dirty()) {
+								svw.saveObject(dboObjectToHandle, false);
+							}
 							break;
 						}
+						if (!dboObjectToHandle.getStatus().toString().equals(Tc.VALID)) {
+							HerdActions hrdAct = new HerdActions();
+							if (hrdAct.checkIfAnimalAlreadyBelongsInHerd(dboObjectToHandle.getObject_id(), svr)) {
+								hrdAct.removeAnimalFromHerd(dboObjectToHandle.getObject_id(), svr);
+							}
+						}
+						if (dboObjToHandleParent.getStatus().equals(Tc.VALID)
+								&& vc.checkIfHoldingIsCommercialOrSubsistenceFarmType(dboObjToHandleParent)) {
+							DbDataArray arrAnimals = rdr.getValidAnimalsOrFlockByParentId(
+									dboObjToHandleParent.getObject_id(), SvReader.getTypeIdByName(Tc.ANIMAL), svr);
+							DbDataArray arrFlocks = rdr.getValidAnimalsOrFlockByParentId(
+									dboObjToHandleParent.getObject_id(), SvReader.getTypeIdByName(Tc.FLOCK), svr);
+							if ((arrAnimals.getItems().isEmpty() && arrFlocks.getItems().isEmpty())) {
+								wr.updateHoldingStatus(dboObjToHandleParent, Tc.VALID, Tc.SUSPENDED, svr);
+							}
+						}
+						// wr.updateHoldingStatus(dboObjToHandleParent,
+						// Tc.VALID, Tc.SUSPENDED, true, svr);
 						break;
 					case Tc.UNDO_RETIRE:
-						// inapplicable on following statuses
+						Boolean disableDoublFinishMovementCase = false;
 						switch (dboObjectToHandle.getStatus()) {
 						case Tc.TRANSITION:
 							throw (new SvException("naits.error.cantUndoRetireOnAnimalWithStatusTransition",
@@ -2617,87 +2103,100 @@ public class MassActions {
 										svr.getInstanceUser()));
 							}
 							break;
-						default:
+						case Tc.EXPORTED:
+							if (!um.checkIfUserHasCustomPermission(dboUser, Tc.CUSTOM_UNDO_RETIRE_EXPORT_ANIM, svr))
+								throw (new SvException("naits.error." + objectTypeLabel + "CantBeUndoBecaseIsExported",
+										svCONST.systemUser, null, null));
 							break;
-						}
-						DbDataArray movements = null;
-						if (dboObjectToHandle.getStatus().equalsIgnoreCase(Tc.LOST)
-								|| dboObjectToHandle.getStatus().equalsIgnoreCase(Tc.SOLD)) {
-							movements = svr.getObjectsByParentId(dboObjectToHandle.getObject_id(),
+						case Tc.DESTROYED:
+							DbDataArray arrPremortem = svr.getObjectsByParentId(dboObjectToHandle.getObject_id(),
+									SvReader.getTypeIdByName(Tc.PRE_SLAUGHT_FORM), new DateTime(), 0, 0);
+							if (!arrPremortem.getItems().isEmpty()) {
+								for (DbDataObject dboPreMortem : arrPremortem.getItems()) {
+									svw.deleteObject(dboPreMortem, false);
+								}
+							}
+							break;
+						case Tc.LOST:
+						case Tc.SOLD:
+							DbDataArray arrMovements = svr.getObjectsByParentId(dboObjectToHandle.getObject_id(),
 									SvReader.getTypeIdByName(Tc.ANIMAL_MOVEMENT), null, 0, 0);
-							if (movements != null && movements.size() > 0) {
-								for (DbDataObject animalMovement : movements.getItems()) {
+							if (arrMovements != null && !arrMovements.getItems().isEmpty()) {
+								for (DbDataObject animalMovement : arrMovements.getItems()) {
 									if (animalMovement != null && animalMovement.getStatus().equals(Tc.VALID)
 											&& animalMovement.getVal(Tc.MOVEMENT_REASON)
 													.equals(dboObjectToHandle.getStatus())
 											&& animalMovement.getVal(Tc.DESTINATION_HOLDING_ID) == null) {
 										wr.finishAnimalOrFlockMovement(dboObjectToHandle, dboObjToHandleParent, null,
 												null, null, svw, sww);
+										disableDoublFinishMovementCase = true;
 										break;
 									}
 								}
 							}
+							break;
+						default:
+							break;
 						}
-						if (dboObjectToHandle.getStatus().equals(Tc.EXPORTED)) {
-							throw (new SvException("naits.error." + objectTypeLabel + "CantBeUndoBecaseIsExported",
-									svCONST.systemUser, null, null));
+						if (!disableDoublFinishMovementCase) {
+							wr.finishAnimalOrFlockMovement(dboObjectToHandle, dboObjToHandleParent, null, null, null,
+									svw, sww);
 						}
-						wr.finishAnimalOrFlockMovement(dboObjectToHandle, dboObjToHandleParent, null, null, null, svw,
-								sww);
 						wr.undoAnimalPendingExport(dboObjectToHandle, rdr, svr, svw);
 						wr.setDateFieldToNull(dboObjectToHandle, Tc.DEATH_DATE, svw);
 						// force refresh on animal
-						@SuppressWarnings("unused")
+						@SuppressWarnings(Tc.UNUSED)
 						DbDataObject dboAnimal = svr.getObjectById(dboObjectToHandle.getObject_id(),
 								dboObjectToHandle.getObject_type(), new DateTime());
 						result = "naits.success.massAnimalsActionUndoRetirement";
+						if (dboObjToHandleParent.getStatus().equals(Tc.SUSPENDED)
+								&& vc.checkIfHoldingIsCommercialOrSubsistenceFarmType(dboObjToHandleParent)) {
+							DbDataArray arrAnimals = rdr.getValidAnimalsOrFlockByParentId(
+									dboObjToHandleParent.getObject_id(), SvReader.getTypeIdByName(Tc.ANIMAL), svr);
+							DbDataArray arrFlocks = rdr.getValidAnimalsOrFlockByParentId(
+									dboObjToHandleParent.getObject_id(), SvReader.getTypeIdByName(Tc.FLOCK), svr);
+							if ((!arrAnimals.getItems().isEmpty() || !arrFlocks.getItems().isEmpty())) {
+								wr.updateHoldingStatus(dboObjToHandleParent, Tc.SUSPENDED, Tc.VALID, svr);
+							}
+						}
 						break;
 					case Tc.ACTIVITY:
-						if (!NumberUtils.isDigits(transporterLicense)) {
-							transporterLicense = "0";
-						}
-						DateTime dtAction = new DateTime(dateOfMovement);
+						DateTime dtAction = new DateTime(actionDate);
 						if (dtAction.isAfter(new DateTime())) {
 							throw (new SvException("naits.error.actionDateCannotBeInTheFuture", svr.getInstanceUser()));
 						}
-						// for activity: VACCINE
-						if (dboObjectToHandle != null && !subActionName.equalsIgnoreCase(Tc.PHYSICAL_CHECK)) {
-							if (dboVaccEvent != null) {
-								List<String> animalTypes = rdr.getMultiSelectFieldValueAsList(dboVaccEvent,
-										Tc.ANIMAL_TYPE);
-								if (!vc.checkIfAnimalTypeScopeIsApplicableOnSelectedAnimal(animalTypes,
-										dboObjectToHandle)) {
-									throw (new SvException(
-											"naits.error." + objectTypeLabel + "CampaignNotApplicableOnSelectedObjects",
-											svr.getInstanceUser()));
-								}
-								wr.createVaccTreatmentRecord(dboObjectToHandle, dboVaccEvent, dateOfMovement,
-										transporterLicense, svw);
+						if (!Tc.PHYSICAL_CHECK.equalsIgnoreCase(subActionName) && dboVaccEvent != null) {
+							List<String> animalTypes = rdr.getMultiSelectFieldValueAsList(dboVaccEvent, Tc.ANIMAL_TYPE);
+							if (!vc.checkIfAnimalTypeScopeIsApplicableOnSelectedAnimal(animalTypes,
+									dboObjectToHandle)) {
+								throw (new SvException(
+										"naits.error." + objectTypeLabel + "CampaignNotApplicableOnSelectedObjects",
+										svr.getInstanceUser()));
 							}
-						}
-						// for physical exam
-						if (subActionName.equalsIgnoreCase(Tc.PHYSICAL_CHECK)) {
+							animalIDsOfAlreadyVaccinatedAnimals = wr.createVaccTreatmentRecord(dboObjectToHandle,
+									dboVaccEvent, actionDate, totalUnits, animalIDsOfAlreadyVaccinatedAnimals, svw,
+									svr);
+							if (animalIDsOfAlreadyVaccinatedAnimals.size() > 0) {
+								result = "naits.info.animalIdsThatAlreadyParticipatedInCampaign" + ": "
+										+ animalIDsOfAlreadyVaccinatedAnimals.toString();
+							}
+						} else {
 							Calendar calendar = Calendar.getInstance();
 							java.sql.Date dtNow = new java.sql.Date(calendar.getTime().getTime());
 							String dateOfAction = dtNow.toString();
-							if (dateOfMovement != null && !dateOfMovement.equals("")
-									&& !dateOfMovement.equals("null")) {
-								dateOfAction = dateOfMovement;
+							if (actionDate != null) {
+								dateOfAction = actionDate;
 							}
 							DbDataObject vaccBookPhysicalCheck = wr.createVaccinationBook(dateOfAction, "", "", svw);
 							vaccBookPhysicalCheck.setVal(Tc.NOTE, "Physical exam");
 							if (objectTypeLabel.equalsIgnoreCase(Tc.FLOCK)) {
-								// transporterLicense in this case is used as
-								// number of units treated
-								if (transporterLicense != null && !transporterLicense.equals("0")
-										&& !transporterLicense.equals("") && !transporterLicense.equals("null")
+								if (totalUnits != null && !totalUnits.equals(0L)
 										&& dboObjectToHandle.getVal(Tc.TOTAL) != null) {
-									if (Long.valueOf(transporterLicense) > Long
-											.valueOf(dboObjectToHandle.getVal(Tc.TOTAL).toString())) {
+									if (totalUnits > Long.valueOf(dboObjectToHandle.getVal(Tc.TOTAL).toString())) {
 										throw (new SvException("naits.error.numberOfUnitsCantBeLargerThanTotalUnits",
 												svr.getInstanceUser()));
 									}
-									vaccBookPhysicalCheck.setVal(Tc.NO_ITEMS_TREATED, Long.valueOf(transporterLicense));
+									vaccBookPhysicalCheck.setVal(Tc.NO_ITEMS_TREATED, totalUnits);
 								} else {
 									if (dboObjectToHandle.getVal(Tc.TOTAL) != null) {
 										vaccBookPhysicalCheck.setVal(Tc.NO_ITEMS_TREATED,
@@ -2720,29 +2219,30 @@ public class MassActions {
 						}
 						dboHolding = svr.getObjectById(Long.valueOf(actionParam), SvReader.getTypeIdByName(Tc.HOLDING),
 								null);
-						if (subActionName.equalsIgnoreCase(Tc.CANCEL_MOVEMENT)
+						if (Tc.CANCEL_MOVEMENT.equalsIgnoreCase(subActionName)
 								&& (dboObjectToHandle.getStatus().equals(Tc.LOST)
 										|| dboObjectToHandle.getStatus().equals(Tc.SOLD))) {
 							throw (new SvException(
 									"naits.error.actionCancelMovementCannotBeExecutedOnAnimalsWithStatusSoldOrLost",
 									svr.getInstanceUser()));
 						}
-						if (!dboObjectToHandle.getStatus().equalsIgnoreCase(Tc.VALID)
-								&& !subActionName.equalsIgnoreCase(Tc.FINISH_MOVEMENT)) {
-							if (!subActionName.equalsIgnoreCase(Tc.CANCEL_MOVEMENT)) {
-								if (!subActionName.equalsIgnoreCase(Tc.FINISH_MOVEMENT_SLAUGHTR)) {
-									throw (new SvException("naits.error." + objectTypeLabel + "IsNotValidForMovement",
-											svr.getInstanceUser()));
-								}
-							}
+						if (!(dboObjectToHandle.getStatus().equalsIgnoreCase(Tc.VALID)
+								|| dboObjectToHandle.getStatus().equalsIgnoreCase(Tc.TRANSITION))
+								&& !(Tc.FINISH_MOVEMENT.equalsIgnoreCase(subActionName)
+										|| Tc.START_MOVEMENT.equalsIgnoreCase(subActionName)
+										|| Tc.CANCEL_MOVEMENT.equalsIgnoreCase(subActionName)
+										|| Tc.FINISH_MOVEMENT_SLAUGHTR.equalsIgnoreCase(subActionName))) {
+							throw (new SvException("naits.error." + objectTypeLabel + "IsNotValidForMovement",
+									svr.getInstanceUser()));
 						}
 						// Movement doc of current movement
-						if (dboObjectToHandle != null && !subActionName.equals(Tc.START_MOVEMENT)
+						if (dboObjectToHandle != null && !Tc.START_MOVEMENT.equals(subActionName)
 								&& dboDestinationHolding != null && dboDestinationHolding.getVal(Tc.PIC) != null) {
 							String destinationHoldingPic = dboDestinationHolding.getVal(Tc.PIC).toString();
 							DbDataArray dboAnimalOrFlockMovementsArr = rdr.getExistingAnimalOrFlockMovements(
 									dboObjectToHandle, destinationHoldingPic, Tc.VALID, svr);
-							if (dboAnimalOrFlockMovementsArr != null && dboAnimalOrFlockMovementsArr.size() > 0) {
+							if (dboAnimalOrFlockMovementsArr != null
+									&& !dboAnimalOrFlockMovementsArr.getItems().isEmpty()) {
 								dboAnimalOrFlockMovement = dboAnimalOrFlockMovementsArr.get(0);
 								if (dboAnimalOrFlockMovement.getVal(Tc.MOVEMENT_DOC_ID) != null) {
 									dboMovementDoc = rdr.searchForObject(SvReader.getTypeIdByName(Tc.MOVEMENT_DOC),
@@ -2751,56 +2251,56 @@ public class MassActions {
 								}
 							}
 						}
-
 						// IMPORTANT: when there is active export quarantine,
 						// the
 						// source
 						// holding can move animals out, issue #177, block is
 						// present only for disease/blacklist quarantine
-
-						if (dboObjectToHandle.getParent_id().equals(dboHolding.getObject_id())
-								&& !subActionName.equalsIgnoreCase(Tc.CANCEL_MOVEMENT)) {
+						if (dboHolding != null && dboObjectToHandle.getParent_id().equals(dboHolding.getObject_id())
+								&& !Tc.CANCEL_MOVEMENT.equalsIgnoreCase(subActionName)) {
 							throw (new SvException("naits.error.sourceAndDestinationHoldingAreSame",
 									svr.getInstanceUser()));
 						}
-						if (dboObjectToHandle != null && subActionName.equals(Tc.START_MOVEMENT)) {
-							if (!rdr.checkIfAnimalOrFlockMovementExist(dboObjectToHandle, dboHolding, svr) && vc
-									.checkIfAnimalOrFlockDoesNotBelongToDraftMovementDoc(dboObjectToHandle, rdr, svr)) {
-								if (movementDocObject.getVal(Tc.DESTINATION_HOLDING_PIC) == null) {
-									movementDocObject.setVal(Tc.DESTINATION_HOLDING_PIC,
-											dboHolding.getVal(Tc.PIC) != null ? dboHolding.getVal(Tc.PIC).toString()
-													: null);
-									svw.saveObject(movementDocObject, false);
+						if (dboObjectToHandle != null) {
+							if (Tc.START_MOVEMENT.equals(subActionName)) {
+								if (!rdr.checkIfAnimalOrFlockMovementExist(dboObjectToHandle, dboHolding, svr)
+										&& vc.checkIfAnimalOrFlockDoesNotBelongToDraftMovementDoc(dboObjectToHandle,
+												rdr, svr)) {
+									if (movementDocObject.getVal(Tc.DESTINATION_HOLDING_PIC) == null) {
+										movementDocObject.setVal(Tc.DESTINATION_HOLDING_PIC,
+												dboHolding.getVal(Tc.PIC) != null ? dboHolding.getVal(Tc.PIC).toString()
+														: null);
+										svw.saveObject(movementDocObject, false);
+									}
+									wr.startAnimalOrFlockMovement(dboObjectToHandle, dboHolding, Tc.TRANSFER,
+											dateOfMovement, movementDocObject.getVal(Tc.MOVEMENT_DOC_ID).toString(),
+											movementTransportType, transporterLicense, estmDateArrival,
+											estmDateDeparture, disinfectionDate, animalMvmReason, svr, svw, sww);
+								} else {
+									throw (new SvException("naits.error.movementForSelectedAnimalAlreadyExists",
+											svr.getInstanceUser()));
 								}
-								wr.startAnimalOrFlockMovement(dboObjectToHandle, dboHolding, Tc.TRANSFER,
-										dateOfMovement, movementDocObject.getVal(Tc.MOVEMENT_DOC_ID).toString(),
-										movementTransportType, transporterLicense, estmDateArrival, estmDateDeparture,
-										disinfectionDate, animalMvmReason, svr, svw, sww);
-							} else {
-								throw (new SvException("naits.error.movementForSelectedAnimalAlreadyExists",
-										svr.getInstanceUser()));
+							} else if (Tc.FINISH_MOVEMENT.equals(subActionName)) {
+								wr.finishAnimalOrFlockMovement(dboObjectToHandle, dboHolding, dateOfMovement, null,
+										null, svw, sww);
+							} else if (Tc.FINISH_MOVEMENT_SLAUGHTR.equals(subActionName)) {
+								wr.finishAnimalOrFlockMovement(dboObjectToHandle, dboHolding, dateOfMovement,
+										dateOfAdmission, transporterPersonId, svw, sww);
+							} else if (Tc.CANCEL_MOVEMENT.equals(subActionName)) {
+								if (dboMovementDoc != null && dboMovementDoc.getStatus().equals(Tc.INVALID)) {
+									throw (new SvException("naits.error." + objectTypeLabel + "invalidStatus",
+											svr.getInstanceUser()));
+								}
+								wr.cancelMovement(dboObjectToHandle, sww, svr);
+								if (dboMovementDoc != null) {
+									sww.moveObject(dboMovementDoc, Tc.CANCELED, false);
+								}
 							}
-						} else if (dboObjectToHandle != null && subActionName.equals(Tc.FINISH_MOVEMENT)) {
-							wr.finishAnimalOrFlockMovement(dboObjectToHandle, dboHolding, dateOfMovement, null, null,
-									svw, sww);
-						} else if (dboObjectToHandle != null && subActionName.equals(Tc.FINISH_MOVEMENT_SLAUGHTR)) {
-							wr.finishAnimalOrFlockMovement(dboObjectToHandle, dboHolding, dateOfMovement,
-									dateOfAdmission, transporterPersonId, svw, sww);
-						} else if (dboObjectToHandle != null && subActionName.equals(Tc.CANCEL_MOVEMENT)) {
-							if (!dboObjectToHandle.getStatus().equals(Tc.TRANSITION)) {
-								throw (new SvException("naits.error." + objectTypeLabel + "invalidStatus",
-										svr.getInstanceUser()));
-							}
-							wr.cancelMovement(dboObjectToHandle, sww, svr);
-						} else {
-							throw (new SvException("naits.error.no_" + objectTypeLabel + "_found",
-									svr.getInstanceUser()));
 						}
-
 						if (dboObjectToHandle != null && dboDestinationHolding != null
 								&& dboDestinationHolding.getVal(Tc.PIC) != null
-								&& (subActionName.equals(Tc.CANCEL_MOVEMENT) || subActionName.equals(Tc.FINISH_MOVEMENT)
-										|| subActionName.equals(Tc.FINISH_MOVEMENT_SLAUGHTR))) {
+								&& (Tc.CANCEL_MOVEMENT.equals(subActionName) || Tc.FINISH_MOVEMENT.equals(subActionName)
+										|| Tc.FINISH_MOVEMENT_SLAUGHTR.equals(subActionName))) {
 							if (dboMovementDoc != null
 									&& vc.calcMovDocumentStatusAccordingMovements(dboMovementDoc, rdr, svr)
 											.equals(Tc.RELEASED)) {
@@ -2808,7 +2308,11 @@ public class MassActions {
 									throw (new SvException("naits.error.mvmDocHaveMvmDocBlocked" + objectTypeLabel,
 											svr.getInstanceUser()));
 								}
-								sww.moveObject(dboMovementDoc, Tc.RELEASED, false);
+								// TODO this is quick fix for #1325, should be
+								// additionally reviewed and properly modified.
+								// @ZPE
+								if (!subActionName.equals(Tc.CANCEL_MOVEMENT))
+									sww.moveObject(dboMovementDoc, Tc.RELEASED, false);
 							} else if (dboMovementDoc != null
 									&& vc.calcMovDocumentStatusAccordingMovements(dboMovementDoc, rdr, svr)
 											.equals(Tc.CANCELED)) {
@@ -2816,9 +2320,35 @@ public class MassActions {
 							}
 						}
 						break;
-					case "OTHER":
+					// case reverse/undo last animal transfer - for ANIMALS only (not flocks)
+					case Tc.UNDO_LAST_TRANSFER:
+						DbDataObject lastAnimalMovement = rdr.findLastAnimalMovement(dboObjectToHandle.getObject_id(),
+								dboObjToHandleParent, svr);
+						if (lastAnimalMovement != null) {
+							String lastMovementOriginPic = lastAnimalMovement.getVal(Tc.SOURCE_HOLDING_ID).toString();
+							DbDataObject lastMovementOriginHoldingObj = rdr
+									.findAppropriateHoldingByPic(lastMovementOriginPic, svr);
+							JsonObject jObj = new JsonObject();
+							JsonArray subJsonParams = new JsonArray();
+							JsonObject jObj1 = new JsonObject();
+							jObj1.addProperty(Tc.MASS_PARAM_ANIMAL_FLOCK_ID,
+									dboObjectToHandle.getVal(Tc.ANIMAL_ID).toString());
+							subJsonParams.add(jObj1);
+							JsonObject jObj2 = new JsonObject();
+							jObj2.addProperty(Tc.MASS_PARAM_HOLDING_OBJ_ID,
+									lastMovementOriginHoldingObj.getObject_id());
+							subJsonParams.add(jObj2);
+							JsonObject jObj3 = new JsonObject();
+							jObj3.addProperty(Tc.MASS_PARAM_ANIMAL_CLASS,
+									dboObjectToHandle.getVal(Tc.ANIMAL_CLASS).toString());
+							subJsonParams.add(jObj3);
+							jObj.add(Tc.OBJ_PARAMS, subJsonParams);
+							wr.moveAnimalOrFlockViaDirectTransfer(jObj, sessionId);
+						}
+						break;
+					case Tc.OTHER:
 						switch (subActionName.toUpperCase()) {
-						case "GENERATE_PREMORTEM":
+						case Tc.GENERATE_PREMORTEM:
 							DbDataArray arrPreMortemForm = svr.getObjectsByParentId(dboObjectToHandle.getObject_id(),
 									SvReader.getTypeIdByName(Tc.PRE_SLAUGHT_FORM), null, 0, 0);
 							if (!vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getParent_id(), svr)) {
@@ -2839,17 +2369,24 @@ public class MassActions {
 								throw (new SvException("naits.error.blockingDiseaseInPreMortem", svCONST.systemUser,
 										null, null));
 							}
+							if (vc.checkIfHoldingIsSlaughterhouse(dboObjectToHandle.getParent_id(), svr)
+									&& vc.checkIfAnimalHasAnyActiveVaccEventForSpecificDisease(dboObjectToHandle,
+											actionDate, rdr, svr)) {
+								throw (new SvException(
+										"naits.warning.animalOrFlockHasActiveWithdrawalPeriodAndPremortemFormCannotBeGenerated",
+										svr.getInstanceUser()));
+							}
 							if (dboObjectToHandle != null && (dboObjectToHandle.getStatus().equals(Tc.VALID)
 									|| dboObjectToHandle.getStatus().equals(Tc.PREMORTEM))) {
 								DbDataObject preMortem = wr.createPreMortemForm("CLINIC_EXAM", "1",
 										dboObjectToHandle.getObject_id());
-								preMortem.setVal(Tc.IS_AUTO_GEN, "true");
+								preMortem.setVal(Tc.IS_AUTO_GEN, Boolean.TRUE.toString());
 								svw.saveObject(preMortem, false);
 							} else {
 								result = "naits.error.animalOrFlockWithPermissableToKillPreMortemForm";
 							}
 							break;
-						case "GENERATE_POSTMORTEM":
+						case Tc.GENERATE_POSTMORTEM:
 							if (!(dboObjectToHandle.getStatus().equals(Tc.SLAUGHTRD)
 									|| dboObjectToHandle.getStatus().equals(Tc.POSTMORTEM))) {
 								throw (new SvException(
@@ -2859,7 +2396,7 @@ public class MassActions {
 							if (dboObjectToHandle != null) {
 								DbDataObject postMortemObj = wr.createPostMortem(null, "2", "1", "1",
 										dboObjectToHandle.getObject_id());
-								postMortemObj.setVal(Tc.IS_AUTO_GEN, "true");
+								postMortemObj.setVal(Tc.IS_AUTO_GEN, Boolean.TRUE.toString());
 								svw.saveObject(postMortemObj, false);
 							}
 							break;
@@ -2871,19 +2408,20 @@ public class MassActions {
 						break;
 					}
 					if (dboObjectToHandle != null) {
-						@SuppressWarnings("unused")
+						@SuppressWarnings(Tc.UNUSED)
 						DbDataObject refreshMovementCache = svr.getObjectById(dboObjectToHandle.getObject_id(),
 								dboObjectToHandle.getObject_type(), new DateTime());
 					}
 					if (dboObjToHandleParent != null) {
-						@SuppressWarnings("unused")
+						@SuppressWarnings(Tc.UNUSED)
 						DbDataObject refreshMovementCache2 = svr.getObjectById(dboObjToHandleParent.getObject_id(),
 								dboObjToHandleParent.getObject_type(), new DateTime());
 					}
 				} finally {
-					if (lock != null && dboObjectToHandle != null) {
-						SvLock.releaseLock(String.valueOf(dboObjectToHandle.getObject_id()), lock);
-					}
+					/*
+					 * if (lock != null && dboObjectToHandle != null) {
+					 * SvLock.releaseLock(String.valueOf(dboObjectToHandle.getObject_id()), lock); }
+					 */
 				}
 			}
 			if (animalOrFlockIds != null && !animalOrFlockIds.isEmpty()) {
@@ -2892,18 +2430,16 @@ public class MassActions {
 			}
 			svw.dbCommit();
 			sww.dbCommit();
-			if (actionName.equalsIgnoreCase(Tc.MOVE) && subActionName.equalsIgnoreCase(Tc.START_MOVEMENT)) {
-				if (movementDocObject != null) {
-					result = checkAnimalOrFlockMovementsInMovementDocument(movementDocObject, svr.getSessionId());
-					// this means that movement document was generated/exists
-					if (!result.equals("naits.success.checkMovementsInMvmDoc")) {
-						movementDocObject.setStatus(Tc.INVALID);
-					} else {
-						result = result + "_" + movementDocObject.getObject_id().toString();
-					}
-					svw.saveObject(movementDocObject);
-					svw.dbCommit();
+			if (actionName.equalsIgnoreCase(Tc.MOVE) && subActionName.equalsIgnoreCase(Tc.START_MOVEMENT)
+					&& movementDocObject != null) {
+				result = checkAnimalOrFlockMovementsInMovementDocument(movementDocObject, svr.getSessionId());
+				if (!result.equals(Tc.successCheckMovementsInMvmDoc)) {
+					movementDocObject.setStatus(Tc.INVALID);
+				} else {
+					result = result + "_" + movementDocObject.getObject_id().toString();
 				}
+				svw.saveObject(movementDocObject);
+				svw.dbCommit();
 			}
 		} catch (SvException sve) {
 			log4j.error(sve.getFormattedMessage(), sve);

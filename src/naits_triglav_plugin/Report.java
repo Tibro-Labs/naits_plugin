@@ -56,9 +56,15 @@ public class Report {
 					}
 					DateTime ref_date = new DateTime();
 					// get
-					String printParam = SvConf.getParam("print.jrxml_path");
+					String printParam = SvConf.getParam(Tc.printJrxmlPath);
 					Properties rb = new Properties();
-					rb.put("print.jrxml_path", printParam);
+					rb.put(Tc.printJrxmlPath, printParam);
+					// QR code init path
+					String path = SvConf.getParam(Tc.frontHostParam);
+					if (path.equalsIgnoreCase(Tc.appProd1) || path.equalsIgnoreCase(Tc.appProd2)
+							|| path.equalsIgnoreCase(Tc.appProd3)) {
+						path = "https://naits.mepa.gov.ge/triglav_rest/";
+					}
 					switch (reportname) {
 					case "StatusUpdatePrintoutWrapper":
 						rb.put("village_code", tempObjectId.toString());
@@ -67,10 +73,10 @@ public class Report {
 						exportCert = dbu.getObjectById(Long.parseLong(tempObjectId),
 								SvReader.getTypeIdByName(Tc.EXPORT_CERT), null);
 						if (exportCert != null && userObj != null && userObj.getObject_id() != null
-								&& userObj.getVal(Tc.USER_NAME) != null && exportCert != null
+								&& userObj.getVal(Tc.USER_NAME) != null
 								&& exportCert.getVal(Tc.EXP_CERTIFICATE_ID) != null) {
-							rb.put("OBJ_ID", exportCert.getVal(Tc.EXP_CERTIFICATE_ID).toString());
-							rb.put("USER_ID", userObj.getObject_id());
+							rb.put(Tc.OBJ_ID, exportCert.getVal(Tc.EXP_CERTIFICATE_ID).toString());
+							rb.put(Tc.USER_ID, userObj.getObject_id());
 						}
 						break;
 					case "ahsm_areas":
@@ -86,22 +92,48 @@ public class Report {
 						else
 							rb.put(Tc.USER_NAME, "N/A");
 						break;
+					case "master_1in1_final_geo":
+						rb.put("LIST_OF_OBJ_ID", object_id);
+						break;
 					default:
 						break;
 					}
-					if (rb.get("OBJ_ID") == null && !reportname.equals("ahsm_areas"))
-						rb.put("OBJ_ID", tempObjectId.toString());
+					if (rb.get(Tc.OBJ_ID) == null && !reportname.equals("ahsm_areas"))
+						rb.put(Tc.OBJ_ID, tempObjectId.toString());
+					if (!object_id.contains(",") && (reportname.equals("slaugh_1in1_final_geo")
+							|| reportname.equals("master_1in1_final_geo"))) {
+						DbDataObject dboAnimal = dbu.getObjectById(Long.valueOf(object_id),
+								SvReader.getTypeIdByName(Tc.ANIMAL), null);
+						String fullPath = path + Tc.classPublicServicesGeneratePdf + Tc.PATH_DELIMITER
+								+ dboAnimal.getVal(Tc.ANIMAL_ID) + Tc.PATH_DELIMITER + dboAnimal.getVal(Tc.ANIMAL_CLASS)
+								+ Tc.PATH_DELIMITER + "public_animal_details_main" + Tc.PATH_DELIMITER + "null";
+						rb.put("QR_CODE", fullPath);
+					}
 					/*
-					 * if (reportname.equals("StatusUpdatePrintoutWrapper"))
-					 * rb.put("village_code", object_id.toString()); else if
-					 * (reportname.equals("EC_main")) rb.put("USER_ID",
-					 * userObj.getVal(Tc.USER_NAME).toString()); else
-					 * rb.put("OBJ_ID", object_id.toString());
+					 * if (reportname.equals("StatusUpdatePrintoutWrapper")) rb.put("village_code",
+					 * object_id.toString()); else if (reportname.equals("EC_main"))
+					 * rb.put("USER_ID", userObj.getVal(Tc.USER_NAME).toString()); else
+					 * rb.put(Tc.OBJ_ID, object_id.toString());
 					 */
 					ByteArrayOutputStream bstr = new ByteArrayOutputStream();
 					byte[] data = bstr.toByteArray();
 					IOUtils.write(data, output);
-					GeneratePdf.executeReport(rb, reportname, "PDF", ref_date, output, dbu.dbGetConn());
+					if (!object_id.contains(",")) {
+						GeneratePdf.executeReport(rb, reportname, Tc.PDF, ref_date, output, dbu.dbGetConn());
+					} else if (object_id.contains(",") && (reportname.equals("slaugh_1in1_final_geo")
+							|| reportname.equals("master_1in1_final_geo"))) {
+						String[] animalObjIds = object_id.split(",");
+						for (String tempAniObjId : animalObjIds) {
+							DbDataObject dboAnimal = dbu.getObjectById(Long.valueOf(tempAniObjId),
+									SvReader.getTypeIdByName(Tc.ANIMAL), null);
+							String fullPath = path + Tc.classPublicServicesGeneratePdf + Tc.PATH_DELIMITER
+									+ dboAnimal.getVal(Tc.ANIMAL_ID) + Tc.PATH_DELIMITER
+									+ dboAnimal.getVal(Tc.ANIMAL_CLASS) + Tc.PATH_DELIMITER
+									+ "public_animal_details_main" + Tc.PATH_DELIMITER + "null";
+							rb.put("QR_CODE", fullPath);
+							GeneratePdf.executeReport(rb, reportname, Tc.PDF, ref_date, output, dbu.dbGetConn());
+						}
+					}
 				} catch (Exception e) {
 					log4j.error("Error printing PDF!", e);
 				} finally {
@@ -134,9 +166,9 @@ public class Report {
 					DateTime ref_date = new DateTime();
 					// get
 					String customDateFrom = rdr.customDateFormatter(date_from);
-					String printParam = SvConf.getParam("print.jrxml_path");
+					String printParam = SvConf.getParam(Tc.printJrxmlPath);
 					Properties rb = new Properties();
-					rb.put("print.jrxml_path", printParam);
+					rb.put(Tc.printJrxmlPath, printParam);
 					if (reportname.equals("StatusUpdatePrintoutWrapper"))
 						rb.put("village_code", object_id);
 					else if (reportname.equals("animal_born") || reportname.equals("animal_death")
@@ -146,7 +178,7 @@ public class Report {
 						rb.put("date_from", date_from);
 						rb.put("date_to", date_to);
 					} else {
-						rb.put("OBJ_ID", object_id);
+						rb.put(Tc.OBJ_ID, object_id);
 						if (reportname.equalsIgnoreCase("SLA_DAILY")) {
 							if (date_from == null || date_from.equals("null")) {
 								customDateFrom = rdr.customDateFormatter(ref_date.toString().substring(0, 10));
@@ -158,7 +190,7 @@ public class Report {
 					ByteArrayOutputStream bstr = new ByteArrayOutputStream();
 					byte[] data = bstr.toByteArray();
 					IOUtils.write(data, output);
-					GeneratePdf.executeReport(rb, reportname, "PDF", ref_date, output, dbu.dbGetConn());
+					GeneratePdf.executeReport(rb, reportname, Tc.PDF, ref_date, output, dbu.dbGetConn());
 				} catch (Exception e) {
 					log4j.error("Error printing PDF!", e);
 				} finally {
@@ -194,30 +226,30 @@ public class Report {
 							userName = "";
 						}
 						if (!userName.equals("")
-								&& rdr.findAppropriateUserByUserName(user_name.replace("-", "."), svr) == null) {
+								&& rdr.findAppropriateUserByUserName(userName.replace("-", "."), svr) == null) {
 							log4j.error(
-									"User: " + user_name + " not found in NAITS. Invoice report can not be generated.");
+									"User: " + userName + " not found in NAITS. Invoice report can not be generated.");
 							svr.release();
 							throw (new SvException("naits.error.invReportNotGenarated.userNotFound", svCONST.systemUser,
 									null, null));
 						}
 					}
 					DateTime ref_date = new DateTime();
-					String printParam = SvConf.getParam("print.jrxml_path");
+					String printParam = SvConf.getParam(Tc.printJrxmlPath);
 					Properties rb = new Properties();
-					rb.put("print.jrxml_path", printParam);
+					rb.put(Tc.printJrxmlPath, printParam);
 					if (reportname.equals("INV_main") || reportname.equals("INV2_main")) {
 						String customDateFrom = rdr.customDateFormatter(date_from);
 						String customDateTo = rdr.customDateFormatter(date_to);
 						rb.put("terr_code", object_id.toString());
 						if (!userName.equals("") && userName.contains("-")) {
-							userName = user_name.replace("-", ".");
+							userName = userName.replace("-", ".");
 						}
 						rb.put(Tc.USER_NAME, userName.toUpperCase());
 						rb.put("fromdate", customDateFrom);
 						rb.put("todate", customDateTo);
 					} else if (reportname.equals("StatusUpdatePrintoutWrapper")) {
-						Long campaignObj_Id = Long.valueOf(user_name);
+						Long campaignObj_Id = Long.valueOf(userName);
 						String activity_Name = "";
 						DbDataObject dboVaccinationEvent = svr.getObjectById(campaignObj_Id,
 								SvReader.getTypeIdByName(Tc.VACCINATION_EVENT), null);
@@ -227,14 +259,14 @@ public class Report {
 						rb.put("village_code", object_id.toString());
 						rb.put("ACTIVITY", activity_Name);
 					} else if (reportname.equals("vaccEventSummary")) {
-						rb.put("OBJ_ID", object_id);
-						rb.put("terr_code", user_name);
+						rb.put(Tc.OBJ_ID, object_id);
+						rb.put("terr_code", userName);
 						rb.put("month_param", date_to);
 					}
 					ByteArrayOutputStream bstr = new ByteArrayOutputStream();
 					byte[] data = bstr.toByteArray();
 					IOUtils.write(data, output);
-					GeneratePdf.executeReport(rb, reportname, "PDF", ref_date, output, svr.dbGetConn());
+					GeneratePdf.executeReport(rb, reportname, Tc.PDF, ref_date, output, svr.dbGetConn());
 				} catch (Exception e) {
 					log4j.error("Error printing PDF!", e);
 				} finally {
@@ -248,19 +280,12 @@ public class Report {
 	/**
 	 * Web service for generating PDF/Excel files. No mater that the web service
 	 * produces "application/vnd.ms-excel", when we want to print to PDF,
-	 * JRPdfExporterParameter has property for overriding the extension of the
-	 * file
+	 * JRPdfExporterParameter has property for overriding the extension of the file
 	 * 
-	 * @param sessionId
-	 *            Session ID
-	 * @param objectId
-	 *            Object ID
-	 * @param printType
-	 *            Print type (PDF/Excel)
-	 * @param reportName
-	 *            Report name
-	 * @return PDF or Excel file
-	 * @author daut
+	 * @param sessionId  Session ID
+	 * @param objectId   Object ID
+	 * @param printType  Print type (PDF/Excel)
+	 * @param reportName Report name
 	 */
 	@GET
 	@Path("/generatePdfOrExcel/{sessionId}/{objectId}/{printType}/{customDate}/{customDate2}/{campaignId}/{reportName}")
@@ -270,7 +295,7 @@ public class Report {
 			@PathParam("customDate") final String customDate, @PathParam("customDate2") final String customDate2,
 			@PathParam("campaignId") final String campaignId, @PathParam("reportName") final String reportName,
 			@Context HttpServletRequest httpRequest) {
-		String fileExtension = printType.equals(Tc.EXCEL) ? Tc.XLS_EXTENSION : Tc.PDF_EXTENSION;
+		String fileExtension = printType.equalsIgnoreCase(Tc.EXCEL) ? Tc.XLS_EXTENSION : Tc.PDF_EXTENSION;
 		StreamingOutput fileStream = new StreamingOutput() {
 			@Override
 			public void write(java.io.OutputStream output) throws IOException {
@@ -284,8 +309,8 @@ public class Report {
 
 					DateTime refDate = new DateTime();
 
-					String printParam = SvConf.getParam("print.jrxml_path");
-					prop.put("print.jrxml_path", printParam);
+					String printParam = SvConf.getParam(Tc.printJrxmlPath);
+					prop.put(Tc.printJrxmlPath, printParam);
 
 					switch (reportName) {
 					case "STAT_ACBV":
@@ -297,7 +322,7 @@ public class Report {
 						prop.put("DATE_DMY", customDate);
 						break;
 					case "STAT_ACBH":
-						prop.put("OBJ_ID", objectId);
+						prop.put(Tc.OBJ_ID, objectId);
 						prop.put("DATE_DMY", customDate);
 						break;
 					case "STAT_AEBC":
@@ -319,6 +344,7 @@ public class Report {
 					case "STAT_HTGT":
 						prop.put("DATE_DMY", customDate);
 						break;
+					case "STAT_CMPF":
 					case "STAT_CMPV":
 						prop.put("village_code", objectId);
 						prop.put("campaign_code", campaignId);
@@ -326,7 +352,7 @@ public class Report {
 						prop.put("DATE_DMY_2", customDate2);
 						break;
 					case "INV_main":
-					case "INV2_main":
+					case "INV2_main": {
 						String customDateFrom = rdr.customDateFormatter(customDate);
 						String customDateTo = rdr.customDateFormatter(customDate2);
 						prop.put("terr_code", objectId.toString());
@@ -346,8 +372,10 @@ public class Report {
 						prop.put(Tc.USER_NAME, userName.toUpperCase());
 						prop.put("fromdate", customDateFrom);
 						prop.put("todate", customDateTo);
+						break;
+					}
 					default:
-						prop.put("OBJ_ID", objectId);
+						prop.put(Tc.OBJ_ID, objectId);
 						break;
 					}
 					ByteArrayOutputStream bstr = new ByteArrayOutputStream();
@@ -356,6 +384,53 @@ public class Report {
 					GeneratePdf.executeReport(prop, reportName, printType, refDate, output, svr.dbGetConn());
 				} catch (Exception e) {
 					log4j.error("Error printing PDF/Excel! method: generatePdfOrExcel", e);
+				} finally {
+					if (svr != null)
+						svr.release();
+				}
+			}
+		};
+		return Response.ok(fileStream, MediaType.APPLICATION_OCTET_STREAM)
+				.header("content-disposition", "attachment; filename = " + reportName + fileExtension).build();
+	}
+
+	/**
+	 * Web service for generating PDF/Excel files. No mater that the web service
+	 * produces "application/vnd.ms-excel", when we want to print to PDF,
+	 * JRPdfExporterParameter has property for overriding the extension of the file
+	 * 
+	 * @param sessionId  Session ID
+	 * @param reportName Object ID
+	 * @param printType  Print type (PDF/Excel)
+	 * @param terr_code  Territorial code
+	 * @param customDate Custom date
+	 */
+	@GET
+	@Path("/generatePdfOrExcel/{session_id}/{reportName}/{printType}/{terr_code}/{customDate}")
+	@Produces("application/vnd.ms-excel")
+	public Response generatePdfOrExcel(@PathParam("session_id") final String sessionId,
+			@PathParam("reportName") final String reportName, @PathParam("printType") final String printType,
+			@PathParam("terr_code") final String terr_code, @PathParam("customDate") final String customDate,
+			@Context HttpServletRequest httpRequest) {
+		String fileExtension = printType.equals(Tc.EXCEL) ? Tc.XLS_EXTENSION : Tc.PDF_EXTENSION;
+		StreamingOutput fileStream = new StreamingOutput() {
+			@Override
+			public void write(java.io.OutputStream output) throws IOException {
+				SvReader svr = null;
+				// String terr_code = "null";
+				try {
+					svr = new SvReader(sessionId);
+					String printParam = SvConf.getParam(Tc.printJrxmlPath);
+					Properties prop = new Properties();
+					prop.put(Tc.printJrxmlPath, printParam);
+					prop.put("terr_code", terr_code);
+					prop.put("DATE_DMY", customDate);
+					ByteArrayOutputStream bstr = new ByteArrayOutputStream();
+					byte[] data = bstr.toByteArray();
+					output.write(data);
+					GeneratePdf.executeReport(prop, reportName, printType, new DateTime(), output, svr.dbGetConn());
+				} catch (Exception e) {
+					log4j.error("Error printing PDF!", e);
 				} finally {
 					if (svr != null)
 						svr.release();

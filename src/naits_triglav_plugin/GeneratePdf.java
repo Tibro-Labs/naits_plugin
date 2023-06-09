@@ -15,6 +15,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.qrcode.QRCodeWriter;
 import com.prtech.svarog.svCONST;
 
 import net.sf.jasperreports.engine.JRException;
@@ -40,8 +43,9 @@ public class GeneratePdf {
 		Long errorCode = svCONST.SUCCESS;
 		File folder = null;
 		HashMap<String, Object> hm = null;
+
 		try {
-			String path = rbConfig.getProperty("print.jrxml_path");
+			String path = rbConfig.getProperty(Tc.printJrxmlPath);
 			if (path == null) {
 				log4j.error(
 						"Reports path is not properly configured. Configure the print.jrxml_path variable in svarog.properties");
@@ -121,6 +125,7 @@ public class GeneratePdf {
 
 	private static HashMap<String, Object> setReportParameters(String reportName, Properties rbConfig, String path)
 			throws ParseException {
+
 		HashMap<String, Object> hm = new HashMap<>();
 		DateFormat formatter = new SimpleDateFormat(Tc.DATE_PATTERN);
 		hm.put("path", path + Tc.PATH_DELIMITER);
@@ -211,6 +216,36 @@ public class GeneratePdf {
 		if (campaignCode != null) {
 			hm.put("campaign_code", Long.valueOf(campaignCode));
 		}
+
+		String linkToPostMortemReport = rbConfig.getProperty("LINK_TO_POSTMORTEM_REPORT");
+		if (linkToPostMortemReport != null) {
+			hm.put("LINK_TO_POSTMORTEM_REPORT", linkToPostMortemReport);
+		}
+
+		String stringifiedListOfParams = rbConfig.getProperty("LIST_OF_OBJ_ID");
+		if (stringifiedListOfParams != null) {
+			// hm.put("LIST_OF_OBJ_ID", Arrays.asList(stringifiedListOfParams.split(",")));
+			hm.put("LIST_OF_OBJ_ID", stringifiedListOfParams);
+		}
+
+		String companyName = rbConfig.getProperty(Tc.COMPANY_NAME);
+		if (companyName != null) {
+			if (companyName.equals("null")) {
+				companyName = "";
+			}
+			hm.put(Tc.COMPANY_NAME, companyName);
+		}
+
+		String qrCode = rbConfig.getProperty("QR_CODE");
+		if (rbConfig.getProperty("QR_CODE") != null) {
+			try {
+				hm.put("QR_CODE", MatrixToImageWriter
+						.toBufferedImage(new QRCodeWriter().encode(qrCode, BarcodeFormat.QR_CODE, 300, 300)));
+			} catch (Exception e) {
+				log4j.error("Error occurred while generating QR code..");
+			}
+		}
+
 		return hm;
 	}
 }

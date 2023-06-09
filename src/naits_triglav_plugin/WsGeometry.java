@@ -89,7 +89,6 @@ public class WsGeometry {
 				critU2.setNextCritOperand("OR");
 				DbSearchCriterion critU4 = new DbSearchCriterion(Tc.UNIT_CLASS, DbCompareOperand.EQUAL, "4");
 				dbseU.addDbSearchItem(critU1).addDbSearchItem(critU2).addDbSearchItem(critU4);
-
 				dbse.addDbSearchItem(dbseU);
 				break;
 			case Tc.QUARANTINE:
@@ -101,7 +100,6 @@ public class WsGeometry {
 				DbSearchExpression dbseQ = new DbSearchExpression();
 				DbSearchCriterion critQ1 = new DbSearchCriterion(Tc.QUARANTINE_TYPE, DbCompareOperand.EQUAL, "1");
 				dbseQ.addDbSearchItem(critQ1);
-
 				dbse.addDbSearchItem(dbseQ);
 				break;
 			default:
@@ -145,7 +143,7 @@ public class WsGeometry {
 				DbDataArray qGeom = this.svr.getObjectsByParentId(dbo.getObject_id(),
 						SvCore.getTypeIdByName(Tc.QUARANTINE_GEOMETRY), null, null, null);
 
-				if (qGeom.getItems().size() > 0)
+				if (!qGeom.getItems().isEmpty())
 					g = SvGeometry.getGeometry(qGeom.get(0));
 				break;
 			default:
@@ -387,7 +385,7 @@ public class WsGeometry {
 				p = G_FACTORY.createPoint(new Coordinate(x, y));
 			}
 		} catch (Exception e) {
-			log4j.debug(e);
+			log4j.error(e);
 		}
 
 		return p;
@@ -574,7 +572,7 @@ public class WsGeometry {
 			ArrayList<Geometry> uGeomArr = getGeometryImpl(token, svCONST.OBJECT_TYPE_SDI_UNITS, qBbox);
 
 			// add all holdings with own geometry to result
-			if (hGeomArr.size() > 0) {
+			if (!hGeomArr.isEmpty()) {
 				for (Geometry hGeom : hGeomArr) {
 					DbDataObject hDbo = (DbDataObject) hGeom.getUserData();
 					dbArr.addDataItem(hDbo);
@@ -582,14 +580,13 @@ public class WsGeometry {
 			}
 
 			// add all holdings with no gps coords for each village to result
-			if (uGeomArr.size() > 0) {
+			if (!uGeomArr.isEmpty()) {
 				for (Geometry uGeom : uGeomArr) {
 					DbDataObject uDbo = (DbDataObject) uGeom.getUserData();
 					String unitId = uDbo.getVal(Tc.UNIT_ID).toString();
 
 					if (unitId != null) {
 						DbDataArray hArr = rdr.getHoldingsByUnitId(svr, unitId);
-						// log4j.debug(unitId + " => " + hArr.size() + "H");
 						for (DbDataObject hDbo : hArr.getItems()) {
 							dbArr.addDataItem(hDbo);
 						}
@@ -739,7 +736,7 @@ public class WsGeometry {
 		String h1Pic = (String) h1.getVal(Tc.PIC);
 		DbDataArray moveArr = rdr.getTransferMovementsByPIC(svr, h1Pic);
 
-		if (moveArr.getItems().size() > 0) {
+		if (!moveArr.getItems().isEmpty()) {
 			setDescriptor(h1, Tc.MOVEMENT_HOLDING);
 			Geometry h1Geom = getHoldingGeometry(svr, h1);
 			// if there are no geometry-valid h2 objects
@@ -1311,16 +1308,16 @@ public class WsGeometry {
 			svr.setIncludeGeometries(true);
 			DbDataArray allPetLocations = svr.getObjectsByParentId(petObjId,
 					SvReader.getTypeIdByName("STRAY_PET_LOCATION"), null, 0, 0);
-			if (allPetLocations.size() > 0) {
+			if (!allPetLocations.getItems().isEmpty()) {
 				Point point = null;
 				ArrayList<DbDataObject> tempAllPetLocations = allPetLocations.getSortedItems("DT_INSERT");
-				
+
 				for (int i = tempAllPetLocations.size() - 1; i >= 0; i--) {
-					point = getPetGeometry(svr, svr.getObjectById(
-							tempAllPetLocations.get(i).getObject_id(),
+					point = getPetGeometry(svr, svr.getObjectById(tempAllPetLocations.get(i).getObject_id(),
 							SvCore.getTypeIdByName(Tc.STRAY_PET_LOCATION), null));
-					
-					if (point != null) break;
+
+					if (point != null)
+						break;
 				}
 
 				if (point != null)
@@ -1352,7 +1349,7 @@ public class WsGeometry {
 			DbDataArray qGeom = svr.getObjectsByParentId(objId, SvCore.getTypeIdByName(Tc.QUARANTINE_GEOMETRY), null,
 					null, null);
 
-			if (qGeom.getItems().size() > 0) {
+			if (!qGeom.getItems().isEmpty()) {
 				Envelope env = SvGeometry.getGeometry(qGeom.get(0)).getEnvelopeInternal();
 				bbox = SvGeometry.getBBox(env);
 			}
@@ -1379,9 +1376,10 @@ public class WsGeometry {
 				JsonObject.class);
 		try {
 			svr = new SvReader(token);
-
 			jArr = new SearchLocations(svr, searchStr, config).fetch(10).build();
-
+			if (jArr == null) {
+				jArr = new JsonArray();
+			}
 		} catch (Exception e) {
 			if (e instanceof SvException) {
 				log4j.error(((SvException) e).getFormattedMessage(), e);

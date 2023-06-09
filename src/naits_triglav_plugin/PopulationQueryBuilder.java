@@ -137,6 +137,8 @@ public class PopulationQueryBuilder {
 			String apvbf = schema + ".animal_population_vacc_book_filter apvbf";
 			String hpaf = schema + ".holding_population_age_filter hpaf";
 			String hpgf = schema + ".holding_population_gender_filter hpgf";
+			String hpatf = schema + ".holding_population_ani_type_filter hpatf";
+			String htacs = schema + ".holding_total_animal_count_by_specie htacs";
 			String excludeSetFlag = "";
 
 			StringBuilder query = new StringBuilder("SELECT DISTINCT HPAF.PKID FROM ");
@@ -179,6 +181,50 @@ public class PopulationQueryBuilder {
 				whereClause.append(" AND HPGF.GENDER='").append(dboPopulation.getVal("FILTER_GENDER").toString())
 						.append("'");
 			}
+
+			// SPECIE_COUNT FILTER
+			if (dboPopulation.getVal(Tc.FILTER_ANI_TYPE) != null
+					&& dboPopulation.getVal(Tc.FILTER_MIN_TOTAL_CNT) != null) {
+				query.append(" JOIN ").append(hpatf).append(" ON HPAF.OBJECT_ID=HPATF.OBJECT_ID");
+				query.append(" JOIN ").append(htacs).append(" ON HPAF.PARENT_ID=HTACS.OBJECT_ID");
+				whereClause.append(" AND HPATF.ANIMAL_CLASS='")
+						.append(dboPopulation.getVal(Tc.FILTER_ANI_TYPE).toString()).append("'");
+				switch (dboPopulation.getVal(Tc.FILTER_ANI_TYPE).toString()) {
+				case "1":
+					whereClause.append(" AND HTACS.TOTAL_CATTLE >= ")
+							.append(dboPopulation.getVal(Tc.FILTER_MIN_TOTAL_CNT).toString());
+					break;
+				case "2":
+					whereClause.append(" AND HTACS.TOTAL_BUFFOLO >= ")
+							.append(dboPopulation.getVal(Tc.FILTER_MIN_TOTAL_CNT).toString());
+					break;
+				case "9":
+					whereClause.append(" AND HTACS.TOTAL_SHEEP >= ")
+							.append(dboPopulation.getVal(Tc.FILTER_MIN_TOTAL_CNT).toString());
+					break;
+				case "10":
+					whereClause.append(" AND HTACS.TOTAL_GOAT >= ")
+							.append(dboPopulation.getVal(Tc.FILTER_MIN_TOTAL_CNT).toString());
+					break;
+				case "11":
+					whereClause.append(" AND HTACS.TOTAL_PIG >= ")
+							.append(dboPopulation.getVal(Tc.FILTER_MIN_TOTAL_CNT).toString());
+					break;
+				case "400":
+					whereClause.append(" AND HTACS.TOTAL_DONKEY >= ")
+							.append(dboPopulation.getVal(Tc.FILTER_MIN_TOTAL_CNT).toString());
+					break;
+				default:
+					break;
+				}
+			}
+			// ANIMAL_TYPE filter
+			if (dboPopulation.getVal(Tc.FILTER_ANI_TYPE) != null
+					&& dboPopulation.getVal(Tc.FILTER_MIN_TOTAL_CNT) == null) {
+				query.append(" JOIN ").append(hpatf).append(" ON HPAF.OBJECT_ID=HPGF.OBJECT_ID");
+				whereClause.append(" AND HPGF.ANIMAL_CLASS='")
+						.append(dboPopulation.getVal(Tc.FILTER_ANI_TYPE).toString()).append("'");
+			}
 			// Health record book filter
 			if (dboPopulation.getVal(Tc.VACC_BOOK_FILTER) != null) {
 				query.append(" JOIN ").append(apvbf).append(" ON HPAF.OBJECT_ID=APVBF.OBJECT_ID ");
@@ -204,7 +250,7 @@ public class PopulationQueryBuilder {
 							.append(dboPopulation.getVal(Tc.VACC_BOOK_FROM).toString());
 				}
 				if (dboPopulation.getVal(Tc.DISEASE_VACC_BOOK) != null) {
-					whereClause.append(" AND DISEASE_BOOK IN (")
+					whereClause.append(" AND APVBF.DISEASE_BOOK IN (")
 							.append(getVaccinationCodeInVaccinationBookAccordingDiseaseCode(
 									dboPopulation.getVal(Tc.DISEASE_VACC_BOOK).toString()))
 							.append(")");
@@ -302,9 +348,9 @@ public class PopulationQueryBuilder {
 	}
 
 	/**
-	 * Temporary method for getting vaccine code values according disease. This
-	 * need to be replaced appropriately after we get the full list of diseases
-	 * for vaccination book
+	 * Temporary method for getting vaccine code values according disease. This need
+	 * to be replaced appropriately after we get the full list of diseases for
+	 * vaccination book
 	 * 
 	 * @param diseaseCode
 	 * @param svr
@@ -330,5 +376,4 @@ public class PopulationQueryBuilder {
 		}
 		return result;
 	}
-
 }

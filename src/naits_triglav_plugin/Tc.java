@@ -5,6 +5,11 @@ package naits_triglav_plugin;
  */
 public class Tc {
 
+	// applicational servers ip addresses
+	public static final String appProd1 = "https://172.16.1.11/triglav_rest/";
+	public static final String appProd2 = "https://172.16.1.12/triglav_rest/";
+	public static final String appProd3 = "https://172.16.1.13/triglav_rest/";
+
 	// constants for objects
 	public static final String SVAROG = "SVAROG";
 	public static final String SVAROG_ORG_UNITS = "SVAROG_ORG_UNITS";
@@ -33,6 +38,7 @@ public class Tc {
 	public static final String AREA = "AREA";
 	public static final String EAR_TAG_REPLC = "EAR_TAG_REPLC";
 	public static final String SVAROG_CODES = "SVAROG_CODES";
+	public static final String SVAROG_LABELS = "SVAROG_LABELS";
 	public static final String SVAROG_USERS = "SVAROG_USERS";
 	public static final String SVAROG_USER_GROUPS = "SVAROG_USER_GROUPS";
 	public static final String SPOT_CHECK = "SPOT_CHECK";
@@ -58,6 +64,7 @@ public class Tc {
 	public static final String SVAROG_NOTIFICATION = "SVAROG_NOTIFICATION";
 	public static final String USER_DETAILS = "USER_DETAILS";
 	public static final String PET = "PET";
+	public static final String PET_QUARANTINE = "PET_QUARANTINE";
 	public static final String PET_HEALTH_BOOK = "PET_HEALTH_BOOK";
 	public static final String PET_PASSPORT = "PET_PASSPORT";
 	public static final String STRAY_PET = "STRAY_PET";
@@ -69,12 +76,19 @@ public class Tc {
 	public static final String POPULATION_LOCATION = "POPULATION_LOCATION";
 	public static final String STRAT_FILTER = "STRAT_FILTER";
 	public static final String SVAROG_MESSAGE = "SVAROG_MESSAGE";
+	public static final String SVAROG_CONVERSATION = "SVAROG_CONVERSATION";
+	public static final String RFID_INPUT = "RFID_INPUT";
+	public static final String RFID_INPUT_RESULT = "RFID_INPUT_RESULT";
+	public static final String SUBJECT = "SUBJECT";
+	public static final String LINK_STATUS = "LINK_STATUS";
 
 	// constants for links
 	public static final String POA = "POA";
+	public static final String LINK_CONVERSATION_ATTACHMENT = "LINK_CONVERSATION_ATTACHMENT";
 	public static final String HOLDING_KEEPER = "HOLDING_KEEPER";
 	public static final String HOLDING_HERDER = "HOLDING_HERDER";
 	public static final String HOLDING_ASSOCIATED = "HOLDING_ASSOCIATED";
+	public static final String HOLDING_MEMBER_OF = "HOLDING_MEMBER_OF";
 	public static final String DISEASE_QUARANTINE = "DISEASE_QUARANTINE";
 	public static final String INCOME_TRANSFER = "INCOME_TRANSFER";
 	public static final String OUTCOME_TRANSFER = "OUTCOME_TRANSFER";
@@ -95,11 +109,19 @@ public class Tc {
 	public static final String PET_CONTACT = "PET_CONTACT";
 	public static final String STRAY_CARETAKER = "STRAY_CARETAKER";
 	public static final String LINK_FILE = "LINK_FILE";
+	public static final String RFID_INPUT_STATE = "RFID_INPUT_STATE";
+	public static final String MSG_TO = "MSG_TO";
+	public static final String MSG_CC = "MSG_CC";
+	public static final String MSG_BCC = "MSG_BCC";
+	public static final String TO = "TO";
+	public static final String CC = "CC";
+	public static final String BCC = "BCC";
 
 	// constants for groups
 	public static final String PRIVATE_VETERINARIANS = "PRIVATE_VETERINARIANS";
 	public static final String USER_GROUP = "USER_GROUP";
 	public static final String USER_DEFAULT_GROUP = "USER_DEFAULT_GROUP";
+	public static final String SLAUGHTERHOUSE_OPERATOR = "SLAUGHTERHOUSE_OPERATOR";
 
 	// constants for statuses
 	public static final String FINAL = "FINAL";
@@ -119,6 +141,7 @@ public class Tc {
 	public static final String DELIVERED = "DELIVERED";
 	public static final String DIED = "DIED";
 	public static final String EXPORTED = "EXPORTED";
+	public static final String DISPOSAL = "DISPOSAL";
 	public static final String PENDING_EX = "PENDING_EX";
 	public static final String DRAFT = "DRAFT";
 	public static final String CANCELED = "CANCELED";
@@ -140,6 +163,11 @@ public class Tc {
 	public static final String DAMAGED = "DAMAGED";
 	public static final String ADOPTED = "ADOPTED";
 	public static final String EUTHANIZED = "EUTHANIZED";
+	public static final String ERROR = "ERROR";
+	public static final String WARNING = "WARNING";
+	public static final String SUCCESS = "SUCCESS";
+	public static final String SENT = "SENT";
+	public static final String CLOSED = "CLOSED";
 
 	// constants for fields
 	public static final String PKID = "PKID";
@@ -149,6 +177,8 @@ public class Tc {
 	public static final String SYSTEM_TABLE = "SYSTEM_TABLE";
 	public static final String RECOVERY_TOKEN = "RECOVERY_TOKEN";
 	public static final String CHECK_COLUMN = "CHECK_COLUMN";
+	public static final String CHECK_COLUMN_2 = "CHECK_COLUMN_2";
+	public static final String NOT_TRANSLATED_ANIMAL_CLASS = "NOT_TRANSLATED_ANIMAL_CLASS";
 	public static final String MOVEMENT_TRANSPORT_TYPE = "MOVEMENT_TRANSPORT_TYPE";
 	public static final String TRANSPORTER_LICENSE = "TRANSPORTER_LICENSE";
 	public static final String COLLECTIONER_NAME = "COLLECTIONER_NAME";
@@ -165,6 +195,7 @@ public class Tc {
 	public static final String SAMPLE_ORIGIN = "SAMPLE_ORIGIN";
 	public static final String HOLDING_RESP = "HOLDING_RESP";
 	public static final String HOLDING_PIC = "HOLDING_PIC";
+	public static final String SHELF_LIFE = "SHELF_LIFE";
 	public static final String SAMPLE_TYPE = "SAMPLE_TYPE";
 	public static final String SAMPLE_ID = "SAMPLE_ID";
 	public static final String EXTERNAL_ID = "EXTERNAL_ID";
@@ -200,10 +231,12 @@ public class Tc {
 	public static final String CODE_VALUE = "CODE_VALUE";
 	public static final String STATUS = "STATUS";
 	public static final String LABEL_CODE = "LABEL_CODE";
+	public static final String LABEL_TEXT = "LABEL_TEXT";
+	public static final String LABEL_DESCR = "LABEL_DESCR";
 	public static final String USER_NAME = "USER_NAME";
 	public static final String USER_RECIPIENT = "USER_RECIPIENT";
-	public static final String PASSWORD_HASH = "PASSWORD_HASH";
-	public static final String CONFIRM_PASSWORD_HASH = "CONFIRM_PASSWORD_HASH";
+	public static final String PASS_HSH = "PASSWORD_HASH";
+	public static final String CONFIRM_PASS_HSH = "CONFIRM_PASSWORD_HASH";
 	public static final String PIN = "PIN";
 	public static final String USER_TYPE = "USER_TYPE";
 	public static final String DATE_OF_REG = "DATE_OF_REG";
@@ -228,6 +261,7 @@ public class Tc {
 	public static final String GENDER = "GENDER";
 	public static final String ANIMAL_HEALTH_STATUS = "ANIMAL_HEALTH_STATUS";
 	public static final String PIC = "PIC";
+	public static final String APPROVAL_NUM = "APPROVAL_NUM";
 	public static final String ANIMAL_ID = "ANIMAL_ID";
 	public static final String ANIMAL_EAR_TAG = "ANIMAL_EAR_TAG";
 	public static final String ANIMAL_CLASS = "ANIMAL_CLASS";
@@ -253,6 +287,7 @@ public class Tc {
 	public static final String DISEASE_NAME = "DISEASE_NAME";
 	public static final String DISIESE_FINDING = "DISIESE_FINDING";
 	public static final String NOTE = "NOTE";
+	public static final String CONCLUSION = "CONCLUSION";
 	public static final String MISSING_TAGS = "MISSING_TAGS";
 	public static final String NUM_TAGS = "NUM_TAGS";
 	public static final String CHECK_SUBJECT = "CHECK_SUBJECT";
@@ -273,6 +308,8 @@ public class Tc {
 	public static final String END_TAG_ID = "END_TAG_ID";
 	public static final String TAG_TYPE = "TAG_TYPE";
 	public static final String LINK_TYPE = "LINK_TYPE";
+	public static final String LINK_OBJ_TYPE_1 = "LINK_OBJ_TYPE_1";
+	public static final String LINK_OBJ_TYPE_2 = "LINK_OBJ_TYPE_2";
 	public static final String RESPONSIBLE = "RESPONSIBLE";
 	public static final String TRANSPORTER_ID = "TRANSPORTER_ID";
 	public static final String TRANSPORTER_NAME = "TRANSPORTER_NAME";
@@ -282,14 +319,21 @@ public class Tc {
 	public static final String UNIT_ID = "UNIT_ID";
 	public static final String RADIUS = "RADIUS";
 	public static final String LABORATORY_NAME = "LABORATORY_NAME";
+	public static final String LAB_ID = "LAB_ID";
+	public static final String LAB_TEST_ID = "LAB_TEST_ID";
 	public static final String LAB_NAME = "LAB_NAME";
 	public static final String GEOSTAT_CODE = "GEOSTAT_CODE";
 	public static final String RESPONSIBLE_USER = "RESPONSIBLE_USER";
+	public static final String CHIP_RESPONSIBLE_PERSON = "CHIP_RESPONSIBLE_PERSON";
 	public static final String SAMPLE_DISEASE = "SAMPLE_DISEASE";
 	public static final String VACC_CODE = "VACC_CODE";
 	public static final String VET_OFFICER = "VET_OFFICER";
 	public static final String BOOK_TYPE = "BOOK_TYPE";
 	public static final String SLAUGHTER_DATE = "SLAUGHTER_DATE";
+	public static final String SLAUGHTER_LOCATION_MUNIC = "SLAUGHTER_LOCATION_MUNIC";
+	public static final String SLAUGHTER_LOCATION_COMMUN = "SLAUGHTER_LOCATION_COMMUN";
+	public static final String SLAUGHTER_LOCATION_REGION = "SLAUGHTER_LOCATION_REGION";
+	public static final String SLAUGHTER_LOCATION_VILLAGE = "SLAUGHTER_LOCATION_VILLAGE";
 	public static final String ADDITIONAL_INFORMATION = "ADDITIONAL_INFORMATION";
 	public static final String DECISION_ORGANS = "DECISION_ORGANS";
 	public static final String DESTINATION_HOLDING_PIC = "DESTINATION_HOLDING_PIC";
@@ -318,6 +362,10 @@ public class Tc {
 	public static final String SENDER = "SENDER";
 	public static final String TITLE = "TITLE";
 	public static final String MESSAGE = "MESSAGE";
+	public static final String MSG_ATTACHEMENT = "MSG_ATTACHEMENT";
+	public static final String MSG_ID = "MSG_ID";
+	public static final String ATCH_OBJ_ID = "ATCH_OBJ_ID";
+	public static final String ATCH_OBJ_TYPE = "ATCH_OBJ_TYPE";
 	public static final String VALID_FROM = "VALID_FROM";
 	public static final String VALID_TO = "VALID_TO";
 	public static final String DISEASE_SUSPISION_PM = "DISEASE_SUSPISION_PM";
@@ -371,7 +419,10 @@ public class Tc {
 	public static final String PET_BREED = "PET_BREED";
 	public static final String IS_ADOPTED = "IS_ADOPTED";
 	public static final String IS_STRAY_PET = "IS_STRAY_PET";
+	public static final String DT_CASTRATION = "DT_CASTRATION";
+	public static final String IS_CASTRATED = "IS_CASTRATED";
 	public static final String REQUEST_DATE = "REQUEST_DATE";
+	public static final String DATE_OF_ASSIGNMENT = "DATE_OF_ASSIGNMENT";
 	public static final String OWNER_PRIVATE_NUMBER = "OWNER_PRIVATE_NUMBER";
 	public static final String OWNER_FIRST_NAME = "OWNER_FIRST_NAME";
 	public static final String OWNER_LAST_NAME = "OWNER_LAST_NAME";
@@ -406,6 +457,8 @@ public class Tc {
 	public static final String POPULATION_ID = "POPULATION_ID";
 	public static final String FILTER_AGE_FROM = "FILTER_AGE_FROM";
 	public static final String FILTER_GENDER = "FILTER_GENDER";
+	public static final String FILTER_ANI_TYPE = "FILTER_ANI_TYPE";
+	public static final String FILTER_MIN_TOTAL_CNT = "FILTER_MIN_TOTAL_CNT";
 	public static final String FILTER_VACCINATION_TO = "FILTER_VACCINATION_TO";
 	public static final String FILTER_HEALTH_CHECK_TO = "FILTER_HEALTH_CHECK_TO";
 	public static final String FILTER_MISSING_TAG_FROM = "FILTER_MISSING_TAG_FROM";
@@ -436,7 +489,9 @@ public class Tc {
 	public static final String POPULATION_STATUS = "POPULATION_STATUS";
 	public static final String DATE_OF_TEST = "DATE_OF_TEST";
 	public static final String ASSIGNED_TO = "ASSIGNED_TO";
+	public static final String ASSIGNED_TO_USERNAME = "ASSIGNED_TO_USERNAME";
 	public static final String CREATED_BY = "CREATED_BY";
+	public static final String CREATED_BY_USERNAME = "CREATED_BY_USERNAME";
 	public static final String IS_READ = "IS_READ";
 	public static final String DATE_OF_CREATION = "DATE_OF_CREATION";
 	public static final String UNIT_NUMBER = "UNIT_NUMBER";
@@ -447,10 +502,43 @@ public class Tc {
 	public static final String HOLDING_STATUS = "HOLDING_STATUS";
 	public static final String IS_PROCESSED = "IS_PROCESSED";
 	public static final String TEST_TYPE_OBJ_ID = "TEST_TYPE_OBJ_ID";
-
-	public static final String success_userToGroupAttached = "naits.success.userToGroupAttached";
+	public static final String GROUP_UID = "GROUP_UID";
+	public static final String EMAIL = "EMAIL";
+	public static final String ACTION_TYPE = "ACTION_TYPE";
+	public static final String ANIMAL_BREED = "ANIMAL_BREED";
+	public static final String DESTINATION_NUMBER = "DESTINATION_NUMBER";
+	public static final String ACTIVITY_DATE = "ACTIVITY_DATE";
+	public static final String ANIMAL_EAR_TAGS = "ANIMAL_EAR_TAGS";
+	public static final String ERROR_DESCRIPTION = "ERROR_DESCRIPTION";
+	public static final String ACTION = "ACTION";
+	public static final String EXPORT = "EXPORT";
+	public static final String SUBACTION_TYPE = "SUBACTION_TYPE";
+	public static final String ADDITIONAL_TAG_INFO = "ADDITIONAL_TAG_INFO";
+	public static final String IMPORT_TYPE = "IMPORT_TYPE";
+	public static final String HOLDING_ID = "HOLDING_ID";
+	public static final String TEXT_EAR_TAGS = "TEXT_EAR_TAGS";
+	public static final String FILE_EAR_TAGS = "FILE_EAR_TAGS";
+	public static final String RFID_NUMBER = "RFID_NUMBER";
+	public static final String EXECUTED_ACTIONS = "EXECUTED_ACTIONS";
+	public static final String UNITS_NUM = "UNITS_NUM";
+	public static final String CATEGORY = "CATEGORY";
+	public static final String CONVERSATION_STATUS = "CONVERSATION_STATUS";
+	public static final String INFO = "INFO";
+	public static final String TASK = "TASK";
+	public static final String ADDITIONAL_STATUS = "ADDITIONAL_STATUS";
+	public static final String RESPONSIBLE_NAME = "RESPONSIBLE_NAME";
+	public static final String RESPONSIBLE_SURNAME = "RESPONSIBLE_SURNAME";
+	public static final String RESPONSIBLE_NAT_NUM = "RESPONSIBLE_NAT_NUM";
+	public static final String COLLECTION_TYPE = "COLLECTION_TYPE";
+	public static final String PET_TAG_ID = "PET_TAG_ID";
+	public static final String PET_MOVEMENT_ID = "PET_MOVEMENT_ID";
+	public static final String TEXT = "TEXT";
+	public static final String PRIORITY = "PRIORITY";
+	public static final String MODULE_NAME = "MODULE_NAME";
+	public static final String CODE_TYPE = "CODE_TYPE";
 
 	// WS error results
+	public static final String success_userToGroupAttached = "naits.success.userToGroupAttached";
 	public static final String error_admConsoleBadJson = "naits.error.admConsoleBadJson";
 	public static final String ERROR_SAVING_ANIMAL = "Error in saving animal object: ";
 
@@ -480,8 +568,34 @@ public class Tc {
 	public static final String MASS_PARAM_FEMALE_UNITS = "MASS_PARAM_FEMALE_UNITS";
 	public static final String MASS_PARAM_ADULT_UNITS = "MASS_PARAM_ADULT_UNITS";
 	public static final String MASS_PARAM_REASON = "MASS_PARAM_REASON";
+	public static final String MASS_PARAM_SENDER_OBJ_ID = "MASS_PARAM_SENDER_OBJ_ID";
+	public static final String MASS_PARAM_RANGE_FROM = "MASS_PARAM_RANGE_FROM";
+	public static final String MASS_PARAM_RANGE_TO = "MASS_PARAM_RANGE_TO";
+	public static final String MASS_PARAM_TAG_TYPE = "MASS_PARAM_TAG_TYPE";
+	public static final String MASS_PARAM_DESTINATION_OBJ_ID = "MASS_PARAM_DESTINATION_OBJ_ID";
+	public static final String MASS_PARAM_ANIMAL_FLOCK_ID = "MASS_PARAM_ANIMAL_FLOCK_ID";
+	public static final String MASS_PARAM_HOLDING_OBJ_ID = "MASS_PARAM_HOLDING_OBJ_ID";
+	public static final String MASS_PARAM_ANIMAL_CLASS = "MASS_PARAM_ANIMAL_CLASS";
+	public static final String MASS_PARAM_DESTINATION_OBJECT_TYPE = "MASS_PARAM_DESTINATION_OBJECT_TYPE";
+	public static final String MASS_PARAM_CAMPAIGN_OBJECT_ID = "MASS_PARAM_CAMPAIGN_OBJECT_ID";
+	public static final String MASS_PARAM_RFID_OBJECT_ID = "MASS_PARAM_RFID_OBJECT_ID";
+	public static final String MASS_PARAM_ANIMAL_RACE = "MASS_PARAM_ANIMAL_RACE";
+	public static final String MASS_PARAM_GENDER = "MASS_PARAM_GENDER";
+	public static final String MASS_PARAM_QUANTITY = "MASS_PARAM_QUANTITY";
 
 	// constants for other reasons
+	public static final String MESSAGE_PRIORITY = "MESSAGE_PRIORITY";
+	public static final String SUBJECT_OBJ_ID = "SUBJECT_OBJ_ID";
+	public static final String SUBJECT_MODULE_NAME = "SUBJECT_MODULE_NAME";
+	public static final String SUBJECT_TITLE = "SUBJECT_TITLE";
+	public static final String SUBJECT_PRIORITY = "SUBJECT_PRIORITY";
+	public static final String SUBJECT_CATEGORY = "SUBJECT_CATEGORY";
+	public static final String MSG_TEXT = "MSG_TEXT";
+	public static final String MSG_PRIORITY = "MSG_PRIORITY";
+	public static final String MSG_ATTACHMENT = "MSG_ATTACHMENT";
+	public static final String TRANSFER_INVENTORY_ITEM = "TRANSFER_INVENTORY_ITEM";
+	public static final String OBJ_ID = "OBJ_ID";
+	public static final String COMPANY_NAME = "COMPANY_NAME";
 	public static final String NOT_AVAILABLE_NA = "N/A";
 	public static final String EMPTY_STRING = "";
 	public static final String SYSTEM = "SYSTEM";
@@ -499,8 +613,10 @@ public class Tc {
 	public static final String VILLAGES = "VILLAGES";
 	public static final String MUNICIPALITIES = "MUNICIPALITIES";
 	public static final String COMMUNITIES = "COMMUNITIES";
+	public static final String REGIONAL_OFFICE = "REGIONAL_OFFICE";
 	public static final String OBJ_ARRAY = "objectArray";
 	public static final String DATE_PATTERN = "yyyy-MM-dd";
+	public static final String DATE_PATTERN_2 = "dd-MM-yyyy";
 	public static final String ERROR_DETECTED = "Error detected:";
 	public static final String DESCRIPTOR = "DESCRIPTOR";
 	public static final String MOVEMENT_HOLDING = "MOVEMENT_HOLDING";
@@ -521,6 +637,9 @@ public class Tc {
 	public static final String BRUC = "BRUC";
 	public static final String FMR = "FMR";
 	public static final String MOVE = "MOVE";
+	public static final String MOVEMENTS = "MOVEMENTS";
+	public static final String SLAUGHTER_LOCATION = "SLAUGHTER_LOCATION";
+	public static final String VILLAGE = "VILLAGE";
 	public static final String LBL_TRANSL = "LBL_TRANSL";
 	public static final String DEFAULT = "DEFAULT";
 	public static final String REVERSE = "REVERSE";
@@ -533,6 +652,8 @@ public class Tc {
 	public static final String GROUP = "GROUP";
 	public static final String ANIMAL_SHELTER_TYPE = "15";
 	public static final String VET_STATION_TYPE = "16";
+	public static final String VET_CLINIC_TYPE = "17";
+	public static final String SLAUGHTERHOUSE_TYPE = "7";
 	public static final String SV_ISLABEL = "SV_ISLABEL";
 	public static final String OBJ_PARAMS = "paramsArray";
 	public static final String ACTIVITY = "ACTIVITY";
@@ -540,6 +661,7 @@ public class Tc {
 	public static final String SAMPLING = "SAMPLING";
 	public static final String DISINFECTION = "DISINFECTION";
 	public static final String VACCINATION = "VACCINATION";
+	public static final String CASTRATION = "CASTRATION";
 	public static final String TBL = "TBL";
 	public static final String IS_GEOSTAT = "IS_GEOSTAT";
 	public static final String TIMESTAMP = "TIMESTAMP";
@@ -548,6 +670,7 @@ public class Tc {
 	public static final String GEORGIAN_LOCALE = "ka_GE";
 	public static final String APPLIED = "APPLIED";
 	public static final String NON_APPLIED = "NON_APPLIED";
+	public static final String NONAPPLIED = "NONAPPLIED";
 	public static final String REPLACED = "REPLACED";
 	public static final String DESTROY_PROCESS = "Press any key to retry or ESC";
 	public static final String CANNOT_CONNECT_TO_REMOTE_SERVER = "Unable to connect to the remote server";
@@ -559,7 +682,12 @@ public class Tc {
 	public static final String JRXML_EXTENSION = ".jrxml";
 	public static final String XML_EXTENSION = ".xml";
 	public static final String PATH_DELIMITER = "/";
+	public static final String MINUS_OPERATOR = "-";
+	public static final String COMMA_DELIMITER = ",";
+	public static final String EQUAL_SIGN = "=";
+	public static final String NEW_LINE = "\n";
 	public static final String NUMBER_REGEX = "[0-9]*";
+	public static final String EMAIL_REGEX = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
 	public static final String HEADQUARTER = "HEADQUARTER";
 	public static final String DIRECT_MOVEMENT = "DIRECT_MOVEMENT";
 	public static final String CREATE_MOVEMENT = "CREATE_MOVEMENT";
@@ -591,6 +719,65 @@ public class Tc {
 	public static final String PUBREG_LAST_NAME = "LastName";
 	public static final String PUBREG_BIRTH_DATE = "BirthDate";
 	public static final String PUBREG_ADDRESS = "ActiveAddress";
+	public static final String REGISTRATION = "REGISTRATION";
+	public static final String OTHER = "OTHER";
+	public static final String UNDO_LAST_TRANSFER = "UNDO_LAST_TRANSFER";
+	public static final String UNUSED = "unused";
+	public static final String ASSIGN_LAB = "ASSIGN_LAB";
+	public static final String CHANGE_THE_STATUS_OF_LAB_SAMPLE = "CHANGE_THE_STATUS_OF_LAB_SAMPLE";
+	public static final String SAMPLE_ACTION = "SAMPLE_ACTION";
+	public static final String SET_HEALTH_STATUS_TO_RESULTS = "SET_HEALTH_STATUS_TO_RESULTS";
+	public static final String NEGATIVE = "NEGATIVE";
+	public static final String POSITIVE = "POSITIVE";
+	public static final String INCONCLUSIVE = "INCONCLUSIVE";
+	public static final String SUSPENSION_NOTE = "SUSPENSION_NOTE";
+	public static final String GENERATE_PREMORTEM = "GENERATE_PREMORTEM";
+	public static final String GENERATE_POSTMORTEM = "GENERATE_POSTMORTEM";
+	public static final String NOT_FOUND = "NOT_FOUND";
+	public static final String VIA_FORM = "VIA_FORM";
+	public static final String VIA_FILE = "VIA_FILE";
+	public static final String VACCINATE = "VACCINATE";
+	public static final String EMPTY_ARRAY_STRING = "[]";
+	public static final String EMPTY_JSON_STRING = "{}";
+	public static final String REGISTER = "REGISTER";
+	public static final String DESC = "DESC";
+	public static final String ASC = "ASC";
+	public static final String CUSTOM_RFID_PERMISSION_PREFIX = "custom.rfid_";
+	public static final String MOVE_TO_CERTIFICATE = "MOVE_TO_CERT";
+	public static final String CUSTOM_RFID_SEARCH_PERMISSION = "custom.rfid_input_search";
+	public static final String CUSTOM_ANIMAL_SEARCH_PERMISSION = "custom.animal_search";
+	public static final String CUSTOM_MOVEMENT_DOC_SEARCH_PERMISSION = "custom.movement_doc_search";
+	public static final String CUSTOM_UNDO_RETIRE_EXPORT_ANIM = "undo_retire_export_anim";
+	public static final String CUSTOM_BORDER_POINT_MNG = "border_point_management";
+	public static final String LINK_TO_POSTMORTEM_REPORT = "LINK_TO_POSTMORTEM_REPORT";
+	public static final String classReportMethodGeneratePdf = "naits_triglav_plugin/report/generatePdf/";
+	public static final String classPublicServicesGeneratePdf = "naits_triglav_plugin/PublicServices/getAnimalDetailsInPdfFormat";
+	public static final String slaugh_6in1_final_geo = "slaugh_6in1_final_geo";
+	public static final String KEY_STORAGE = "KeyStorage.xml";
+	public static final String PET_OBJECT_ID = "PET_OBJECT_ID";
+	public static final String HOLDING_RESPONSIBLE_OBJECT_ID = "HOLDING_RESPONSIBLE_OBJECT_ID";
+	public static final String INACTIVATION_NOTE = "INACTIVATION_NOTE";
+	public static final String ACCEPT_REQUEST = "ACCEPT_REQUEST";
+	public static final String DECLINE_REQUEST = "DECLINE_REQUEST";
+	public static final String CANCEL_REQUEST = "CANCEL_REQUEST";
+	public static final String PET_LOCATION_DETAILS = "PET_LOCATION_DETAILS";
+	public static final String PERCENT_OPERATOR = "%";
+	public static final String ATTACHMENT = "ATTACHMENT";
+	public static final String RELEASE = "RELEASE";
+	public static final String COLLECTION = "COLLECTION";
+	public static final String NULL = "null";
+	public static final String IS_FIRST = "IS_FIRST";
+	public static final String ORG_UNIT_OBJ_ID = "ORG_UNIT_OBJ_ID";
+	public static final String HAS_ATTACHMENT = "HAS_ATTACHMENT";
+	public static final String INDICATOR_FOR_GEORGIA = "268";
+	public static final String CONVERTED_TAG = "CONVERTED_TAG";
+	public static final String UNSEEN = "UNSEEN";
+	public static final String EXPORT_QUARANTINE = "0";
+	public static final String BLACKLIST_QUARANTINE = "1";
+	public static final String NUMBER_OF_UNREAD_SUBJECTS_INBOX = "NUMBER_OF_UNREAD_SUBJECTS_INBOX";
+	public static final String NUMBER_OF_UNREAD_SUBJECTS_ARCHIVED = "NUMBER_OF_UNREAD_SUBJECTS_ARCHIVED";
+	public static final String SCOPE = "SCOPE";
+	public static final String SHOULD_DELETE = "SHOULD_DELETE";
 
 	// Constants for codes
 	// MVM_BLOCK_REASON and MVM_BLOCK_RECMD
@@ -631,10 +818,154 @@ public class Tc {
 	public static final String ANTRX_VACC_MISS = "ANTRX_VACC_MISS";
 	public static final String BRUC_VACC_MISS = "BRUC_VACC_MISS";
 	public static final String FMD_VACC_MISS = "FMD_VACC_MISS";
+	public static final String VACCINE_PER_DISEASE_HISTORY = "VACCINE_PER_DISEASE_HISTORY";
+	public static final String HOLDING_VISITS = "HOLDING_VISITS";
+	public static final String VACC_CAMPAIGNS = "VACC_CAMPAIGNS";
+	public static final String TUBERCULOSIS = "4";
+
+	// PET_ARCHIVING
+	public static final String PET_REGISTRATION = "0";
+	public static final String PET_SHELTER_REGISTRATION = "1";
+	public static final String COLLECTION_EVENT = "2";
+	public static final String RELEASE_EVENT = "3";
+	public static final String EVENT_TYPE = "EVENT_TYPE";
+	public static final String DEST_HOLD_ARCH_NO = "DEST_HOLD_ARCH_NO";
+	public static final String SRC_HOLD_ARCH_NO = "SRC_HOLD_ARCH_NO";
 
 	// TRETM_TYPE
 	public static final String STATE = "STATE";
 	public static final String NON_STATE = "NON-STATE";
+
+	// ADDITIONAL_STATUS
+	public static final String ABANDONED = "ABANDONED";
+	public static final String RETURNED = "RETURNED";
+	// LABELS
+	public static final String objectUsedByOtherSession = "naits.error.objectUsedByOtherSession";
+	public static final String successMassAnimalsAction = "naits.success.massAnimalsAction";
+	public static final String successCheckMovementsInMvmDoc = "naits.success.checkMovementsInMvmDoc";
+
+	// LOCALES
+	public static final String en_US = "en_US";
+	public static final String ka_GE = "ka_GE";
+
+	// PET_TAG_TYPE
+	public static final String NONE = "NONE";
+	public static final String MICROCHIP = "MICROCHIP";
+	public static final String EAR_TAG = "EAR_TAG";
+
+	// SVAROG_PROPERTIES_PARAMS
+	public static final String frontHostParam = "frontend.services_host";
+	public static final String reporterUserParam = "naits.reporter_user";
+	public static final String printJrxmlPath = "print.jrxml_path";
+
+	// USERS
+	public static final String reporterUserName = "REPORTER_USER";
+
+	// SVAROG FORMS
+	public static final String FORM_TYPE_ID = "FORM_TYPE_ID";
+	public static final String FORM_VALIDATION = "FORM_VALIDATION";
+	public static final String SVAROG_FORM_TYPE = "SVAROG_FORM_TYPE";
+	public static final String SIMPLE_QUESTIONNAIRE = "2";
+	public static final String COMPLEX_QUESTIONNAIRE = "1";
+	public static final String FORM_CATEGORY = "FORM_CATEGORY";
+	public static final String MULTI_ENTRY = "MULTI_ENTRY";
+	public static final String AUTOINSTANCE_SINGLE = "AUTOINSTANCE_SINGLE";
+	public static final String MANDATORY_BASE_VALUE = "MANDATORY_BASE_VALUE";
+	public static final String SORT_ORDER = "SORT_ORDER";
+	public static final String FORM_TYPE_LABEL_CODE_PREFIX = "naits.2021_qr_";
+	public static final String FORM_FIELD_TYPE_LABEL_CODE_PREFIX = "naits.2021_qq_";
+	public static final String inline = "inline";
+	public static final String NUMERIC_YES_NO_WITHOUT_CHOOSE = "NUMERIC_YES_NO_WITHOUT_CHOOSE";
+	public static final String IS_NULL = "IS_NULL";
+	public static final String IS_UNIQUE = "IS_UNIQUE";
+	public static final String FORM_FIELD_LINK = "FORM_FIELD_LINK";
+	public static final String START_INDEX = "START_INDEX";
+	public static final String END_INDEX = "END_INDEX";
+	public static final String QUESTIONNAIRE_TITLE = "QUESTIONNAIRE_TITLE";
+	public static final String QUESTION = "QUESTION";
+	public static final String IS_MANDATORY = "IS_MANDATORY";
+	public static final String QUESTIONNAIRE_NUMBER = "QUESTIONNAIRE_NUMBER";
+	public static final String NUMBER_OF_QUESTIONS = "NUMBER_OF_QUESTIONS";
+	public static final String QUESTIONNAIRE_CREATOR = "QUESTIONNAIRE_CREATOR";
+	public static final String FORM_OBJECT_ID = "FORM_OBJECT_ID";
+	public static final String FIELD_TYPE_ID = "FIELD_TYPE_ID";
+	public static final String FIRST_CHECK = "FIRST_CHECK";
+	public static final String SECOND_CHECK = "SECOND_CHECK";
+	public static final String QUESTIONNAIRE = "QUESTIONNAIRE";
+	public static final String qnr = "qnr";
+	public static final String qq = "qq";
+	public static final String opt = "opt";
+	public static final String QUESTIONS_SEPARATOR = "/#/ ";
+	public static final String QUESTIONNAIRE_TYPE = "QUESTIONNAIRE_TYPE";
+	public static final String ANSWER = "ANSWER";
+	public static final String COMPLETED = "COMPLETED";
+	public static final String FFT_SCORE = "FFT_SCORE";
+	public static final String FFT_ID = "FFT_ID";
+	public static final String MAX_SCORE = "MAX_SCORE";
+	public static final String SCORE = "SCORE";
+	public static final String CL_LABEL = "CL_LABEL";
+	public static final String CLI_LABEL = "CLI_LABEL";
+	public static final String CORRECT_ANSWER = "CORRECT_ANSWER";
+	public static final String checkboxes = "checkboxes";
+	public static final String shortOrLong = "shortOrLong";
+	public static final String radio = "radio";
+	public static final String FF_SCORE = "FF_SCORE";
+	public static final String FF_ID = "FF_ID";
+	public static final String SVAROG_FORM_FIELD = "SVAROG_FORM_FIELD";
+	public static final String SVAROG_FORM = "SVAROG_FORM";
+	public static final String SVAROG_FORM_FIELD_TYPE = "SVAROG_FORM_FIELD_TYPE";
+	public static final String OPT_SCORE = "OPT_SCORE";
+	public static final String TOTAL_SCORE = "TOTAL_SCORE";
+	public static final String FORM_STATUS = "FORM_STATUS";
+
+	// HERDS
+	public static final String HERD_ACTIONS = "HERD_ACTIONS";
+	public static final String ADD_ANIMAL_TO_HERD = "ADD_ANIMAL_TO_HERD";
+	public static final String HERD_ID = "HERD_ID";
+	public static final String HERD = "HERD";
+	public static final String CONTACT_PERSON_ID = "CONTACT_PERSON_ID";
+	public static final String ANIMAL_HERD = "ANIMAL_HERD";
+	public static final String MASS_PARAM_HERD_OBJ_ID = "MASS_PARAM_HERD_OBJ_ID";
+	public static final String MASS_PARAM_HERD_ANIMAL_TYPE = "MASS_PARAM_HERD_ANIMAL_TYPE";
+	public static final String MASS_PARAM_HERD_NAME = "MASS_PARAM_HERD_NAME";
+	public static final String MASS_PARAM_HERD_CONTACT_PERSON_ID = "MASS_PARAM_HERD_CONTACT_PERSON_ID";
+	public static final String MASS_PARAM_HERD_NOTE = "MASS_PARAM_HERD_NOTE";
+	public static final String ADD_HERD_TO_HOLDING = "ADD_HERD_TO_HOLDING";
+	public static final String REMOVE_ANIMAL_FROM_HERD = "REMOVE_ANIMAL_FROM_HERD";
+	public static final String HERD_MOVEMENT = "HERD_MOVEMENT";
+	public static final String MOVEMENT_ACTION = "MOVEMENT_ACTION";
+	public static final String TRANSPORT_TYPE = "TRANSPORT_TYPE";
+	public static final String DESINFECTION_DATE = "DESINFECTION_DATE";
+	public static final String HERD_HEALTH_BOOK = "HERD_HEALTH_BOOK";
+	public static final String DATE_OF_ACTION = "DATE_OF_ACTION";
+	public static final String HEADCOUNT = "HEADCOUNT";
+	public static final String VACC_BOOK_HERD_HEALTH_BOOK = "VACC_BOOK_HERD_HEALTH_BOOK";
+	public static final String MASS_PARAM_TRANSPORTER_NAME = "MASS_PARAM_TRANSPORTER_NAME";
+	public static final String MASS_PARAM_VACC_ACTIVITY_TYPE = "MASS_PARAM_VACC_ACTIVITY_TYPE";
+	public static final String IS_IN_HERD = "IS_IN_HERD";
+	public static final String NUM_ANSWERS = "NUM_ANSWERS";
+	public static final String NO_ANSWER_OPT = "NO_ANSWER_OPT";
+	public static final String SHORT = "SHORT";
+	public static final String LONG = "LONG";
+	public static final String FIELD_SIZE = "FIELD_SIZE";
+	public static final String ADDITIONAL_INFO = "ADDITIONAL_INFO";
+	public static final String DEFINE_ANSWERS = "DEFINE_ANSWERS";
+	public static final String HERD_MOVEMENT_HOLDING = "HERD_MOVEMENT_HOLDING";
+	public static final String ACCEPT_FULL_HERD = "ACCEPT_FULL_HERD";
+	public static final String ACCEPT_FULL_HERD_INDIVIDUAL = "ACCEPT_FULL_HERD_INDIVIDUAL";
+	public static final String ACCEPT_INDIVIDUAL_ANIMAL = "ACCEPT_INDIVIDUAL_ANIMAL";
+	public static final String ACCEPT_INDIVIDUAL_ANIMAL_HERD = "ACCEPT_INDIVIDUAL_ANIMAL_HERD";
+	public static final String MASS_PARAM_ADDITIONAL_SUB_ACTION = "MASS_PARAM_ADDITIONAL_SUB_ACTION";
+	public static final String MASS_PARAM_SUB_ACTION = "MASS_PARAM_SUB_ACTION";
+	public static final String CANCELLED = "CANCELLED";
+	public static final String herd = "herd";
+	public static final String HERD_OBJ_ID = "HERD_OBJ_ID";
+
+	// PET
+	public static final String PET_ACTIONS = "PET_ACTIONS";
+	public static final String ADD_PET_TO_QUARANTINE = "ADD_PET_TO_QUARANTINE";
+	public static final String REMOVE_PET_FROM_QUARANTINE = "REMOVE_PET_FROM_QUARANTINE";
+	public static final String MASS_PARAM_PET_QUARANTINE_OBJ_ID = "MASS_PARAM_PET_QUARANTINE_OBJ_ID";
 
 	private Tc() {
 

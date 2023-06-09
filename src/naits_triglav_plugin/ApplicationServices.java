@@ -5,16 +5,20 @@ package naits_triglav_plugin;
 
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -30,12 +34,20 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.joda.time.DateTime;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import com.prtech.svarog.I18n;
@@ -48,6 +60,7 @@ import com.prtech.svarog.SvLock;
 import com.prtech.svarog.SvNote;
 import com.prtech.svarog.SvNotification;
 import com.prtech.svarog.SvReader;
+import com.prtech.svarog.SvSecurity;
 import com.prtech.svarog.SvWorkflow;
 import com.prtech.svarog.SvWriter;
 import com.prtech.svarog.svCONST;
@@ -112,9 +125,11 @@ public class ApplicationServices {
 		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.STRAY_PET_LOCATION));
 		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.HEALTH_PASSPORT));
 		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.POPULATION));
+		SvCore.registerOnSaveCallback(call, SvReader.getTypeIdByName(Tc.RFID_INPUT));
 		SvCore.registerOnSaveCallback(call, svCONST.OBJECT_TYPE_LINK);
 		SvCore.registerOnSaveCallback(call, svCONST.OBJECT_TYPE_MESSAGE);
 		SvCore.registerOnSaveCallback(call, svCONST.OBJECT_TYPE_NOTIFICATION);
+		SvCore.registerOnSaveCallback(call, svCONST.OBJECT_TYPE_ORG_UNITS);
 		SvCore.registerOnSaveCallback(call, svCONST.OBJECT_TYPE_USER);
 		SvCore.registerOnSaveCallback(call, svCONST.OBJECT_TYPE_GROUP);
 		return true;
@@ -139,7 +154,7 @@ public class ApplicationServices {
 					try {
 						lock = SvLock.getLock(String.valueOf(dboUser.getObject_id()), false, 0);
 						if (lock == null) {
-							throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+							throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 						}
 						DbDataObject userLocale = svr.getUserLocale(dboUser);
 						if ((userLocale.getVal(Tc.LOCALE_ID) == null) || (userLocale.getVal(Tc.LOCALE_ID) != null
@@ -191,8 +206,8 @@ public class ApplicationServices {
 				// change it
 				// TODO:Put the default password and its hash into
 				// svarog.properties file
-				if (dboUser != null && dboUser.getVal(Tc.PASSWORD_HASH) != null
-						&& dboUser.getVal(Tc.PASSWORD_HASH).equals("480FA232A3FDDFA31A5696DB829A90D7")) {
+				if (dboUser != null && dboUser.getVal(Tc.PASS_HSH) != null
+						&& dboUser.getVal(Tc.PASS_HSH).equals("480FA232A3FDDFA31A5696DB829A90D7")) {
 					result = true;
 				}
 			} catch (SvException e) {
@@ -204,93 +219,6 @@ public class ApplicationServices {
 			}
 		}
 		return Response.status(200).entity(result.toString()).build();
-	}
-
-	@Path("/massAnimalAction/{sessionId}/{tableName}/{actionName}/{subActionName}/{actionParam}/{dateOfMovement}/{dateOfAdmission}/{transporterPersonId}/{movementTransportType}/{transporterLicense}/{estmDateArrival}/{estmDateDeparture}/{disinfectionDate}/{animalMvmReason}")
-	@POST
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	@Produces("text/html;charset=utf-8")
-	public Response massAnimalAction(@PathParam("sessionId") String sessionId, @PathParam("tableName") String tableName,
-			@PathParam("actionName") String actionName, @PathParam("subActionName") String subActionName,
-			@PathParam("actionParam") String actionParam, @PathParam("dateOfMovement") String dateMovement,
-			@PathParam("dateOfAdmission") String dateOfAdmission,
-			@PathParam("transporterPersonId") String transporterPersonId,
-			@PathParam("movementTransportType") String movementTransportType,
-			@PathParam("transporterLicense") String transporterLicense,
-			@PathParam("estmDateArrival") String estmDateArrival,
-			@PathParam("estmDateDeparture") String estmDateDeparture,
-			@PathParam("disinfectionDate") String disinfectionDate,
-			@PathParam("animalMvmReason") String animalMvmReason, MultivaluedMap<String, String> formVals,
-			@Context HttpServletRequest httpRequest) {
-		String resultMsgLbl = "naits.error.massAnimalsAction";
-		JsonObject jsonData = null;
-		Gson gson = new Gson();
-		MassActions massAct = new MassActions();
-		try {
-			for (Entry<String, List<String>> entry : formVals.entrySet()) {
-				if (entry.getKey() != null && !entry.getKey().isEmpty()) {
-					String key = entry.getKey();
-					jsonData = gson.fromJson(key, JsonObject.class);
-				}
-			}
-			if (jsonData != null && jsonData.has(Tc.OBJ_ARRAY)) {
-				resultMsgLbl = massAct.animalFlockMassHandler(tableName, actionName, subActionName, actionParam,
-						dateMovement, dateOfAdmission, transporterPersonId, movementTransportType, transporterLicense,
-						estmDateArrival, estmDateDeparture, disinfectionDate, animalMvmReason,
-						jsonData.get(Tc.OBJ_ARRAY).getAsJsonArray(), sessionId);
-			} else {
-				resultMsgLbl = Tc.error_admConsoleBadJson;
-			}
-		} catch (Exception e) {
-			resultMsgLbl = "naits.error.general";
-			log4j.error("General error in processing mass action", e);
-
-		}
-		return Response.status(200).entity(resultMsgLbl).build();
-	}
-
-	@Path("/moveFlockUnits/{sessionId}/{tableName}/{actionName}/{subActionName}/{actionParam}/{dateOfMovement}/{dateOfAdmission}/{transporterPersonId}/{movementTransportType}/{transporterLicense}/{estmDateArrival}/{estmDateDeparture}/{disinfectionDate}/{flockMvmReason}/{totalUnits}/{maleUnits}/{femaleUnits}/{adultsUnits}")
-	@POST
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	@Produces("text/html;charset=utf-8")
-	public Response moveFlockUnits(@PathParam("sessionId") String sessionId, @PathParam("tableName") String tableName,
-			@PathParam("actionName") String actionName, @PathParam("subActionName") String subActionName,
-			@PathParam("actionParam") String actionParam, @PathParam("dateOfMovement") String dateMovement,
-			@PathParam("dateOfAdmission") String dateOfAdmission,
-			@PathParam("transporterPersonId") String transporterPersonId,
-			@PathParam("movementTransportType") String movementTransportType,
-			@PathParam("transporterLicense") String transporterLicense,
-			@PathParam("estmDateArrival") String estmDateArrival,
-			@PathParam("estmDateDeparture") String estmDateDeparture,
-			@PathParam("disinfectionDate") String disinfectionDate, @PathParam("flockMvmReason") String flockMvmReason,
-			@PathParam("totalUnits") Long totalUnits, @PathParam("maleUnits") Long maleUnits,
-			@PathParam("femaleUnits") Long femaleUnits, @PathParam("adultsUnits") Long adultsUnits,
-			MultivaluedMap<String, String> formVals, @Context HttpServletRequest httpRequest) {
-		String resultMsgLbl = "naits.error.flockMovementAction";
-		JsonObject jsonData = null;
-		Gson gson = new Gson();
-		MassActions massAct = new MassActions();
-		try {
-			for (Entry<String, List<String>> entry : formVals.entrySet()) {
-				if (entry.getKey() != null && !entry.getKey().isEmpty()) {
-					String key = entry.getKey();
-					jsonData = gson.fromJson(key, JsonObject.class);
-				}
-			}
-			if (jsonData != null && jsonData.has(Tc.OBJ_ARRAY)) {
-				resultMsgLbl = massAct.moveFlockUnits(tableName, actionName, subActionName, actionParam, dateMovement,
-						dateOfAdmission, transporterPersonId, movementTransportType, transporterLicense,
-						estmDateArrival, estmDateDeparture, disinfectionDate, flockMvmReason, totalUnits, maleUnits,
-						femaleUnits, adultsUnits, jsonData.get(Tc.OBJ_ARRAY).getAsJsonArray(), sessionId);
-			} else {
-				resultMsgLbl = Tc.error_admConsoleBadJson;
-			}
-		} catch (Exception e) {
-			resultMsgLbl = "naits.error.general";
-			log4j.error("General error in processing mass action", e);
-
-		}
-		return Response.status(200).entity(resultMsgLbl).build();
 	}
 
 	@Path("/massUserAction/{sessionId}/{actionName}/{subActionName}/{note}")
@@ -330,6 +258,43 @@ public class ApplicationServices {
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
 
+	@Path("/massTagChangeStatus/{sessionId}/{newStatus}")
+	@POST
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Produces("text/html;charset=utf-8")
+	public Response massTagChangeStatus(@PathParam("sessionId") String sessionId,
+			@PathParam("newStatus") String newStatus, MultivaluedMap<String, String> formVals,
+			@Context HttpServletRequest httpRequest) {
+		String resultMsgLbl = "naits.error.massAnimalsAction";
+		JsonObject jsonData = null;
+		Gson gson = new Gson();
+		MassActions massAct = new MassActions();
+		try {
+			for (Entry<String, List<String>> entry : formVals.entrySet()) {
+				if (entry.getKey() != null && !entry.getKey().isEmpty()) {
+					String key = entry.getKey();
+					jsonData = gson.fromJson(key, JsonObject.class);
+				}
+			}
+			if (jsonData != null && jsonData.has(Tc.OBJ_ARRAY)) {
+				massAct.inventoryItemsMassStatusChange(newStatus, jsonData.get(Tc.OBJ_ARRAY).getAsJsonArray(),
+						sessionId);
+				resultMsgLbl = "naits.success.massTagChangeStatus";
+			} else {
+				resultMsgLbl = Tc.error_admConsoleBadJson;
+			}
+		} catch (Exception e) {
+			resultMsgLbl = "naits.error.general";
+			if (e instanceof SvException) {
+				log4j.error("Error in processing mass action for: " + ((SvException) e).getFormattedMessage(), e);
+			} else {
+				log4j.error("General error in processing mass action", e);
+			}
+
+		}
+		return Response.status(200).entity(resultMsgLbl).build();
+	}
+
 	@Path("/saveContactData2/{sessionId}/{parentIdForContact}/{parentIdObjectName}")
 	@POST
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -338,19 +303,18 @@ public class ApplicationServices {
 			@PathParam("parentIdForContact") Long parentIdForContact,
 			@PathParam("parentIdObjectName") String parentIdObjectName, MultivaluedMap<String, String> formVals,
 			@Context HttpServletRequest httpRequest) {
-		String resultMsgLbl = "naits.error.saveContactData";
+		String resultMsgLbl = "naits.success.saveContactData";
 		SvReader svr = null;
 		SvWriter svw = null;
 		DbDataObject dboUser = null;
 		JsonObject jsonData = null;
 		Gson gson = new Gson();
+		Writer wr = null;
 		try {
-			dboUser = SvReader.getUserBySession(sessionId);
 			svr = new SvReader(sessionId);
 			svw = new SvWriter(svr);
-			// check if parent exist
-			DbDataObject parentObj = svr.getObjectById(parentIdForContact, SvReader.getTypeIdByName(parentIdObjectName),
-					null);
+			wr = new Writer();
+			dboUser = SvReader.getUserBySession(sessionId);
 
 			for (Entry<String, List<String>> entry : formVals.entrySet()) {
 				if (entry.getKey() != null && !entry.getKey().isEmpty()) {
@@ -358,42 +322,38 @@ public class ApplicationServices {
 					jsonData = gson.fromJson(key, JsonObject.class);
 				}
 			}
+			DbDataObject parentObj = svr.getObjectById(parentIdForContact, SvReader.getTypeIdByName(parentIdObjectName),
+					null);
 			if (parentObj == null || parentObj.getObject_id() == 0L) {
-				resultMsgLbl = "error.parentIdObjectNameNotExist";
-				return Response.status(200).entity(I18n.getText(resultMsgLbl)).build();
+				throw (new SvException("naits.error.parentIdObjectNameNotExist", svr.getInstanceUser()));
 			}
-			if (parentObj != null && parentObj.getObject_id() != 0L) {
-				ReentrantLock lock = null;
-				try {
-					lock = SvLock.getLock(String.valueOf(parentObj.getObject_id()), false, 0);
-					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
-					}
-					// check if other contact data exist for the same parent
-					DbDataArray existingContactData = svr.getObjectsByParentId(parentObj.getObject_id(),
-							svCONST.OBJECT_TYPE_CONTACT_DATA, null, 0, 0);
-					// if exists invalidate it
-					if (existingContactData.size() > 0) {
-						for (DbDataObject tempDbo : existingContactData.getItems())
-							svw.deleteObject(tempDbo, false);
-					}
-					Writer wr = new Writer();
-					wr.saveContactData2(parentObj.getObject_id(), jsonData, svw);
-					svw.dbCommit();
-					if (jsonData != null && jsonData.get("e_mail") != null)
-						wr.updateUserMail(jsonData.get("e_mail").toString().replaceAll("\"", ""), dboUser, sessionId);
-					resultMsgLbl = "naits.success.saveContactData";
-				} finally {
-					if (lock != null && parentObj != null) {
-						SvLock.releaseLock(String.valueOf(parentObj.getObject_id()), lock);
-					}
+			ReentrantLock lock = null;
+			try {
+				lock = SvLock.getLock(String.valueOf(parentObj.getObject_id()), false, 0);
+				if (lock == null) {
+					throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 				}
-			} else {
-				resultMsgLbl = "naits.error.parentForContactDataNotExist";
+				// check if other contact data exist for the same parent
+				DbDataArray existingContactData = svr.getObjectsByParentId(parentObj.getObject_id(),
+						svCONST.OBJECT_TYPE_CONTACT_DATA, null, 0, 0);
+				// if exists invalidate it
+				if (!existingContactData.getItems().isEmpty()) {
+					for (DbDataObject tempDbo : existingContactData.getItems())
+						svw.deleteObject(tempDbo, false);
+				}
+				wr.saveContactData2(parentObj.getObject_id(), jsonData, svw);
+				if (jsonData != null && jsonData.has("e_mail"))
+					wr.updateUserMail(jsonData.get("e_mail").getAsString(), dboUser, svw);
+				dboUser = svr.getObjectById(dboUser.getObject_id(), svCONST.OBJECT_TYPE_USER, new DateTime());
+				svw.dbCommit();
+			} finally {
+				if (lock != null) {
+					SvLock.releaseLock(String.valueOf(parentObj.getObject_id()), lock);
+				}
 			}
 		} catch (SvException e) {
-			resultMsgLbl = e.getLabelCode();
-			log4j.error("Error in saving contact data for object: " + e.getFormattedMessage(), e);
+			resultMsgLbl = "naits.error.saveContactData";
+			log4j.error("Error in saving contact data for object: ", e);
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -402,14 +362,14 @@ public class ApplicationServices {
 				svw.release();
 			}
 		}
-		return Response.status(200).entity(I18n.getText(resultMsgLbl)).build();
+		return Response.status(200).entity(resultMsgLbl).build();
 	}
 
 	@Path("/getFullUserData/{sessionid}/{objectId}")
 	@GET
 	@Produces("text/html;charset=utf-8")
 	public Response getFullUserData(@PathParam("sessionid") String sessionid, @PathParam("objectId") Long objectId) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		DbDataObject contactObj = null;
 		DbDataObject dboUser = null;
@@ -419,7 +379,7 @@ public class ApplicationServices {
 			dboUser = SvReader.getUserBySession(sessionid);
 			DbDataArray dboContactData = svr.getObjectsByParentId(objectId, svCONST.OBJECT_TYPE_CONTACT_DATA, null, 0,
 					0);
-			if (dboContactData.size() > 0) {
+			if (!dboContactData.getItems().isEmpty()) {
 				contactObj = dboContactData.get(0);
 			}
 			result = r.getUserFullData(dboUser, contactObj);
@@ -440,18 +400,18 @@ public class ApplicationServices {
 	public Response editUserData(@PathParam("sessionId") String sessionId, @PathParam("firstName") String firstName,
 			@PathParam("lastName") String lastName) {
 		String resultMsgLbl = "naits.error.editUserInfo";
+		Writer wr = null;
 		try {
+			wr = new Writer();
 			DbDataObject dboUser = SvReader.getUserBySession(sessionId);
 			if (dboUser == null) {
 				resultMsgLbl = "naits.error.cannotGetBasicUserData.pleaseLoggoff";
-				return Response.status(200).entity(I18n.getText(resultMsgLbl)).build();
+				return Response.status(200).entity(resultMsgLbl).build();
 			}
-			Writer wr = new Writer();
 			wr.editUserData(firstName, lastName, dboUser, sessionId);
 			resultMsgLbl = "naits.success.editUserInfo";
 		} catch (SvException e) {
 			log4j.error(Tc.ERROR_DETECTED + e.getFormattedMessage(), e);
-			return Response.status(200).entity(e.getFormattedMessage()).build();
 		}
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
@@ -464,10 +424,18 @@ public class ApplicationServices {
 		DbDataArray allowedCustomObjects = new DbDataArray();
 		String result = null;
 		UserManager um = null;
+		ArrayList<String> groupNames = new ArrayList<String>();
+		groupNames.add(Tc.FVIRO);
+		groupNames.add(Tc.CVIRO);
+		groupNames.add(Tc.LABORANT);
+		groupNames.add(Tc.PRIVATE_VETERINARIANS);
+		groupNames.add(Tc.PET_VETERINARIANS);
+		groupNames.add(Tc.HOLDING_ADMINISTRATORS);
+
 		try {
 			svr = new SvReader(sessionId);
-
 			um = new UserManager();
+
 			DbDataObject dboUser = SvReader.getUserBySession(sessionId);
 			HashMap<SvCore.SvAclKey, HashMap<String, DbDataObject>> allPermissions = svr.getPermissions();
 			Iterator<Map.Entry<SvCore.SvAclKey, HashMap<String, DbDataObject>>> it = allPermissions.entrySet()
@@ -479,60 +447,71 @@ public class ApplicationServices {
 			boolean specialCaseAnimalShelterUser = false;
 			boolean specialCaseHoldingAdministratorUser = false;
 			boolean isMovementDocumentSearchAllowed = um.checkIfUserHasCustomPermission(dboUser,
-					"custom.movement_doc_search", svr);
-			if (um.checkIfUserLinkedToDefaultGroup(dboUser, Tc.FVIRO, svr)) {
+					Tc.CUSTOM_MOVEMENT_DOC_SEARCH_PERMISSION, svr);
+			boolean isAnimalReadOnlySearchAllowed = um.checkIfUserHasCustomPermission(dboUser,
+					Tc.CUSTOM_ANIMAL_SEARCH_PERMISSION, svr);
+			boolean hasRFIDSearchCustomPermission = um.checkIfUserHasCustomPermission(dboUser,
+					Tc.CUSTOM_RFID_SEARCH_PERMISSION, svr);
+			boolean hasReadInventoryItemPermission = um.checkIfUserHasCustomPermission(dboUser, Tc.INVENTORY_ITEM,
+					Tc.READ, svr);
+			boolean hasFullInventoryItemPermission = um.checkIfUserHasCustomPermission(dboUser, Tc.INVENTORY_ITEM,
+					Tc.FULL, svr);
+
+			ArrayList<String> matchedUserGroups = um.checkIfUserLinkedToSomeDefaultGroups(dboUser, groupNames, svr);
+			if (matchedUserGroups.contains(Tc.FVIRO)) {
 				specialCaseFVIROuser = true;
-			} else if (um.checkIfUserLinkedToDefaultGroup(dboUser, Tc.CVIRO, svr)) {
+			} else if (matchedUserGroups.contains(Tc.CVIRO)) {
 				specialCaseCVIROuser = true;
-			} else if (um.checkIfUserLinkedToDefaultGroup(dboUser, Tc.LABORANT, svr)) {
+			} else if (matchedUserGroups.contains(Tc.LABORANT)) {
 				specialCaseLaborantUser = true;
-			} else if (um.checkIfUserLinkedToDefaultGroup(dboUser, Tc.PRIVATE_VETERINARIANS, svr)) {
+			} else if (matchedUserGroups.contains(Tc.PRIVATE_VETERINARIANS)) {
 				specialCasePrivateVetUser = true;
-			} else if (um.checkIfUserLinkedToDefaultGroup(dboUser, Tc.PET_VETERINARIANS, svr)) {
+			} else if (matchedUserGroups.contains(Tc.PET_VETERINARIANS)) {
 				specialCaseAnimalShelterUser = true;
-			} else if (um.checkIfUserLinkedToDefaultGroup(dboUser, Tc.HOLDING_ADMINISTRATORS, svr)) {
+			} else if (matchedUserGroups.contains(Tc.HOLDING_ADMINISTRATORS)) {
 				specialCaseHoldingAdministratorUser = true;
-			}
-			if (dboUser.getVal(Tc.USER_NAME) != null
-					&& dboUser.getVal(Tc.USER_NAME).toString().equals("S.VARDAROVSKI")) {
-				specialCaseAnimalShelterUser = true;
 			}
 			while (it.hasNext()) {
 				Map.Entry<SvCore.SvAclKey, HashMap<String, DbDataObject>> pair = it.next();
 				SvCore.SvAclKey tempAllowedObject = pair.getKey();
 				Long tempObjId = tempAllowedObject.getObjectId();
-				String tableName = "";
-
+				String tableName = Tc.EMPTY_STRING;
 				if (tempObjId != null) {
 					DbDataObject dboTable = svr.getObjectById(tempObjId, svCONST.OBJECT_TYPE_TABLE, null);
 					if (dboTable != null && dboTable.getVal(Tc.TABLE_NAME) != null) {
 						tableName = dboTable.getVal(Tc.TABLE_NAME).toString().toUpperCase();
-						if ((specialCaseFVIROuser || specialCaseCVIROuser) && !tableName.contains(Tc.SVAROG)
-								&& (tableName.equals(Tc.LAB_SAMPLE) || tableName.equals(Tc.VACCINATION_EVENT)
-										|| tableName.equals(Tc.HOLDING) || tableName.equals(Tc.ANIMAL))) {
-							allowedCustomObjects.addDataItem(dboTable);
-						} else if (specialCaseLaborantUser && !tableName.contains(Tc.SVAROG)
-								&& (tableName.equals(Tc.LABORATORY) || tableName.equals(Tc.LAB_TEST_TYPE))) {
-							allowedCustomObjects.addDataItem(dboTable);
-						} else if (specialCasePrivateVetUser && !tableName.contains(Tc.SVAROG)
-								&& (tableName.equals(Tc.ANIMAL) || tableName.equals(Tc.HOLDING))) {
-							allowedCustomObjects.addDataItem(dboTable);
-						} else if ((specialCaseHoldingAdministratorUser || isMovementDocumentSearchAllowed)
-								&& !tableName.contains(Tc.SVAROG) && tableName.equals(Tc.MOVEMENT_DOC)) {
-							allowedCustomObjects.addDataItem(dboTable);
+						if (!tableName.startsWith(Tc.SVAROG)) {
+							if ((specialCaseFVIROuser || specialCaseCVIROuser) && (Arrays
+									.asList(Tc.LAB_SAMPLE, Tc.VACCINATION_EVENT, Tc.HOLDING, Tc.ANIMAL, Tc.LABORATORY)
+									.contains(tableName))) {
+								allowedCustomObjects.addDataItem(dboTable);
+							} else if (specialCaseLaborantUser && (Arrays.asList(Tc.LABORATORY).contains(tableName))) {
+								allowedCustomObjects.addDataItem(dboTable);
+							} else if (specialCasePrivateVetUser
+									&& (Arrays.asList(Tc.HOLDING, Tc.ANIMAL).contains(tableName))) {
+								allowedCustomObjects.addDataItem(dboTable);
+							} else if (isAnimalReadOnlySearchAllowed && tableName.equals(Tc.ANIMAL)) {
+								allowedCustomObjects.addDataItem(dboTable);
+							} else if ((hasRFIDSearchCustomPermission || specialCaseFVIROuser)
+									&& tableName.equals(Tc.RFID_INPUT)) {
+								allowedCustomObjects.addDataItem(dboTable);
+							} else if ((specialCaseHoldingAdministratorUser || isMovementDocumentSearchAllowed)
+									&& tableName.equals(Tc.MOVEMENT_DOC)) {
+								allowedCustomObjects.addDataItem(dboTable);
+							} else if ((!specialCaseFVIROuser && !specialCaseCVIROuser && !specialCaseLaborantUser
+									&& !specialCasePrivateVetUser && !isAnimalReadOnlySearchAllowed)
+									&& (Arrays
+											.asList(Tc.HOLDING, Tc.ANIMAL, Tc.HOLDING_RESPONSIBLE, Tc.VACCINATION_EVENT,
+													Tc.QUARANTINE, Tc.AREA, Tc.POPULATION, Tc.INVENTORY_ITEM,
+													Tc.EXPORT_CERT, Tc.LAB_SAMPLE)
+											.contains(tableName)
+											|| (specialCaseAnimalShelterUser && tableName.equals(Tc.PET)))) {
+								allowedCustomObjects.addDataItem(dboTable);
+							}
 						} else if ((!specialCaseFVIROuser && !specialCaseCVIROuser && !specialCaseLaborantUser
-								&& !specialCasePrivateVetUser) && tableName.contains(Tc.SVAROG_ORG_UNITS)) {
-							allowedCustomObjects.addDataItem(dboTable);
-						} else if ((!specialCaseFVIROuser && !specialCaseCVIROuser && !specialCaseLaborantUser
-								&& !specialCasePrivateVetUser)
-								&& !tableName.contains(Tc.SVAROG)
-								&& (tableName.equals(Tc.HOLDING) || tableName.equals(Tc.ANIMAL)
-										|| tableName.equals(Tc.HOLDING_RESPONSIBLE)
-										|| tableName.equals(Tc.VACCINATION_EVENT) || tableName.equals(Tc.QUARANTINE)
-										|| tableName.equals(Tc.AREA) || tableName.equals(Tc.POPULATION)
-										|| tableName.equals(Tc.INVENTORY_ITEM) || tableName.equals(Tc.EXPORT_CERT)
-										|| tableName.equals(Tc.LAB_TEST_TYPE) || tableName.equals(Tc.LAB_SAMPLE)
-										|| (specialCaseAnimalShelterUser && tableName.equals(Tc.PET)))) {
+								&& !specialCasePrivateVetUser && !isAnimalReadOnlySearchAllowed)
+								&& tableName.contains(Tc.SVAROG_ORG_UNITS)
+								&& (hasReadInventoryItemPermission || hasFullInventoryItemPermission)) {
 							allowedCustomObjects.addDataItem(dboTable);
 						}
 					}
@@ -616,7 +595,7 @@ public class ApplicationServices {
 	@GET
 	@Produces("text/html;charset=utf-8")
 	public Response getUserGroups(@PathParam("sessionId") String sessionId) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		DbDataObject dboUser;
 		SvReader svr = null;
 		try {
@@ -645,7 +624,7 @@ public class ApplicationServices {
 			@PathParam("holdingObjId") Long holdingObjId) {
 		SvReader svr = null;
 		Reader rdr = new Reader();
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		try {
 			svr = new SvReader(sessionId);
 			DbDataObject dboHolding = rdr.getHoldingObjectByObjectId(holdingObjId, svr);
@@ -741,7 +720,7 @@ public class ApplicationServices {
 			DbDataArray formVals = new DbDataArray();
 			for (DbDataObject tempForm : allYNDocuments.getItems()) {
 				DbDataArray tempFormVals = svr.getFormsByParentId(parentId, tempForm.getObject_id(), null, null);
-				if (tempFormVals != null && tempFormVals.size() > 0) {
+				if (tempFormVals != null && !tempFormVals.getItems().isEmpty()) {
 					formVals.addDataItem(tempFormVals.getItems().get(0));
 				}
 			}
@@ -807,8 +786,8 @@ public class ApplicationServices {
 	public Response checkIfAnimalIdExist(@PathParam("sessionId") String sessionId,
 			@PathParam("animalObjId") Long animalObjId, @PathParam("animalTagId") String animalTagId,
 			@PathParam("animalClass") String animalClass, @PathParam("holdingId") Long holdingId) {
-		String resultMsgLbl = "";
-		String animalAndSourceHoldingInfo = "";
+		String resultMsgLbl = Tc.EMPTY_STRING;
+		String animalAndSourceHoldingInfo = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		ValidationChecks vc = null;
@@ -850,11 +829,10 @@ public class ApplicationServices {
 							throw (new SvException(
 									"naits.error.animalsThatBelongToSlaughterHouseAndStatusIsInvalidForDirectTransfer",
 									svr.getInstanceUser()));
-						} else if (animalFound != null
-								&& (animalFound.getStatus().equals(Tc.LOST) || animalFound.getStatus().equals(Tc.DIED)
-										|| animalFound.getStatus().equals(Tc.SLAUGHTRD)
-										|| animalFound.getStatus().equals(Tc.ABSENT)
-										|| animalFound.getStatus().equals(Tc.SOLD))) {
+						} else if (animalFound.getStatus().equals(Tc.LOST) || animalFound.getStatus().equals(Tc.DIED)
+								|| animalFound.getStatus().equals(Tc.SLAUGHTRD)
+								|| animalFound.getStatus().equals(Tc.ABSENT)
+								|| animalFound.getStatus().equals(Tc.SOLD)) {
 							resultMsgLbl = I18n.getText(localeId, "naits.error.animalIsInactive") + " "
 									+ animalAndSourceHoldingInfo;
 						}
@@ -876,7 +854,7 @@ public class ApplicationServices {
 	@GET
 	@Produces("text/html;charset=utf-8")
 	public Response calcAnimalAge(@PathParam("sessionId") String sessionId, @PathParam("animalId") String animalObjId) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		try {
 			svr = new SvReader(sessionId);
@@ -896,6 +874,31 @@ public class ApplicationServices {
 		return Response.status(200).entity(result).build();
 	}
 
+	@Path("/transferAnimalOrFlockToHolding/{sessionId}")
+	@POST
+	@Produces("text/html;charset=utf-8")
+	public Response transferAnimalOrFlockToHolding(@PathParam("sessionId") String sessionId,
+			@PathParam("parentId") Long parentId, MultivaluedMap<String, String> formVals) {
+		String result = "naits.error.errorOccurredWhileExecutingTransferAnimalOrFlockToHolding";
+		Writer wr = null;
+		Gson gson = null;
+		JsonObject jObj = null;
+		try {
+			wr = new Writer();
+			gson = new Gson();
+			for (Entry<String, List<String>> entry : formVals.entrySet()) {
+				if (entry.getKey() != null && !entry.getKey().isEmpty()) {
+					String key = entry.getKey();
+					jObj = gson.fromJson(key, JsonObject.class);
+				}
+			}
+			result = wr.moveAnimalOrFlockViaDirectTransfer(jObj, sessionId);
+		} catch (Exception e) {
+			log4j.error(e.getMessage());
+		}
+		return Response.status(200).entity(result).build();
+	}
+
 	@Path("/transferAnimalOrFlockToHolding/{sessionId}/{animalOrFlockId}/{animalClass}/{destinationHoldingObjId}/{dateOfAdmission}/{transporterPersonId}/{totalUnits}/{maleUnits}/{femaleUnits}/{adultsUnits}")
 	@GET
 	@Produces("text/html;charset=utf-8")
@@ -905,7 +908,7 @@ public class ApplicationServices {
 			@PathParam("dateOfAdmission") String dateOfAdmission,
 			@PathParam("transporterPersonId") String transporterPersonId, @PathParam("totalUnits") Long totalUnits,
 			@PathParam("maleUnits") Long maleUnits, @PathParam("femaleUnits") Long femaleUnits,
-			@PathParam("adultsUnits") Long adultsUnits) throws Exception {
+			@PathParam("adultsUnits") Long adultsUnits) throws InterruptedException, SvException {
 		String resultMsgLabel = "naits.error.invalidInputInformationsForDirectTransfer";
 		SvReader svr = null;
 		SvWriter svw = null;
@@ -924,7 +927,7 @@ public class ApplicationServices {
 			ma = new MassActions();
 			String blockCheck = SvConf.getParam("app_block.disable_animal_check");
 			// PublicRegistry pr = new PublicRegistry();
-			String flockFlag = "";
+			String flockFlag = Tc.EMPTY_STRING;
 			// rdr instance of this service can be additionally completed,
 			// depending on the client requirements
 			String movementType = Tc.ANIMAL_MOVEMENT_HOLDING;
@@ -961,27 +964,30 @@ public class ApplicationServices {
 					try {
 						lock = SvLock.getLock(String.valueOf(dboToMove.getObject_id()), false, 0);
 						if (lock == null) {
-							throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+							throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 						}
 						/*
-						 * if (transporterPersonId != null &&
-						 * NumberUtils.isNumber(transporterPersonId)) { // Long
-						 * holdingResponsibleObjId = //
-						 * Long.valueOf(transporterPersonId); DbDataObject
-						 * dboHoldingResponsible =
+						 * if (transporterPersonId != null && NumberUtils.isNumber(transporterPersonId))
+						 * { // Long holdingResponsibleObjId = // Long.valueOf(transporterPersonId);
+						 * DbDataObject dboHoldingResponsible =
 						 * svr.getObjectById(holdingResponsibleObjId,
-						 * SvReader.getTypeIdByName(Tc.HOLDING_RESPONSIBLE),
-						 * null); if (dboHoldingResponsible != null &&
-						 * !pr.publicRegistryCheck(dboHoldingResponsible)) {
-						 * throw (new SvException(
-						 * "naits.error.invalidPersonInformation",
-						 * svCONST.systemUser, null, null));
+						 * SvReader.getTypeIdByName(Tc.HOLDING_RESPONSIBLE), null); if
+						 * (dboHoldingResponsible != null &&
+						 * !pr.publicRegistryCheck(dboHoldingResponsible)) { throw (new SvException(
+						 * "naits.error.invalidPersonInformation", svCONST.systemUser, null, null));
 						 * 
 						 * } svw.saveObject(dboHoldingResponsible, false); }
 						 */
-						if (dboToMove.equals(Tc.TRANSITION)) {
+						if (dboToMove.getStatus().equals(Tc.TRANSITION)) {
 							throw (new SvException("naits.error.selectedAnimalIsInTransitionSoCantBeDirectTransfered",
 									svr.getInstanceUser()));
+						}
+						if (dboToMove != null && dboToMove.getStatus().equals(Tc.VALID)) {
+							Boolean isCountryGeorgia = vc.checkIfMovementIsAllowedPerAnimalCountry(dboToMove, svr);
+							if (!isCountryGeorgia) {
+								throw (new SvException("naits.error.animalWithDifferentCountryThanGeorgiaCannotBeMoved",
+										svr.getInstanceUser()));
+							}
 						}
 						if (dboToMove.getStatus().equals(Tc.EXPORTED) || dboToMove.getStatus().equals(Tc.PENDING_EX)) {
 							throw (new SvException("naits.error.animalsWithStatusExportedOrPendingExport",
@@ -1030,7 +1036,6 @@ public class ApplicationServices {
 									}
 									dboMovementDoc.setVal(Tc.DESTINATION_HOLDING_PIC,
 											dboDestinationHolding.getVal(Tc.PIC));
-
 									svw.saveObject(dboMovementDoc, false);
 								}
 								resultMsgLabel = "naits.error.transfer.fail.anmalIdDoesNotExist";
@@ -1038,8 +1043,8 @@ public class ApplicationServices {
 							if (flockFlag.equals("")) {
 								if (mandatoryFields == null || mandatoryFields.isEmpty()) {
 									resultMsgLabel = "naits.error.sourceHoldingBelongsToActiveQuarantine";
-									if (dboSourceHolding != null
-											&& !vc.checkIfHoldingBelongsInActiveQuarantine(dboSourceHolding, svr)) {
+									if (dboSourceHolding != null && !vc.checkIfHoldingBelongsInActiveQuarantine(
+											dboSourceHolding.getObject_id(), svr)) {
 										resultMsgLabel = "naits.error.animalAlreadyExistsInYourHolding";
 										if (dboDestinationHolding != null && !dboDestinationHolding.getObject_id()
 												.equals(dboSourceHolding.getObject_id())) {
@@ -1084,8 +1089,8 @@ public class ApplicationServices {
 									DbDataObject dboFlockUnit = wr.createFlockMovementUnit(dboToMove, totalUnits,
 											femaleUnits, maleUnits, adultsUnits, svw, svr);
 									resultMsgLabel = "naits.error.sourceHoldingBelongsToActiveQuarantine";
-									if (dboSourceHolding != null
-											&& !vc.checkIfHoldingBelongsInActiveQuarantine(dboSourceHolding, svr)) {
+									if (dboSourceHolding != null && !vc.checkIfHoldingBelongsInActiveQuarantine(
+											dboSourceHolding.getObject_id(), svr)) {
 										resultMsgLabel = "naits.error.flockExistsInYourHolding";
 										if (dboDestinationHolding != null && !dboDestinationHolding.getObject_id()
 												.equals(dboSourceHolding.getObject_id())) {
@@ -1148,7 +1153,7 @@ public class ApplicationServices {
 							SvLock.releaseLock(String.valueOf(dboToMove.getObject_id()), lock);
 						}
 					}
-					@SuppressWarnings("unused")
+					@SuppressWarnings(Tc.UNUSED)
 					DbDataObject refreshAnimalOrFlock = svr.getObjectById(dboToMove.getObject_id(),
 							dboToMove.getObject_type(), new DateTime());
 				}
@@ -1175,7 +1180,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getNextOrPreviousHolding(@PathParam("sessionId") String sessionId,
 			@PathParam("holdingObjId") Long holdingObjId, @PathParam("direction") String direction) {
-		String resultPic = "";
+		String resultPic = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		try {
 			svr = new SvReader(sessionId);
@@ -1205,8 +1210,8 @@ public class ApplicationServices {
 	@GET
 	@Produces("text/html;charset=utf-8")
 	public Response getObjectSummary(@PathParam("sessionId") String sessionId, @PathParam("tableName") String tableName,
-			@PathParam("objectId") Long objectId) {
-		String result = "";
+			@PathParam("objectId") Long objectId) throws ParseException {
+		String result = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		SvNote svn = null;
 		Reader rdr = null;
@@ -1297,7 +1302,7 @@ public class ApplicationServices {
 				}
 			}
 		} catch (SvException e) {
-			log4j.error("Error occured in getObjectSummary:" + e.getFormattedMessage(), e);
+			log4j.error("Error occured in getObjectSummary: " + e.getFormattedMessage());
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -1395,11 +1400,10 @@ public class ApplicationServices {
 			} else {
 				resultMsgLbl = Tc.error_admConsoleBadJson;
 			}
+		} catch (SvException e) {
+			log4j.error("Error in processing detach user to group: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
-			if (e instanceof SvException) {
-				log4j.error("Error in processing detach user to group: " + ((SvException) e).getFormattedMessage(), e);
-			} else
-				log4j.error("General error in processing detach user to group", e);
+			log4j.error("General error in processing detach user to group", e);
 		}
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
@@ -1409,7 +1413,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getDependentDropdown(@PathParam("sessionId") String sessionId,
 			@PathParam("tableName") String tableName, @PathParam("codeItemValue") String codeItemValue) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -1440,11 +1444,10 @@ public class ApplicationServices {
 			}
 			if (getDependentCodeListItem != null)
 				result = getDependentCodeListItem.toSimpleJson().toString();
+		} catch (SvException e) {
+			log4j.error("Error in dependent dropdown: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
-			if (e instanceof SvException) {
-				log4j.error("Error in dependent dropdown: " + ((SvException) e).getFormattedMessage(), e);
-			} else
-				log4j.error("General error in processing detach user to group", e);
+			log4j.error("General error in processing detach user to group", e);
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -1465,7 +1468,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getValidVaccinationEvents(@PathParam("sessionId") String sessionId,
 			@PathParam("holdingType") String holdingType) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -1473,11 +1476,10 @@ public class ApplicationServices {
 			rdr = new Reader();
 			DbDataArray allValidEvents = rdr.getValidVaccEvents(svr, holdingType);
 			result = allValidEvents.toSimpleJson().toString();
+		} catch (SvException e) {
+			log4j.error("Error in getValidVaccinationEvenets: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
-			if (e instanceof SvException) {
-				log4j.error("Error in getValidVaccinationEvenets: " + ((SvException) e).getFormattedMessage(), e);
-			} else
-				log4j.error("General error in getValidVaccinationEvenets", e);
+			log4j.error("General error in getValidVaccinationEvenets", e);
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -1491,7 +1493,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getValidTestTypes(@PathParam("sessionId") String sessionId, @PathParam("objectId") Long objectId,
 			@PathParam("testType") String testType) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -1499,11 +1501,10 @@ public class ApplicationServices {
 			rdr = new Reader();
 			DbDataArray validTestTypes = rdr.getValidTestTypes(objectId, testType, svr);
 			result = rdr.convertDbDataArrayToGridJson(validTestTypes, Tc.LAB_TEST_TYPE);
+		} catch (SvException e) {
+			log4j.error("Error in getValidTestTypes: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
-			if (e instanceof SvException) {
-				log4j.error("Error in getValidVaccinationEvenets: " + ((SvException) e).getFormattedMessage(), e);
-			} else
-				log4j.error("General error in getValidVaccinationEvenets", e);
+			log4j.error("General error in getValidTestTypes", e);
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -1538,13 +1539,7 @@ public class ApplicationServices {
 				resultMsgLbl = Tc.error_admConsoleBadJson;
 			}
 		} catch (Exception e) {
-			resultMsgLbl = "naits.error.general";
-			if (e instanceof SvException) {
-				log4j.error("Error in creating activity period per herder: " + ((SvException) e).getFormattedMessage(),
-						e);
-			} else {
-				log4j.error("Error in creating activity period per herder: ", e);
-			}
+			log4j.error("General error in createActivityPeriodPerHerder", e);
 		}
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
@@ -1618,13 +1613,12 @@ public class ApplicationServices {
 			} else {
 				resultMsgLbl = Tc.error_admConsoleBadJson;
 			}
+		} catch (SvException e) {
+			resultMsgLbl = e.getLabelCode();
+			log4j.error("Error in processing mass action for: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
 			resultMsgLbl = "naits.error.general";
-			if (e instanceof SvException) {
-				log4j.error("Error in processing mass action for: " + ((SvException) e).getFormattedMessage(), e);
-			} else {
-				log4j.error("General error in processing mass action", e);
-			}
+			log4j.error("General error in processing mass action", e);
 		}
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
@@ -1654,13 +1648,12 @@ public class ApplicationServices {
 			} else {
 				resultMsgLbl = Tc.error_admConsoleBadJson;
 			}
+		} catch (SvException e) {
+			resultMsgLbl = e.getLabelCode();
+			log4j.error("Error in labSampleMassAction: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
 			resultMsgLbl = "naits.error.general";
-			if (e instanceof SvException) {
-				log4j.error("Error in processing mass action for: " + ((SvException) e).getFormattedMessage(), e);
-			} else {
-				log4j.error("General error in processing mass action", e);
-			}
+			log4j.error("General error in labSampleMassAction:", e);
 		}
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
@@ -1684,8 +1677,8 @@ public class ApplicationServices {
 					jsonData = gson.fromJson(key, JsonObject.class);
 				}
 			}
-			if (jsonData != null && jsonData.has(Tc.OBJ_ARRAY)
-					|| (jsonData.has("objectId") && jsonData.has("tableName"))) {
+			if (jsonData != null
+					&& (jsonData.has(Tc.OBJ_ARRAY) || (jsonData.has("objectId") && jsonData.has("tableName")))) {
 				wr.changeStatus(jsonData, status, svr);
 				resultMsgLbl = "naits.success.changeStatus";
 			} else {
@@ -1693,12 +1686,14 @@ public class ApplicationServices {
 			}
 		} catch (SvException e) {
 			resultMsgLbl = e.getLabelCode();
-			log4j.error("Error in processing mass action for: " + e.getFormattedMessage());
+			log4j.error("Error in changeStatus: " + ((SvException) e).getFormattedMessage(), e);
+		} catch (Exception e) {
+			resultMsgLbl = "naits.error.general";
+			log4j.error("General error in changeStatus", e);
 		} finally {
 			if (svr != null) {
 				svr.release();
 			}
-
 		}
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
@@ -1755,7 +1750,7 @@ public class ApplicationServices {
 			@PathParam("quarantineObjId") Long quarantineObjId) {
 		SvReader svr = null;
 		Reader rdr = null;
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		try {
 			svr = new SvReader(sessionId);
 			rdr = new Reader();
@@ -1779,15 +1774,13 @@ public class ApplicationServices {
 
 	/**
 	 * Saves quarantine object <br>
-	 * Finds all holdings that are located inside the q-space and creates a link
-	 * for each <br>
+	 * Finds all holdings that are located inside the q-space and creates a link for
+	 * each <br>
 	 * tweak this to work with existing quarantines, edit mode
 	 * 
 	 * @param token
-	 * @param center
-	 *            - center of the quarantine
-	 * @param radius
-	 *            - radis of the quarantine
+	 * @param center      - center of the quarantine
+	 * @param radius      - radis of the quarantine
 	 * @param formVals
 	 * @param httpRequest
 	 * 
@@ -1839,14 +1832,12 @@ public class ApplicationServices {
 			} else {
 				svw.saveObject(qDbo);
 			}
-		} catch (Exception e) {
-			if (e instanceof SvException) {
-				log4j.error(((SvException) e).getFormattedMessage(), e);
-			} else {
-				log4j.error(e);
-			}
-			httpResponse = 401;
+		} catch (SvException e) {
 			result = "naits.error.save_quarantine_via_map";
+			log4j.error("Error in saveQuarantine: " + ((SvException) e).getFormattedMessage(), e);
+		} catch (Exception e) {
+			result = "naits.error.save_quarantine_via_map";
+			log4j.error("General error in saveQuarantine", e);
 		} finally {
 			if (svw != null)
 				svw.release();
@@ -1854,36 +1845,6 @@ public class ApplicationServices {
 				svr.release();
 		}
 		return Response.status(httpResponse).entity(result).build();
-	}
-
-	@Path("/moveInventoryItem/{sessionId}")
-	@POST
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	@Produces("text/html;charset=utf-8")
-	public Response moveInventoryItem(@PathParam("sessionId") String sessionId, MultivaluedMap<String, String> formVals,
-			@Context HttpServletRequest httpRequest) throws Exception {
-		String resultMsgLbl = "naits.error.generalError";
-		JsonObject jsonData = null;
-		Gson gson = new Gson();
-		try {
-			Writer wr = new Writer();
-			for (Entry<String, List<String>> entry : formVals.entrySet()) {
-				if (entry.getKey() != null && !entry.getKey().isEmpty()) {
-					String key = entry.getKey();
-					jsonData = gson.fromJson(key, JsonObject.class);
-				}
-			}
-			if (jsonData != null && jsonData.has(Tc.OBJ_ARRAY)) {
-				resultMsgLbl = wr.moveTransferRangeAndGenerateToInventoryItem(
-						jsonData.get(Tc.OBJ_ARRAY).getAsJsonArray(), sessionId);
-			} else {
-				resultMsgLbl = Tc.error_admConsoleBadJson;
-			}
-		} catch (SvException e) {
-			resultMsgLbl = e.getLabelCode();
-			log4j.error(Tc.ERROR_SAVING_ANIMAL + e.getFormattedMessage(), e);
-		}
-		return Response.status(200).entity(resultMsgLbl).build();
 	}
 
 	@Path("/attachUserToOrgUnit/{sessionId}/{orgUnitId}")
@@ -1908,11 +1869,10 @@ public class ApplicationServices {
 				resultMsgLbl = um.attachUserToOrgUnit(orgUnitId, jsonData.get(Tc.OBJ_ARRAY).getAsJsonArray(),
 						sessionId);
 			}
+		} catch (SvException e) {
+			log4j.error("Error in attachUserToOrgUnit: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
-			if (e instanceof SvException) {
-				log4j.error("Error in processing attach user to group: " + ((SvException) e).getFormattedMessage(), e);
-			} else
-				log4j.error("General error in processing attach user to group", e);
+			log4j.error("General error in attachUserToOrgUnit", e);
 		}
 		return Response.status(200).entity(I18n.getText(resultMsgLbl)).build();
 	}
@@ -1941,11 +1901,10 @@ public class ApplicationServices {
 			} else {
 				resultMsgLbl = Tc.error_admConsoleBadJson;
 			}
+		} catch (SvException e) {
+			log4j.error("Error in detachUserToOrgUnit: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
-			if (e instanceof SvException) {
-				log4j.error("Error in processing attach user to group: " + ((SvException) e).getFormattedMessage(), e);
-			} else
-				log4j.error("General error in processing attach user to group", e);
+			log4j.error("General error in detachUserToOrgUnit", e);
 		}
 		return Response.status(200).entity(I18n.getText(resultMsgLbl)).build();
 	}
@@ -1974,13 +1933,10 @@ public class ApplicationServices {
 			} else {
 				resultMsgLbl = Tc.error_admConsoleBadJson;
 			}
+		} catch (SvException e) {
+			log4j.error("Error in assignUserToLaboratory: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
-			if (e instanceof SvException) {
-				log4j.error(
-						"Error in processing assigning user to laboratory: " + ((SvException) e).getFormattedMessage(),
-						e);
-			} else
-				log4j.error("General error in processing attach user to group", e);
+			log4j.error("General error in assignUserToLaboratory", e);
 		}
 		return Response.status(200).entity(I18n.getText(resultMsgLbl)).build();
 	}
@@ -2041,11 +1997,10 @@ public class ApplicationServices {
 			} else {
 				resultMsgLbl = Tc.error_admConsoleBadJson;
 			}
+		} catch (SvException e) {
+			log4j.error("Error in detachUserToOrgUnits: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
-			if (e instanceof SvException) {
-				log4j.error("Error in processing attach user to group: " + ((SvException) e).getFormattedMessage(), e);
-			} else
-				log4j.error("General error in processing attach user to group", e);
+			log4j.error("General error in detachUserToOrgUnits", e);
 		}
 		return Response.status(200).entity(I18n.getText(resultMsgLbl)).build();
 	}
@@ -2081,7 +2036,7 @@ public class ApplicationServices {
 	public Response exportCertifiedAnimals(@PathParam("sessionId") String sessionId,
 			@PathParam("objectId") Long objectId, MultivaluedMap<String, String> formVals,
 			@Context HttpServletRequest httpRequest) {
-		String resultMsgLbl = "";
+		String resultMsgLbl = Tc.EMPTY_STRING;
 		JsonObject jsonData = null;
 		Gson gson = null;
 		MassActions massAct = null;
@@ -2100,13 +2055,10 @@ public class ApplicationServices {
 			} else {
 				resultMsgLbl = Tc.error_admConsoleBadJson;
 			}
+		} catch (SvException e) {
+			log4j.error("Error in exportCertifiedAnimals: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
-			resultMsgLbl = "naits.error.general";
-			if (e instanceof SvException) {
-				log4j.error("Error in processing mass action for: " + ((SvException) e).getFormattedMessage(), e);
-			} else {
-				log4j.error("General error in processing mass action", e);
-			}
+			log4j.error("General error in exportCertifiedAnimals", e);
 		}
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
@@ -2116,20 +2068,19 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response cancelExportCertificate(@PathParam("sessionId") String sessionId,
 			@PathParam("objectId") Long objectId, @Context HttpServletRequest httpRequest) {
-		String resultMsgLbl = "";
+		String resultMsgLbl = Tc.EMPTY_STRING;
 		Writer wr = null;
 		Reader rdr = null;
 		try {
 			wr = new Writer();
 			rdr = new Reader();
 			resultMsgLbl = wr.cancelExportCertificate(objectId, rdr, sessionId);
+		} catch (SvException e) {
+			resultMsgLbl = "naits.error.general";
+			log4j.error("Error in cancelExportCertificate: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
 			resultMsgLbl = "naits.error.general";
-			if (e instanceof SvException) {
-				log4j.error("Error in canceling Export certificate: " + ((SvException) e).getFormattedMessage(), e);
-			} else {
-				log4j.error("General error in canceling Export certificate:", e);
-			}
+			log4j.error("General error in cancelExportCertificate", e);
 		}
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
@@ -2139,7 +2090,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response checkMovementDoc(@PathParam("sessionId") String sessionId, @PathParam("objectId") Long objectId,
 			@Context HttpServletRequest httpRequest) {
-		String resultMsgLbl = "";
+		String resultMsgLbl = Tc.EMPTY_STRING;
 		MassActions massAct = new MassActions();
 		SvReader svr = null;
 		try {
@@ -2151,23 +2102,24 @@ public class ApplicationServices {
 				try {
 					lock = SvLock.getLock(String.valueOf(movementDoc.getObject_id()), false, 0);
 					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+						throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 					}
 					resultMsgLbl = massAct.checkAnimalOrFlockMovementsInMovementDocument(movementDoc, sessionId);
 				} finally {
+					if (svr != null) {
+						svr.release();
+					}
 					if (lock != null && movementDoc != null) {
 						SvLock.releaseLock(String.valueOf(movementDoc.getObject_id()), lock);
 					}
 				}
 			}
+		} catch (SvException e) {
+			resultMsgLbl = "naits.error.general";
+			log4j.error("Error in checkMovementDoc: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
 			resultMsgLbl = "naits.error.general";
-			if (e instanceof SvException) {
-				log4j.error("Error in processing mass action for: " + ((SvException) e).getFormattedMessage(), e);
-			} else {
-				log4j.error("General error in processing mass action", e);
-			}
-
+			log4j.error("General error in checkMovementDoc", e);
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -2181,7 +2133,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response assignResultToLabSample(@PathParam("sessionId") String sessionId,
 			@PathParam("parentId") Long parentId, @Context HttpServletRequest httpRequest) {
-		String resultMsgLbl = "";
+		String resultMsgLbl = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		SvWriter svw = null;
 		Writer wr = null;
@@ -2191,13 +2143,12 @@ public class ApplicationServices {
 			svw.dbSetAutoCommit(false);
 			wr = new Writer();
 			resultMsgLbl = wr.setHealthStatusToLabSample(parentId, svr, svw);
+		} catch (SvException e) {
+			resultMsgLbl = "naits.error.general";
+			log4j.error("Error in assignResultToLabSample: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
 			resultMsgLbl = "naits.error.general";
-			if (e instanceof SvException) {
-				log4j.error("Error in processing mass action for: " + ((SvException) e).getFormattedMessage(), e);
-			} else {
-				log4j.error("General error in processing mass action", e);
-			}
+			log4j.error("General error in assignResultToLabSample", e);
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -2214,7 +2165,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getDynamicDropdown(@PathParam("sessionId") String sessionId,
 			@PathParam("dropdownCase") String dropdownCase) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		UserManager um = null;
 		try {
@@ -2263,7 +2214,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getHoldingForExportCert(@PathParam("sessionId") String sessionId,
 			@PathParam("exportCertObjId") Long exportCertObjId) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -2297,7 +2248,7 @@ public class ApplicationServices {
 	public Response generateAnimals(@PathParam("sessionId") String sessionId, @PathParam("objectId") Long objectId,
 			@PathParam("startEarTagId") String startEarTagId, @PathParam("endEarTagId") String endEarTagId,
 			@PathParam("animalClass") String animalClass) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		SvWriter svw = null;
 		Writer wr = null;
@@ -2306,7 +2257,41 @@ public class ApplicationServices {
 			svw = new SvWriter(svr);
 			svw.setAutoCommit(false);
 			wr = new Writer();
-			result = wr.generateAnimalObjects(objectId, startEarTagId, endEarTagId, animalClass, svr, svw);
+			result = wr.generateAnimalObjects(objectId, startEarTagId, endEarTagId, animalClass, null, null, null, svr,
+					svw);
+		} catch (SvException e) {
+			result = e.getLabelCode();
+			log4j.error("Error occured in generateAnimals ws (ApplicationServices.java):" + e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+			if (svw != null) {
+				svw.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("/generateAnimals/{sessionId}/{objectId}/{startEarTagId}/{endEarTagId}/{animalClass}/{animalBreed}/{animalGender}/{animalBirthDate}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response generateAnimals(@PathParam("sessionId") String sessionId, @PathParam("objectId") Long objectId,
+			@PathParam("startEarTagId") String startEarTagId, @PathParam("endEarTagId") String endEarTagId,
+			@PathParam("animalClass") String animalClass, @PathParam("animalBreed") String animalBreed,
+			@PathParam("animalGender") String animalGender, @PathParam("animalBirthDate") String animalBirthDate) {
+		String result = Tc.EMPTY_STRING;
+		SvReader svr = null;
+		SvWriter svw = null;
+		Writer wr = null;
+		try {
+			svr = new SvReader(sessionId);
+			svw = new SvWriter(svr);
+			svw.setAutoCommit(false);
+			wr = new Writer();
+			DateTime animalBirthDateConverted = new DateTime(animalBirthDate);
+			result = wr.generateAnimalObjects(objectId, startEarTagId, endEarTagId, animalClass, animalBreed,
+					animalGender, animalBirthDateConverted, svr, svw);
 		} catch (SvException e) {
 			result = e.getLabelCode();
 			log4j.error("Error occured in generateAnimals ws (ApplicationServices.java):" + e.getFormattedMessage(), e);
@@ -2336,7 +2321,7 @@ public class ApplicationServices {
 		try {
 			svr = new SvReader(sessionId);
 			svw = new SvWriter(svr);
-			svw.setAutoCommit(false);
+			// svw.setAutoCommit(false);
 
 			wr = new Writer();
 			DbDataObject dboAnimal = svr.getObjectById(objectId, SvReader.getTypeIdByName(Tc.ANIMAL), null);
@@ -2344,21 +2329,23 @@ public class ApplicationServices {
 				throw (new SvException("naits.error.earTagReplacementCanBeDoneOnlyForValidAnimals", svCONST.systemUser,
 						null, null));
 			}
-			ReentrantLock lock = null;
+			// ReentrantLock lock = null;
 			try {
-				lock = SvLock.getLock(String.valueOf(dboAnimal.getObject_id()), false, 0);
-				if (lock == null) {
-					throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
-				}
+				/*
+				 * lock = SvLock.getLock(String.valueOf(dboAnimal.getObject_id()), false, 0); if
+				 * (lock == null) { throw (new SvException(Tc.objectUsedByOtherSession,
+				 * svr.getInstanceUser())); }
+				 */
 				earTagReplcObject = wr.createEarTagReplcObject(newEarTag, replacementDate, reason, note, objectId, svr);
 				svw.saveObject(earTagReplcObject, false);
 				if (newEarTag != null && !newEarTag.equals("")) {
 					result = wr.updateAnimalEarTagByEarTagReplacement(earTagReplcObject, svr, svw);
 				}
 			} finally {
-				if (lock != null && dboAnimal != null) {
-					SvLock.releaseLock(String.valueOf(dboAnimal.getObject_id()), lock);
-				}
+				/*
+				 * if (lock != null && dboAnimal != null) {
+				 * SvLock.releaseLock(String.valueOf(dboAnimal.getObject_id()), lock); }
+				 */
 			}
 			svw.dbCommit();
 		} catch (SvException e) {
@@ -2394,7 +2381,7 @@ public class ApplicationServices {
 				try {
 					lock = SvLock.getLock(String.valueOf(dboUser.getObject_id()), false, 0);
 					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+						throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 					}
 					result = um.createPOABetweenUserAndOrgUnit(dboUser, dboOrgUnit, svr);
 				} finally {
@@ -2419,7 +2406,7 @@ public class ApplicationServices {
 	@GET
 	@Produces("text/html;charset=utf-8")
 	public Response getAssignedLabsPerLaborant(@PathParam("sessionId") String sessionId) {
-		String result = "[]";
+		String result = Tc.EMPTY_ARRAY_STRING;
 		SvReader svr = null;
 		Reader rdr = new Reader();
 		try {
@@ -2453,7 +2440,7 @@ public class ApplicationServices {
 			try {
 				lock = SvLock.getLock(String.valueOf(populationId), false, 0);
 				if (lock == null) {
-					throw (new SvException("naits.error.objectUsedByOtherSession", svw.getInstanceUser()));
+					throw (new SvException(Tc.objectUsedByOtherSession, svw.getInstanceUser()));
 				}
 				DbDataObject dboPopulationFilter = wr.createPopulationFilter(populationId, filterId, filterValue,
 						filterNote, svw);
@@ -2490,13 +2477,13 @@ public class ApplicationServices {
 			svr.setIncludeGeometries(true);
 			svg = new SvGeometry(svr);
 			svg.setAllowNullGeometry(true);
-			DbDataObject dboHolding = svr.getObjectById(holdingObjId, SvReader.getTypeIdByName("HOLDING"), null);
+			DbDataObject dboHolding = svr.getObjectById(holdingObjId, SvReader.getTypeIdByName(Tc.HOLDING), null);
 			if (!dboHolding.getStatus().equals(newStatus)) {
 				ReentrantLock lock = null;
 				try {
 					lock = SvLock.getLock(String.valueOf(dboHolding.getObject_id()), false, 0);
 					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+						throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 					}
 					dboHolding.setStatus(newStatus);
 					svg.saveGeometry(dboHolding);
@@ -2530,7 +2517,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getAnimalByBarCode(@PathParam("sessionId") String sessionId,
 			@PathParam("animaBarCodeId") String animaBarCodeId) {
-		String result = "[]";
+		String result = Tc.EMPTY_ARRAY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -2561,7 +2548,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getAnimalByReplacedTagId(@PathParam("sessionId") String sessionId,
 			@PathParam("replacedTagId") String replacedTagId) {
-		String result = "[]";
+		String result = Tc.EMPTY_ARRAY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -2592,7 +2579,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response searchAppropriateHoldings(@PathParam("sessionId") String sessionId,
 			@PathParam("columnName") String columnName, @PathParam("columnValue") String columnValue) {
-		String result = "[]";
+		String result = Tc.EMPTY_ARRAY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -2648,12 +2635,15 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response changeAppropriateColor(@PathParam("sessionId") String sessionId,
 			@PathParam("holdingObjId") Long holdingObjId) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
+		SvSecurity svs = null;
 		SvReader svr = null;
 		Reader rdr = null;
 		ValidationChecks vc = null;
 		try {
-			svr = new SvReader(sessionId);
+			svs = new SvSecurity();
+			((SvCore) svs).switchUser(svCONST.serviceUser);
+			svr = new SvReader(svs);
 			rdr = new Reader();
 			vc = new ValidationChecks();
 
@@ -2669,8 +2659,11 @@ public class ApplicationServices {
 			}
 			result = new JSONObject(mapObj).toJSONString();
 		} catch (SvException e) {
-			log4j.error("Error occured in changeAppropriateColor:" + e.getFormattedMessage(), e);
+			log4j.error("Error occured in changeAppropriateColor:", e);
 		} finally {
+			if (svs != null) {
+				svs.release();
+			}
 			if (svr != null) {
 				svr.release();
 			}
@@ -2684,7 +2677,7 @@ public class ApplicationServices {
 	public Response checkIfAnimalBelongsToSlaughterhouse(@PathParam("sessionId") String sessionId,
 			@PathParam("object_Id") Long object_Id) {
 		ValidationChecks vc = null;
-		String resultMsg = "";
+		String resultMsg = Tc.EMPTY_STRING;
 		try {
 			vc = new ValidationChecks();
 			resultMsg = vc.checkIfAnimalBelongsToSlaughterhouse(object_Id, sessionId);
@@ -2699,7 +2692,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getValidCampaignEvents(@PathParam("sessionId") String sessionId,
 			@PathParam("holdingType") String holdingType) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -2728,7 +2721,7 @@ public class ApplicationServices {
 		JsonObject jsonData = null;
 		Gson gson = null;
 		MassActions massAction = null;
-		String decodeUserOrUserName = "";
+		String decodeUserOrUserName = Tc.EMPTY_STRING;
 		try {
 			gson = new Gson();
 			massAction = new MassActions();
@@ -2752,31 +2745,15 @@ public class ApplicationServices {
 		return Response.status(200).entity(result).build();
 	}
 
-	@Path("/moveInventoryItemToOrgUnit/{sessionId}/{tableName}/{orgUnitObjectId}")
+	@Path("/inventoryDirectTransfer/{sessionId}/{transferObjId}")
 	@POST
 	@Produces("text/html;charset=utf-8")
-	public Response moveInventoryItemToOrgUnit(@PathParam("sessionId") String sessionId,
-			@PathParam("tableName") String tableName, @PathParam("orgUnitObjectId") String orgUnitObjectId,
-			MultivaluedMap<String, String> formVals, @Context HttpServletRequest httpRequest) {
-		String resultMsgLbl = "naits.error.moveInventoryItemToOrgUnit";
-		JsonObject jsonData = null;
-		Gson gson = null;
-		MassActions massAction = null;
+	public Response moveInventoryItemToOrgUnit2(@PathParam("sessionId") String sessionId,
+			@PathParam("transferObjId") Long transferObjId, @Context HttpServletRequest httpRequest) {
+		String resultMsgLbl = "naits.error.inventoryDirectTransfer";
+		MassActions massAction = new MassActions();
 		try {
-			gson = new Gson();
-			massAction = new MassActions();
-			for (Entry<String, List<String>> entry : formVals.entrySet()) {
-				if (entry.getKey() != null && !entry.getKey().isEmpty()) {
-					String key = entry.getKey();
-					jsonData = gson.fromJson(key, JsonObject.class);
-				}
-			}
-			if (jsonData != null && jsonData.has(Tc.OBJ_ARRAY)) {
-				resultMsgLbl = massAction.objectMassAction(tableName, null, null, orgUnitObjectId,
-						jsonData.get(Tc.OBJ_ARRAY).getAsJsonArray(), sessionId);
-			} else {
-				resultMsgLbl = Tc.error_admConsoleBadJson;
-			}
+			resultMsgLbl = massAction.inventoryDirectTransfer(transferObjId, sessionId);
 		} catch (Exception e) {
 			resultMsgLbl = e.getMessage();
 			log4j.error("General error in processing mass action: ", e);
@@ -2819,7 +2796,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getValidOrgUnitsDependOnParentOrgUnit(@PathParam("sessionId") String sessionId,
 			@PathParam("externalId") String externalId) {
-		String result = "[]";
+		String result = Tc.EMPTY_ARRAY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -2883,8 +2860,8 @@ public class ApplicationServices {
 	@GET
 	@Produces("text/html;charset=utf-8")
 	public Response getObjectsByLocation(@PathParam("sessionId") String sessionId,
-			@PathParam("objectType") String objectType, @PathParam("geostatCode") String geostatCode) {
-		String result = "[]";
+			@PathParam("objectType") String tableName, @PathParam("geostatCode") String geostatCode) {
+		String result = Tc.EMPTY_ARRAY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -2892,15 +2869,17 @@ public class ApplicationServices {
 			rdr = new Reader();
 			DbCompareOperand dbc = DbCompareOperand.EQUAL;
 			DbDataArray objectsFound = new DbDataArray();
-			if (objectType.equals(Tc.LAB_SAMPLE)) {
+			if (tableName.equals(Tc.LAB_SAMPLE)) {
 				objectsFound = rdr.findDataPerSingleFilter(Tc.GEOSTAT_CODE, geostatCode, DbCompareOperand.LIKE,
-						SvReader.getTypeIdByName(objectType), 10000, svr);
-
+						SvReader.getTypeIdByName(tableName), 10000, svr);
+			} else if (tableName.equals(Tc.SVAROG_ORG_UNITS)) {
+				objectsFound = rdr.findDataPerSingleFilter(Tc.EXTERNAL_ID + "::VARCHAR", geostatCode,
+						DbCompareOperand.EQUAL, SvReader.getTypeIdByName(tableName), 10000, svr);
 			} else {
-				objectsFound = rdr.getObjectsByLocation(objectType, geostatCode, dbc, svr);
+				objectsFound = rdr.getObjectsByLocation(tableName, geostatCode, dbc, svr);
 			}
 			if (!objectsFound.getItems().isEmpty()) {
-				result = rdr.convertDbDataArrayToGridJson(objectsFound, objectType);
+				result = rdr.convertDbDataArrayToGridJson(objectsFound, tableName);
 			}
 		} catch (SvException e) {
 			result = e.getLabelCode();
@@ -2918,7 +2897,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response applyAvailableInventoryItemsOnValidAvailableAnimals(@PathParam("sessionId") String sessionId,
 			@PathParam("holdingObjId") Long holdingObjId) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		SvWriter svw = null;
 		Writer wr = null;
@@ -2931,7 +2910,7 @@ public class ApplicationServices {
 			try {
 				lock = SvLock.getLock(String.valueOf(holdingObjId), false, 0);
 				if (lock == null) {
-					throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+					throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 				}
 				result = wr.applyAvailableUnappliedInventoryItemsOnValidAnimals(holdingObjId, svr, svw);
 			} finally {
@@ -2953,70 +2932,6 @@ public class ApplicationServices {
 		return Response.status(200).entity(result).build();
 	}
 
-	@Path("/createRevereseTransfer/{sessionId}/{rangeFrom}/{rangeTo}")
-	@POST
-	@Produces("text/html;charset=utf-8")
-	public Response createRevereseTransfer(@PathParam("sessionId") String sessionId,
-			@PathParam("rangeFrom") Long rangeFrom, @PathParam("rangeTo") Long rangeTo,
-			MultivaluedMap<String, String> formVals, @Context HttpServletRequest httpRequest) {
-		String resultMsgLbl = "naits.error.reverseTransfer";
-		JsonObject jsonData = null;
-		Gson gson = null;
-		MassActions massAction = null;
-		try {
-			gson = new Gson();
-			massAction = new MassActions();
-			for (Entry<String, List<String>> entry : formVals.entrySet()) {
-				if (entry.getKey() != null && !entry.getKey().isEmpty()) {
-					String key = entry.getKey();
-					jsonData = gson.fromJson(key, JsonObject.class);
-				}
-			}
-			if (jsonData != null && jsonData.has(Tc.OBJ_ARRAY)) {
-				resultMsgLbl = massAction.createReverseTransfer(rangeFrom, rangeTo, null,
-						jsonData.get(Tc.OBJ_ARRAY).getAsJsonArray(), sessionId);
-			} else {
-				resultMsgLbl = Tc.error_admConsoleBadJson;
-			}
-		} catch (Exception e) {
-			resultMsgLbl = e.getMessage();
-			log4j.error("General error in processing mass action", e);
-		}
-		return Response.status(200).entity(resultMsgLbl).build();
-	}
-
-	@Path("/createIndividualReverseTransfer/{sessionId}/{tableName}/{actionName}")
-	@POST
-	@Produces("text/html;charset=utf-8")
-	public Response createIndividualReverseTransfer(@PathParam("sessionId") String sessionId,
-			@PathParam("tableName") String tableName, @PathParam("actionName") String actionName,
-			MultivaluedMap<String, String> formVals, @Context HttpServletRequest httpRequest) {
-		String resultMsgLbl = "naits.error.individualReverseTransfer";
-		JsonObject jsonData = null;
-		Gson gson = null;
-		MassActions massAction = null;
-		try {
-			gson = new Gson();
-			massAction = new MassActions();
-			for (Entry<String, List<String>> entry : formVals.entrySet()) {
-				if (entry.getKey() != null && !entry.getKey().isEmpty()) {
-					String key = entry.getKey();
-					jsonData = gson.fromJson(key, JsonObject.class);
-				}
-			}
-			if (jsonData != null && jsonData.has(Tc.OBJ_ARRAY)) {
-				resultMsgLbl = massAction.objectMassAction(tableName, actionName, null, null,
-						jsonData.get(Tc.OBJ_ARRAY).getAsJsonArray(), sessionId);
-			} else {
-				resultMsgLbl = Tc.error_admConsoleBadJson;
-			}
-		} catch (Exception e) {
-			resultMsgLbl = e.getMessage();
-			log4j.error("General error in processing mass action", e);
-		}
-		return Response.status(200).entity(resultMsgLbl).build();
-	}
-
 	@Path("/setNoteDescription/{sessionId}/{objectId}/{noteName}")
 	@POST
 	@Produces("text/html;charset=utf-8")
@@ -3030,7 +2945,7 @@ public class ApplicationServices {
 		DbDataObject dboNote = null;
 		JsonObject jsonData = null;
 		Gson gson = null;
-		String noteText = "";
+		String noteText = Tc.EMPTY_STRING;
 		try {
 			svr = new SvReader(sessionId);
 			svw = new SvWriter(svr);
@@ -3053,7 +2968,7 @@ public class ApplicationServices {
 				try {
 					lock = SvLock.getLock(String.valueOf(objectId), false, 0);
 					if (lock == null) {
-						throw (new SvException("naits.error.objectUsedByOtherSession", svr.getInstanceUser()));
+						throw (new SvException(Tc.objectUsedByOtherSession, svr.getInstanceUser()));
 					}
 					boolean noteExist = !existingNoteText.trim().equals("") ? true : false;
 					if (noteExist) {
@@ -3115,7 +3030,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getTargetedMunicipalitiesWithCampaign(@PathParam("sessionId") String sessionId,
 			@PathParam("objectId") Long objectId, @Context HttpServletRequest httpRequest) {
-		String resultMsg = "";
+		String resultMsg = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -3141,7 +3056,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response customSearchForInventoryItemByEarTag(@PathParam("sessionId") String sessionId,
 			@PathParam("animalEarTag") String animalEarTag, @Context HttpServletRequest httpRequest) {
-		String result = "[]";
+		String result = Tc.EMPTY_ARRAY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -3181,10 +3096,10 @@ public class ApplicationServices {
 			} else {
 				resultMsgLbl = Tc.error_admConsoleBadJson;
 			}
+		} catch (SvException e) {
+			log4j.error("Error in assignResultToLabSample: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
-			if (e instanceof SvException)
-				resultMsgLbl = ((SvException) e).getLabelCode();
-			log4j.error("General error in processing mass action", e);
+			log4j.error("General error in assignResultToLabSample", e);
 		}
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
@@ -3219,7 +3134,6 @@ public class ApplicationServices {
 		} catch (Exception e) {
 			resultMsgLbl = "naits.error.general";
 			log4j.error("General error in processing mass action", e);
-
 		}
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
@@ -3230,11 +3144,11 @@ public class ApplicationServices {
 	public Response getOrgUnitToSimpleJsonByObjectId(@PathParam("sessionId") String sessionId,
 			@PathParam("objectId") Long objectId) {
 		SvReader svr = null;
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		try {
 			svr = new SvReader(sessionId);
 			DbDataObject dboOrgUnit = svr.getObjectById(objectId, svCONST.OBJECT_TYPE_ORG_UNITS, null);
-			if (dboOrgUnit.getVal(Tc.NAME) != null)
+			if (dboOrgUnit != null && dboOrgUnit.getVal(Tc.NAME) != null)
 				result = dboOrgUnit.toSimpleJson().toString();
 		} catch (SvException e) {
 			log4j.error(Tc.ERROR_DETECTED + e.getFormattedMessage(), e);
@@ -3255,7 +3169,7 @@ public class ApplicationServices {
 		SvReader svr = null;
 		Reader rdr = null;
 		DbDataArray result = null;
-		String resultMsg = "[]";
+		String resultMsg = Tc.EMPTY_ARRAY_STRING;
 		try {
 			svr = new SvReader(sessionId);
 			rdr = new Reader();
@@ -3293,7 +3207,7 @@ public class ApplicationServices {
 	public Response checkIfHoldingBelongsToActiveQuarantineOrAffectedArea(@PathParam("sessionId") String sessionId,
 			@PathParam("objectId") Long objectId) {
 		SvReader svr = null;
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		ValidationChecks vc = null;
 		try {
 			svr = new SvReader(sessionId);
@@ -3305,7 +3219,8 @@ public class ApplicationServices {
 			if (dboHolding != null) {
 				jObj = new JsonObject();
 				String isInAffectedArea = vc.checkIfHoldingBelongsToAffectedArea(dboHolding, svr).toString();
-				String isInActiveQuarantine = vc.checkIfHoldingBelongsInActiveDiseaseQuarantine(dboHolding, svr)
+				String isInActiveQuarantine = vc
+						.checkIfHoldingBelongsInActiveSpecificQuarantine(objectId, Tc.BLACKLIST_QUARANTINE, svr)
 						.toString();
 				jObj.addProperty("isInAffectedArea", isInAffectedArea);
 				jObj.addProperty("isInActiveQuarantine", isInActiveQuarantine);
@@ -3326,7 +3241,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getPicPerUser(@PathParam("sessionId") String sessionId) {
 		SvReader svr = null;
-		String result = "[]";
+		String result = Tc.EMPTY_ARRAY_STRING;
 		Reader rdr = null;
 		UserManager um = null;
 		try {
@@ -3364,22 +3279,16 @@ public class ApplicationServices {
 	}
 
 	/**
-	 * Web service to return any table using one filter "ilike" for one field
-	 * only , it will also return svarog repo fields DEDICATE for: case
-	 * insensitive search
+	 * Web service to return any table using one filter "ilike" for one field only ,
+	 * it will also return svarog repo fields DEDICATE for: case insensitive search
 	 * 
-	 * @param sessionId
-	 *            Session ID (SID) of the web communication between browser and
-	 *            web server
-	 * @param table_name
-	 *            String table from which we want to get data
-	 * @param fieldNAme
-	 *            String name of the field that we try to filter
-	 * @param fieldValue
-	 *            String value that we are trying to find, will be cast to
-	 *            Integer for numeric values
-	 * @param no_rec
-	 *            Integer how many records we want to pull from the table
+	 * @param sessionId  Session ID (SID) of the web communication between browser
+	 *                   and web server
+	 * @param table_name String table from which we want to get data
+	 * @param fieldNAme  String name of the field that we try to filter
+	 * @param fieldValue String value that we are trying to find, will be cast to
+	 *                   Integer for numeric values
+	 * @param no_rec     Integer how many records we want to pull from the table
 	 * 
 	 * @return Json with all objects found
 	 */
@@ -3391,7 +3300,7 @@ public class ApplicationServices {
 			@PathParam("fieldValue") String fieldValue, @PathParam("no_rec") Integer recordNumber,
 			@Context HttpServletRequest httpRequest) {
 		SvReader svr = null;
-		String retString = "";
+		String retString = Tc.EMPTY_STRING;
 		String fieldWithSpecialCharacter = fieldValue.trim();
 		String[] tablesUsedArray = new String[1];
 		Boolean[] tableShowArray = new Boolean[1];
@@ -3533,10 +3442,11 @@ public class ApplicationServices {
 			} else {
 				resultMsgLbl = Tc.error_admConsoleBadJson;
 			}
+		} catch (SvException e) {
+			resultMsgLbl = ((SvException) e).getLabelCode();
+			log4j.error("Error in processing massObjectHandler: " + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
-			if (e instanceof SvException)
-				resultMsgLbl = ((SvException) e).getLabelCode();
-			log4j.error("General error in processing mass action", e);
+			log4j.error("General error in processing massObjectHandler:", e);
 		}
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
@@ -3563,10 +3473,11 @@ public class ApplicationServices {
 			} else {
 				resultMsgLbl = Tc.error_admConsoleBadJson;
 			}
+		} catch (SvException e) {
+			resultMsgLbl = ((SvException) e).getLabelCode();
+			log4j.error("Error in processing massAnimalAndFlockAction:" + ((SvException) e).getFormattedMessage(), e);
 		} catch (Exception e) {
-			if (e instanceof SvException)
-				resultMsgLbl = ((SvException) e).getLabelCode();
-			log4j.error("General error in processing mass action", e);
+			log4j.error("General error in processing massAnimalAndFlockAction:", e);
 		}
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
@@ -3600,10 +3511,7 @@ public class ApplicationServices {
 				resultMsgLbl = Tc.error_admConsoleBadJson;
 			}
 		} catch (Exception e) {
-			if (e instanceof SvException)
-				resultMsgLbl = ((SvException) e).getLabelCode();
-			log4j.error("General error in processing customSaveVaccinationEvent", e);
-
+			log4j.error("General error in processing customSaveVaccinationEvent:", e);
 		}
 		return Response.status(200).entity(resultMsgLbl).build();
 	}
@@ -3622,7 +3530,7 @@ public class ApplicationServices {
 
 			DbDataObject dboPet = svr.getObjectById(objectId, SvReader.getTypeIdByName(Tc.PET), null);
 			if (dboPet != null) {
-				DbDataObject dboLastValidPassport = rdr.getLastValidHealthPassport(dboPet, new DateTime(), svr);
+				DbDataObject dboLastValidPassport = rdr.getLastValidHealthPassport(dboPet, null, svr);
 				if (dboLastValidPassport != null) {
 					result = "true";
 				}
@@ -3686,13 +3594,12 @@ public class ApplicationServices {
 				if (wr.updatePetId(dboPet, updatedPetId, rdr, svw, svr)) {
 					result = "naits.success.updatePetId";
 				}
-				@SuppressWarnings("unused")
+				@SuppressWarnings(Tc.UNUSED)
 				DbDataObject refreshPetCache = svr.getObjectById(dboPet.getObject_id(), dboPet.getObject_type(),
 						new DateTime());
 			}
-
 		} catch (SvException e) {
-			log4j.error(Tc.ERROR_DETECTED + e.getFormattedMessage(), e);
+			log4j.error(e.getFormattedMessage());
 			result = e.getLabelCode();
 		} finally {
 			if (svr != null)
@@ -3703,10 +3610,11 @@ public class ApplicationServices {
 		return Response.status(200).entity(result).build();
 	}
 
-	@Path("/checkIfUserCanUseStatisticalReportTool/{sessionId}")
+	@Path("/hasReportToolPermission/{sessionId}/{permissionType}")
 	@GET
 	@Produces("text/html;charset=utf-8")
-	public Response checkIfUserCanUseStatisticalReportTool(@PathParam("sessionId") String sessionId) {
+	public Response hasReportToolPermission(@PathParam("sessionId") String sessionId,
+			@PathParam("permissionType") String permissionType) {
 		SvReader svr = null;
 		String result = Boolean.FALSE.toString();
 		UserManager um = null;
@@ -3715,7 +3623,7 @@ public class ApplicationServices {
 			um = new UserManager();
 			DbDataObject dboUser = SvReader.getUserBySession(sessionId);
 			if (dboUser != null) {
-				result = um.checkIfUserHasCustomPermission(dboUser, "custom.statistical_report", svr).toString();
+				result = um.checkIfUserHasCustomPermission(dboUser, permissionType.toLowerCase(), svr).toString();
 			}
 		} catch (SvException e) {
 			log4j.error(Tc.ERROR_DETECTED + e.getFormattedMessage(), e);
@@ -3744,7 +3652,6 @@ public class ApplicationServices {
 					svw = new SvWriter(svr);
 					svw.setAutoCommit(false);
 					wr = new Writer();
-
 					DbDataObject dboPopulation = svr.getObjectById(objectId, SvReader.getTypeIdByName(Tc.POPULATION),
 							new DateTime());
 					if (dboPopulation.getStatus().equals(Tc.VALID)) {
@@ -3753,7 +3660,7 @@ public class ApplicationServices {
 						svw.dbCommit();
 					} else if (dboPopulation.getStatus().equals(Tc.DRAFT)) {
 						DbDataArray arrVillages = svr.getObjectsByParentId(dboPopulation.getObject_id(),
-								SvReader.getTypeIdByName(Tc.POPULATION_LOCATION), new DateTime(), 0, 0);
+								SvReader.getTypeIdByName(Tc.POPULATION_LOCATION), null, 0, 0);
 						if (!arrVillages.getItems().isEmpty()) {
 							for (DbDataObject dboPopulationLocation : arrVillages.getItems()) {
 								svw.deleteObject(dboPopulationLocation, true);
@@ -3906,7 +3813,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getStratificationNumbers(@PathParam("sessionId") String sessionId,
 			@PathParam("populationId") Long populationId) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -3944,20 +3851,25 @@ public class ApplicationServices {
 	@Path("/checkIfSvFileExists/{sessionId}/{fileName}")
 	@GET
 	@Produces("text/html;charset=utf-8")
-	public Response getStratificationNumbers(@PathParam("sessionId") String sessionId,
+	public Response checkIfSvFileExistsByName(@PathParam("sessionId") String sessionId,
 			@PathParam("fileName") String fileName) {
 		Boolean result = false;
 		SvReader svr = null;
+		DbDataArray arrResult = new DbDataArray();
 		try {
 			svr = new SvReader(sessionId);
 			DbSearchCriterion cr1 = new DbSearchCriterion(Tc.FILE_NAME, DbCompareOperand.EQUAL, fileName);
-			DbDataArray arrResult = svr.getObjects(new DbSearchExpression().addDbSearchItem(cr1),
-					svCONST.OBJECT_TYPE_FILE, new DateTime(), 0, 0);
+			arrResult = svr.getObjects(new DbSearchExpression().addDbSearchItem(cr1), svCONST.OBJECT_TYPE_FILE, null, 0,
+					0);
+			if (arrResult.getItems().isEmpty()) {
+				arrResult = svr.getObjects(new DbSearchExpression().addDbSearchItem(cr1), svCONST.OBJECT_TYPE_FILE,
+						new DateTime(), 0, 0);
+			}
 			if (!arrResult.getItems().isEmpty()) {
 				result = true;
 			}
 		} catch (SvException e) {
-			log4j.error("Error occured in checkIfAnimalIdExist:" + e.getFormattedMessage(), e);
+			log4j.error(e.getFormattedMessage());
 		} finally {
 			if (svr != null) {
 				svr.release();
@@ -4011,7 +3923,7 @@ public class ApplicationServices {
 	@GET
 	@Produces("text/html;charset=utf-8")
 	public Response getExpiredVaccinationEvents(@PathParam("sessionId") String sessionId) {
-		String result = "";
+		String result = Tc.EMPTY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -4092,7 +4004,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getMovementDocumentByAnimalOrFlockId(@PathParam("sessionId") String sessionId,
 			@PathParam("animalOrFlockId") String animalOrFlockId, @PathParam("movementType") String movementType) {
-		String result = "[]";
+		String result = Tc.EMPTY_ARRAY_STRING;
 		SvReader svr = null;
 		DbDataArray arrMovementDocuments = null;
 		Reader rdr = null;
@@ -4115,19 +4027,21 @@ public class ApplicationServices {
 		return Response.status(200).entity(result).build();
 	}
 
-	@Path("/getInventoryItemByRange/{sessionId}/{parentId}/{rangeFrom}/{rangeTo}")
+	@Path("/getInventoryItemByRange/{sessionId}/{parentId}/{rangeFrom}/{rangeTo}/{tagType}/{order}")
 	@GET
 	@Produces("text/html;charset=utf-8")
 	public Response getInventoryItemByRange(@PathParam("sessionId") String sessionId,
 			@PathParam("parentId") Long parentId, @PathParam("rangeFrom") Long rangeFrom,
-			@PathParam("rangeTo") Long rangeTo) {
-		String result = "[]";
+			@PathParam("rangeTo") Long rangeTo, @PathParam("tagType") String tagType,
+			@PathParam("order") String order) {
+		String result = Tc.EMPTY_ARRAY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
 			svr = new SvReader(sessionId);
 			rdr = new Reader();
-			DbDataArray arrInventoryItems = rdr.getInventoryItemsByRange(parentId, rangeFrom, rangeTo, svr);
+			DbDataArray arrInventoryItems = rdr.getInventoryItemsByRange(parentId, rangeFrom, rangeTo, tagType, order,
+					svr);
 			result = rdr.convertDbDataArrayToGridJson(arrInventoryItems, Tc.INVENTORY_ITEM);
 		} catch (Exception e) {
 			if (e instanceof SvException) {
@@ -4142,12 +4056,322 @@ public class ApplicationServices {
 		return Response.status(200).entity(result).build();
 	}
 
+	@Path("/moveGroupOfIndividualInventoryItems/{sessionId}/{tableName}/{orgUnitObjectId}")
+	@POST
+	@Produces("text/html;charset=utf-8")
+	public Response moveGroupOfIndividualInventoryItems(@PathParam("sessionId") String sessionId,
+			@PathParam("tableName") String tableName, @PathParam("orgUnitObjectId") Long orgUnitObjectId,
+			MultivaluedMap<String, String> formVals) {
+		String resultMsgLbl = "naits.error.moveInventoryItemToOrgUnit";
+		JsonObject jsonData = null;
+		Gson gson = null;
+		MassActions massAction = null;
+		try {
+			gson = new Gson();
+			massAction = new MassActions();
+			for (Entry<String, List<String>> entry : formVals.entrySet()) {
+				if (entry.getKey() != null && !entry.getKey().isEmpty()) {
+					String key = entry.getKey();
+					jsonData = gson.fromJson(key, JsonObject.class);
+				}
+			}
+			if (jsonData != null && jsonData.has(Tc.OBJ_ARRAY)) {
+				resultMsgLbl = massAction.inventoryIndividualDirectTransfer(orgUnitObjectId,
+						jsonData.get(Tc.OBJ_ARRAY).getAsJsonArray(), sessionId);
+			} else {
+				resultMsgLbl = Tc.error_admConsoleBadJson;
+			}
+		} catch (Exception e) {
+			resultMsgLbl = e.getMessage();
+			log4j.error("General error in processing mass action: ", e);
+		}
+		return Response.status(200).entity(resultMsgLbl).build();
+	}
+
+	@Path("/checkRangeValidity/{sessionId}/{orgUnitId}/{startTagId}/{endTagId}/{tagType}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response checkRangeValidity(@PathParam("sessionId") String sessionId, @PathParam("orgUnitId") Long orgUnitId,
+			@PathParam("startTagId") Long startTagId, @PathParam("endTagId") Long endTagId,
+			@PathParam("tagType") String tagType) {
+		String result = "naits.success.checkRangeValidity";
+		SvReader svr = null;
+		SvWriter svw = null;
+		ValidationChecks vc = null;
+		try {
+			svr = new SvReader(sessionId);
+			svw = new SvWriter(svr);
+			vc = new ValidationChecks();
+
+			ArrayList<String> missingInvItemsInRange = vc.checkIfAllItemsInTransferRangeBelongToOrgUnit(orgUnitId,
+					startTagId, endTagId, tagType, svr);
+			if (!missingInvItemsInRange.isEmpty()) {
+				result = "naits.error.senderDoesNotHaveInventoryItemsDefinedInTheRange";
+				result += missingInvItemsInRange.toString();
+			}
+
+		} catch (Exception e) {
+			if (e instanceof SvException) {
+				result = ((SvException) e).getLabelCode();
+			}
+			log4j.error("Error occurred while creating transfer in moveInventoryItemByRange...", e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+			if (svw != null) {
+				svw.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("/preCheckMoveInventoryItemByRange/{sessionId}")
+	@POST
+	@Produces("text/html;charset=utf-8")
+	public Response preCheckMoveInventoryItemByRange(@PathParam("sessionId") String sessionId,
+			MultivaluedMap<String, String> formVals) {
+		String result = "naits.success.preCheckMoveInventoryItemByRange";
+		SvReader svr = null;
+		SvWriter svw = null;
+		ValidationChecks vc = null;
+		JsonObject jObj = null;
+		JsonArray jsonParams = null;
+		Gson gson = null;
+		try {
+			svr = new SvReader(sessionId);
+			svw = new SvWriter(svr);
+			gson = new Gson();
+			vc = new ValidationChecks();
+			for (Entry<String, List<String>> entry : formVals.entrySet()) {
+				if (entry.getKey() != null && !entry.getKey().isEmpty()) {
+					String key = entry.getKey();
+					jObj = gson.fromJson(key, JsonObject.class);
+				}
+			}
+			jsonParams = jObj.get(Tc.OBJ_PARAMS).getAsJsonArray();
+
+			String tagType = Tc.EMPTY_STRING;
+			Long startTagId = 0L;
+			Long endTagId = 0L;
+			Long senderOrgUnitId = 0L;
+
+			for (int i = 0; i < jsonParams.size(); i++) {
+				JsonObject obj = jsonParams.get(i).getAsJsonObject();
+				if (obj.has(Tc.MASS_PARAM_TAG_TYPE)) {
+					tagType = obj.get(Tc.MASS_PARAM_TAG_TYPE).getAsString();
+				}
+				if (obj.has(Tc.MASS_PARAM_RANGE_FROM)) {
+					startTagId = obj.get(Tc.MASS_PARAM_RANGE_FROM).getAsLong();
+				}
+				if (obj.has(Tc.MASS_PARAM_RANGE_TO)) {
+					endTagId = obj.get(Tc.MASS_PARAM_RANGE_TO).getAsLong();
+				}
+				if (obj.has(Tc.MASS_PARAM_SENDER_OBJ_ID)) {
+					senderOrgUnitId = obj.get(Tc.MASS_PARAM_SENDER_OBJ_ID).getAsLong();
+				}
+			}
+
+			if (endTagId < startTagId) {
+				result = "naits.error.startTagIdCannotBeLargerThanEndTagId";
+			}
+
+			ArrayList<String> missingInvItemsInRange = vc.checkIfAllItemsInTransferRangeBelongToOrgUnit(senderOrgUnitId,
+					startTagId, endTagId, tagType, svr);
+			if (!missingInvItemsInRange.isEmpty()) {
+				result = "naits.error.senderDoesNotHaveInventoryItemsDefinedInTheRange";
+				result += missingInvItemsInRange.toString();
+			}
+
+		} catch (Exception e) {
+			if (e instanceof SvException) {
+				result = ((SvException) e).getLabelCode();
+			}
+			log4j.error("Error occurred while creating transfer in moveInventoryItemByRange...", e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+			if (svw != null) {
+				svw.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("/moveInventoryItemByRange/{sessionId}/{preCheckDone}")
+	@POST
+	@Produces("text/html;charset=utf-8")
+	public Response moveInventoryItemByRange(@PathParam("sessionId") String sessionId,
+			@PathParam("preCheckDone") Boolean preCheckDone, MultivaluedMap<String, String> formVals) {
+		String result = "naits.error.moveInventoryItemByRange";
+		SvReader svr = null;
+		SvWriter svw = null;
+		Writer wr = null;
+		ValidationChecks vc = null;
+		JsonObject jObj = null;
+		JsonArray jsonParams = null;
+		Gson gson = null;
+		try {
+			svr = new SvReader(sessionId);
+			svw = new SvWriter(svr);
+			wr = new Writer();
+			gson = new Gson();
+			vc = new ValidationChecks();
+			for (Entry<String, List<String>> entry : formVals.entrySet()) {
+				if (entry.getKey() != null && !entry.getKey().isEmpty()) {
+					String key = entry.getKey();
+					jObj = gson.fromJson(key, JsonObject.class);
+				}
+			}
+			jsonParams = jObj.get(Tc.OBJ_PARAMS).getAsJsonArray();
+
+			String tagType = Tc.EMPTY_STRING;
+			Long startTagId = 0L;
+			Long endTagId = 0L;
+			Long paramDestinationObjId = 0L;
+			Long senderOrgUnitId = 0L;
+			Long quantity = null;
+			String reason = null;
+
+			for (int i = 0; i < jsonParams.size(); i++) {
+				JsonObject obj = jsonParams.get(i).getAsJsonObject();
+				if (obj.has(Tc.MASS_PARAM_TAG_TYPE)) {
+					tagType = obj.get(Tc.MASS_PARAM_TAG_TYPE).getAsString();
+				}
+				if (obj.has(Tc.MASS_PARAM_RANGE_FROM)) {
+					startTagId = obj.get(Tc.MASS_PARAM_RANGE_FROM).getAsLong();
+				}
+				if (obj.has(Tc.MASS_PARAM_RANGE_TO)) {
+					endTagId = obj.get(Tc.MASS_PARAM_RANGE_TO).getAsLong();
+				}
+				if (obj.has(Tc.MASS_PARAM_DESTINATION_OBJ_ID)) {
+					paramDestinationObjId = obj.get(Tc.MASS_PARAM_DESTINATION_OBJ_ID).getAsLong();
+				}
+				if (obj.has(Tc.MASS_PARAM_QUANTITY)) {
+					quantity = obj.get(Tc.MASS_PARAM_QUANTITY).getAsLong();
+				}
+				if (obj.has(Tc.MASS_PARAM_REASON)) {
+					reason = obj.get(Tc.MASS_PARAM_REASON).getAsString();
+				}
+				if (obj.has(Tc.MASS_PARAM_SENDER_OBJ_ID)) {
+					senderOrgUnitId = obj.get(Tc.MASS_PARAM_SENDER_OBJ_ID).getAsLong();
+				}
+			}
+
+			if (!preCheckDone) {
+				if (endTagId < startTagId) {
+					throw new SvException("naits.error.startTagIdCannotBeLargerThanEndTagId", svr.getInstanceUser());
+				}
+
+				ArrayList<String> missingInvItemsInRange = vc.checkIfAllItemsInTransferRangeBelongToOrgUnit(
+						senderOrgUnitId, startTagId, endTagId, tagType, svr);
+				if (!missingInvItemsInRange.isEmpty()) {
+					throw new SvException("naits.error.senderDoesNotHaveInventoryItemsDefinedInTheRange",
+							svr.getInstanceUser());
+				}
+			}
+			DbDataObject dboOrgUnitSender = svr.getObjectById(senderOrgUnitId, svCONST.OBJECT_TYPE_ORG_UNITS, null);
+			if (dboOrgUnitSender == null) {
+				dboOrgUnitSender = svr.getObjectById(senderOrgUnitId, SvReader.getTypeIdByName(Tc.HOLDING), null);
+			}
+
+			DbDataObject dboDestinationOrganisationalUnitOrHolding = svr.getObjectById(paramDestinationObjId,
+					svCONST.OBJECT_TYPE_ORG_UNITS, null);
+			if (dboDestinationOrganisationalUnitOrHolding == null) {
+				dboDestinationOrganisationalUnitOrHolding = svr.getObjectById(paramDestinationObjId,
+						SvReader.getTypeIdByName(Tc.HOLDING), null);
+			}
+			if (dboDestinationOrganisationalUnitOrHolding == null) {
+				throw new SvException("naits.error.destinationLocationNotFound", svr.getInstanceUser());
+			}
+			DbDataObject dboTransfer = wr.createTransferObject(tagType, startTagId, endTagId, quantity, null,
+					dboOrgUnitSender.getVal(Tc.NAME).toString(),
+					dboDestinationOrganisationalUnitOrHolding.getVal(Tc.NAME).toString(), null, null, reason,
+					String.valueOf(dboOrgUnitSender.getObject_id()),
+					String.valueOf(dboDestinationOrganisationalUnitOrHolding.getObject_id()));
+			dboTransfer.setParent_id(dboOrgUnitSender.getObject_id());
+			dboTransfer.setVal(Tc.CACHE_PARENT_ID, dboOrgUnitSender.getObject_id());
+			dboTransfer.setVal(Tc.TRANSFER_TYPE, Tc.DIRECT_TRANSFER);
+			svw.saveObject(dboTransfer, true);
+			wr.directInventoryTransfer(dboTransfer, false, svr, svw);
+			result = "naits.success.moveInventoryItemByRange";
+
+		} catch (Exception e) {
+			if (e instanceof SvException) {
+				result = ((SvException) e).getLabelCode();
+			}
+			log4j.error("Error occurred while creating transfer in moveInventoryItemByRange...", e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+			if (svw != null) {
+				svw.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("/createRevereseTransfer/{sessionId}/{dboTransferObjId}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response createRevereseTransfer(@PathParam("sessionId") String sessionId,
+			@PathParam("dboTransferObjId") Long dboTransferObjId) {
+		String resultMsgLbl = "naits.error.createRevereseTransfer";
+		SvReader svr = null;
+		SvWriter svw = null;
+		Writer wr = null;
+		ValidationChecks vc = null;
+		try {
+			svr = new SvReader(sessionId);
+			svw = new SvWriter(svr);
+			wr = new Writer();
+			vc = new ValidationChecks();
+			DbDataObject dboInitTransfer = svr.getObjectById(dboTransferObjId, SvReader.getTypeIdByName(Tc.TRANSFER),
+					null);
+
+			if (!dboInitTransfer.getStatus().equals(Tc.RELEASED)) {
+				throw new SvException("naits.error.onlyTransferWithReleasedStatusCanBeReversed", svr.getInstanceUser());
+			}
+
+			ArrayList<String> missingInvItemsInRange = vc.checkIfAllItemsInTransferRangeBelongToOrgUnit(
+					Long.valueOf(dboInitTransfer.getVal(Tc.DESTINATION_OBJ_ID).toString()),
+					Long.valueOf(dboInitTransfer.getVal(Tc.START_TAG_ID).toString()),
+					Long.valueOf(dboInitTransfer.getVal(Tc.END_TAG_ID).toString()),
+					dboInitTransfer.getVal(Tc.TAG_TYPE).toString(), svr);
+			if (!missingInvItemsInRange.isEmpty()) {
+				throw new SvException("naits.error.senderDoesNotHaveInventoryItemsDefinedInTheRange",
+						svr.getInstanceUser());
+			}
+
+			if (dboInitTransfer != null) {
+				DbDataObject dboReverseTransfer = wr.createReverseTransferObject(dboInitTransfer, wr, svr);
+				svw.saveObject(dboReverseTransfer, false);
+				wr.directInventoryTransfer(dboReverseTransfer, false, svr, svw);
+				resultMsgLbl = "naits.success.createRevereseTransfer";
+			}
+
+		} catch (Exception e) {
+			resultMsgLbl = e.getMessage();
+			log4j.error("General error in processing mass action", e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+			if (svw != null) {
+				svw.release();
+			}
+		}
+		return Response.status(200).entity(resultMsgLbl).build();
+	}
+
 	@Path("/getMovementDocumentByTransporterLicense/{sessionId}/{transporterLicence}")
 	@GET
 	@Produces("text/html;charset=utf-8")
 	public Response getMovementDocumentByTransporterLincence(@PathParam("sessionId") String sessionId,
 			@PathParam("transporterLicence") String transporterLicence) {
-		String result = "[]";
+		String result = Tc.EMPTY_ARRAY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -4175,7 +4399,7 @@ public class ApplicationServices {
 	@Produces("text/html;charset=utf-8")
 	public Response getAllLinkedUserGroupsPerUser(@PathParam("sessionId") String sessionId,
 			@PathParam("userObjectId") Long userObjectId) {
-		String result = "[]";
+		String result = Tc.EMPTY_ARRAY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		try {
@@ -4205,7 +4429,7 @@ public class ApplicationServices {
 	public Response getApplicableLaboratoryTests(@PathParam("sessionId") String sessionId,
 			@PathParam("activityType") String activityType, @PathParam("activitySubType") String activitySubType,
 			@PathParam("disease") String disease) {
-		String result = "[]";
+		String result = Tc.EMPTY_ARRAY_STRING;
 		SvReader svr = null;
 		Reader rdr = null;
 		LinkedHashMap<String, String> criteriasHashMap = null;
@@ -4229,5 +4453,1052 @@ public class ApplicationServices {
 			}
 		}
 		return Response.status(200).entity(result).build();
+	}
+
+	@Path("/deleteObject/{sessionId}/{objectId}/{objectType}/{useCache}/{autoCommit}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response deleteObject(@PathParam("sessionId") String sessionId, @PathParam("objectId") Long objectId,
+			@PathParam("objectType") Long objectType, @PathParam("useCache") boolean useCache,
+			@PathParam("autoCommit") boolean autoCommit) {
+		String result = "naits.error.deleteRecord";
+		SvReader svr = null;
+		SvWriter svw = null;
+		Writer wr = null;
+		try {
+			svr = new SvReader(sessionId);
+			svw = new SvWriter(svr);
+			svw.setAutoCommit(false);
+
+			wr = new Writer();
+			if (wr.deleteObject(objectId, objectType, useCache, autoCommit, svw, svr)) {
+				result = "naits.success.successfullyDeletedRecord";
+			}
+		} catch (Exception e) {
+			log4j.error("General error in deleteObject", e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+			if (svw != null) {
+				svw.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("/generateRFIDResultObjects/{sessionId}")
+	@POST
+	@Produces("text/html;charset=utf-8")
+	public Response generateRFIDResultObjects(@PathParam("sessionId") String sessionId,
+			MultivaluedMap<String, String> formVals) throws InterruptedException {
+		String resultMessage = "naits.error.generateRFIDResultObjects";
+		JsonObject responseJson = null;
+		JsonObject postDataJson = null;
+		SvReader svr = null;
+		SvWriter svw = null;
+		Writer wr = null;
+		Gson gson = null;
+		try {
+			svr = new SvReader(sessionId);
+			svw = new SvWriter(svr);
+			svw.setAutoCommit(false);
+
+			gson = new Gson();
+			wr = new Writer();
+
+			for (Entry<String, List<String>> entry : formVals.entrySet()) {
+				if (entry.getKey() != null && !entry.getKey().isEmpty()) {
+					String key = entry.getKey();
+					postDataJson = gson.fromJson(key, JsonObject.class);
+				}
+			}
+			if (postDataJson != null && postDataJson.has(Tc.OBJ_PARAMS) && postDataJson.has(Tc.OBJ_ARRAY)) {
+				responseJson = wr.getGeneratedRfidResults(postDataJson, svr, svw);
+				if (responseJson != null && responseJson.has("activityResponses")) {
+					resultMessage = "naits.success.generateRFIDResultObjects";
+				}
+			}
+		} catch (SvException e) {
+			log4j.error("General error in generateRFIDResultObjects", e);
+			resultMessage = e.getLabelCode();
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+			if (svw != null) {
+				svw.release();
+			}
+		}
+		return Response.status(200).entity(resultMessage).build();
+	}
+
+	@Path("/displayExportCertificateReportButton/{sessionId}/{objectId}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response displayExportCertificateReportButton(@PathParam("sessionId") String sessionId,
+			@PathParam("objectId") Long objectId) {
+		String resultMessage = Boolean.FALSE.toString();
+		SvReader svr = null;
+		try {
+			svr = new SvReader(sessionId);
+			DbDataObject dboExportCertificate = svr.getObjectById(objectId, SvReader.getTypeIdByName(Tc.EXPORT_CERT),
+					null);
+			if (dboExportCertificate != null) {
+				DbDataObject dboQuarantine = svr.getObjectById(dboExportCertificate.getParent_id(),
+						SvReader.getTypeIdByName(Tc.QUARANTINE), null);
+				if (dboQuarantine.getVal(Tc.DATE_TO) != null) {
+					DateTime dtDateTo = new DateTime(dboQuarantine.getVal(Tc.DATE_TO).toString());
+					DateTime dtNow = new DateTime();
+					Long numDaysAfterQuarantineExpired = ValidationChecks.getDateDiff(dtNow, dtDateTo, TimeUnit.HOURS);
+					if (numDaysAfterQuarantineExpired >= 0) {
+						resultMessage = Boolean.TRUE.toString();
+					}
+				}
+			}
+		} catch (Exception e) {
+			log4j.error("General error in displayExportCertificateReportButton", e);
+			resultMessage = e.getMessage();
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(resultMessage).build();
+	}
+
+	/**
+	 * Web service for uploading file that contains RFID tags in comma separated
+	 * file
+	 * 
+	 * @param sessionId
+	 * @param objectId
+	 * @param fileInput
+	 * @param fileDetail
+	 * @return
+	 */
+	@Path("/uploadRFIDTags/{sessionId}/{objectId}")
+	@POST
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces("text/html;charset=utf-8")
+	public Response uploadFile(@PathParam("sessionId") String sessionId, @PathParam("objectId") Long objectId,
+			@FormDataParam("file") InputStream fileInput,
+			@FormDataParam("file") FormDataContentDisposition fileDetail) {
+		String resultMessage = "naits.success.uploadRFIDTags";
+		SvReader svr = null;
+		SvWriter svw = null;
+		Writer wr = null;
+		try {
+			svr = new SvReader(sessionId);
+			svw = new SvWriter(svr);
+			wr = new Writer();
+			DbDataObject dboRfid = svr.getObjectById(objectId, SvReader.getTypeIdByName(Tc.RFID_INPUT), null);
+			if (dboRfid != null && dboRfid.getStatus().equals(Tc.PROCESSED)) {
+				throw new SvException("naits.error.cannotUploadFileWhenStatusIsProcessed", svr.getInstanceUser());
+			}
+			byte[] data = IOUtils.toByteArray(fileInput);
+			if (data.length < 1) {
+				throw new SvException("naits.error.cannotUploadEmptyFile", svr.getInstanceUser());
+			}
+			if (!wr.uploadSvFile(fileDetail.getFileName(), dboRfid, "naits.actions.rfid_attachment", data, false, svw,
+					svr)) {
+				resultMessage = "naits.error.uploadRFIDTags";
+			}
+		} catch (IOException | SvException e) {
+			if (e instanceof SvException)
+				resultMessage = ((SvException) e).getLabelCode();
+			log4j.error(e.getLocalizedMessage());
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+			if (svw != null) {
+				svw.release();
+			}
+		}
+		return Response.status(200).entity(resultMessage).build();
+	}
+
+	@Path("/getSvFilePerDbo/{sessionId}/{objectId}/{objectTypeId}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response getSvFilePerDbo(@PathParam("sessionId") String sessionId, @PathParam("objectId") Long objectId,
+			@PathParam("objectTypeId") Long objectTypeId) {
+		String resultObject = Tc.EMPTY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		DbDataObject dboRfid = null;
+		DbDataObject dboFile = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			dboRfid = svr.getObjectById(objectId, objectTypeId, null);
+			DbDataArray arrLinkedSvFiles = rdr.getSvFilesPerDbo(dboRfid, svr);
+			if (arrLinkedSvFiles != null && !arrLinkedSvFiles.getItems().isEmpty()) {
+				dboFile = arrLinkedSvFiles.get(0);
+				resultObject = dboFile.toSimpleJson().toString();
+			}
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage());
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(resultObject).build();
+	}
+
+	@GET
+	@Path("/downloadSvFile/{sessionId}/{objectId}/{objectType}/{fileName}/{fileLabelCode}")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	public Response downloadSvFile(@PathParam("sessionId") final String sessionId,
+			@PathParam("objectId") final Long objectId, @PathParam("objectType") final Long objectType,
+			@PathParam("fileName") final String fileName, @PathParam("fileLabelCode") final String fileLabelCode,
+			@Context HttpServletRequest httpRequest) {
+		StreamingOutput fileStream = new StreamingOutput() {
+			@Override
+			public void write(java.io.OutputStream output) throws IOException {
+				SvReader svr = null;
+				SvWriter svw = null;
+				Reader rdr = null;
+				try {
+					svr = new SvReader(sessionId);
+					svw = new SvWriter(svr);
+					svw.setAutoCommit(false);
+
+					rdr = new Reader();
+					DbDataObject dbo = svr.getObjectById(objectId, objectType, null);
+					if (dbo != null) {
+						ByteArrayOutputStream bstr = new ByteArrayOutputStream();
+						byte[] data = bstr.toByteArray();
+						output.write(data);
+						rdr.downloadSvFile(dbo, fileName, fileLabelCode, output, svr);
+					}
+				} catch (Exception e) {
+					log4j.error("Error printing PDF/Excel! method: generatePopulationSample", e);
+				} finally {
+					if (svr != null)
+						svr.release();
+					if (svw != null)
+						svw.release();
+					output.close();
+				}
+			}
+		};
+		return Response.ok(fileStream, MediaType.APPLICATION_OCTET_STREAM)
+				.header("content-disposition", "attachment; filename = " + fileName).build();
+	}
+
+	@GET
+	@Path("/downloadAttachedFilePerDbObject/{sessionId}/{objectId}/{objectType}/{fieldName}/{fileName}")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	public Response downloadAttachedFilePerDbObject(@PathParam("sessionId") final String sessionId,
+			@PathParam("objectId") final Long objectId, @PathParam("objectType") final Long objectType,
+			@PathParam("fileName") final String fileName, @PathParam("fieldName") final String fieldName,
+			@Context HttpServletRequest httpRequest) {
+		StreamingOutput fileStream = new StreamingOutput() {
+			@Override
+			public void write(java.io.OutputStream output) throws IOException {
+				SvReader svr = null;
+				try {
+					svr = new SvReader(sessionId);
+					DbDataObject dbo = svr.getObjectById(objectId, objectType, null);
+					if (dbo != null) {
+						if (dbo.getVal(fieldName) != null && dbo.getVal(fieldName).toString().length() > 1) {
+							byte[] data = Base64.decodeBase64(dbo.getVal(fieldName).toString());
+							output.write(data);
+						}
+					}
+				} catch (Exception e) {
+					log4j.error("Error printing PDF/Excel! method: generatePopulationSample", e);
+				} finally {
+					if (svr != null)
+						svr.release();
+					output.close();
+				}
+			}
+		};
+		return Response.ok(fileStream, MediaType.APPLICATION_OCTET_STREAM)
+				.header("content-disposition", "attachment; filename = " + fileName).build();
+	}
+
+	@Path("/createCustomRfidInput/{sessionId}/{objectId}")
+	@POST
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces("application/json")
+	public Response createCustomRfidInput(@PathParam("sessionId") String sessionId,
+			@PathParam("objectId") Long objectId, FormDataMultiPart multipart, @Context HttpServletRequest httpRequest)
+			throws IOException {
+		String resultMessage = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		SvWriter svw = null;
+		Reader rdr = null;
+		JsonArray jsonData = null;
+		DbDataArray resultArr = null;
+		DbDataObject dboToSave = null;
+		String jObjString = Tc.EMPTY_STRING;
+		byte[] data = null;
+		String fileName = null;
+		try {
+			svr = new SvReader(sessionId);
+			svw = new SvWriter(svr);
+			rdr = new Reader();
+
+			dboToSave = svr.getObjectById(objectId, SvReader.getTypeIdByName(Tc.RFID_INPUT), new DateTime());
+			if (dboToSave == null) {
+				dboToSave = new DbDataObject();
+				dboToSave.setObject_type(SvReader.getTypeIdByName(Tc.RFID_INPUT));
+			}
+			Map<String, List<FormDataBodyPart>> map = multipart.getFields();
+			for (Map.Entry<String, List<FormDataBodyPart>> entry : map.entrySet()) {
+				for (FormDataBodyPart part : entry.getValue()) {
+					if (!part.getName().equals("form-data")) {
+						try (InputStream in = part.getValueAs(InputStream.class);) {
+							data = IOUtils.toByteArray(in);
+							fileName = part.getName();
+							dboToSave.setVal(Tc.FILE_EAR_TAGS, Base64.encodeBase64String(data));
+							dboToSave.setVal(Tc.FILE_NAME, fileName);
+						}
+					} else {
+						jObjString = part.getValue();
+					}
+				}
+			}
+			if (!jObjString.equals(Tc.EMPTY_STRING)) {
+				Gson gson = new Gson();
+				jsonData = gson.fromJson(jObjString, JsonArray.class);
+				for (int i = 0; i < jsonData.size(); i++) {
+					JsonObject jo = jsonData.get(i).getAsJsonObject();
+					if (jo.has(Tc.IMPORT_TYPE)) {
+						dboToSave.setVal(Tc.IMPORT_TYPE, jo.get(Tc.IMPORT_TYPE).getAsString());
+					}
+					if (jo.has(Tc.ANIMAL_TYPE)) {
+						dboToSave.setVal(Tc.ANIMAL_TYPE, jo.get(Tc.ANIMAL_TYPE).getAsString());
+					}
+					if (jo.has(Tc.TEXT_EAR_TAGS)) {
+						dboToSave.setVal(Tc.TEXT_EAR_TAGS, jo.get(Tc.TEXT_EAR_TAGS).getAsString());
+					}
+				}
+			}
+			svw.saveObject(dboToSave, true);
+			resultArr = new DbDataArray();
+			resultArr.addDataItem(dboToSave);
+			resultMessage = rdr.convertDbDataArrayToGridJson(resultArr, Tc.RFID_INPUT);
+		} catch (SvException e) {
+			resultMessage = e.getLabelCode();
+			log4j.error(e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+			if (svw != null) {
+				svw.release();
+			}
+		}
+		return Response.status(200).entity(resultMessage).build();
+	}
+
+	/**
+	 * Web service that fetch animals depend on status.
+	 * 
+	 * @param sessionId
+	 * @param animalStatus
+	 * @return
+	 */
+	@Path("getAnimalsByStatus/{sessionId}/{animalStatus}")
+	@GET
+	@Produces("application/json")
+	public Response getAnimalsByStatus(@PathParam("sessionId") String sessionId,
+			@PathParam("animalStatus") String animalStatus) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			if (animalStatus.equals(Tc.LOST) || animalStatus.equals(Tc.TRANSITION)) {
+				DbDataArray dbArray = rdr.findDataPerSingleFilter(Tc.STATUS, animalStatus, DbCompareOperand.EQUAL,
+						SvReader.getTypeIdByName(Tc.ANIMAL), 10000, null, svr);
+				result = rdr.convertDbDataArrayToGridJson(dbArray, Tc.ANIMAL);
+			}
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getObjectsByParentId/{sessionId}/{parentId}/{tableName}/{orderByField}/{orderAscDesc}")
+	@GET
+	@Produces("application/json")
+	public Response getObjectsByParentId(@PathParam("sessionId") String sessionId, @PathParam("parentId") Long parentId,
+			@PathParam("tableName") String tableName, @PathParam("orderByField") String orderByField,
+			@PathParam("orderAscDesc") String orderAscDesc) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			DbDataObject dboTypeDesc = SvReader.getDbtByName(tableName.toUpperCase());
+			DbDataArray arrResult = svr.getObjectsByParentId(parentId, dboTypeDesc.getObject_id(), null, 0, 0);
+			result = rdr.convertDbDataArrayToGridJson(arrResult, dboTypeDesc.getVal(Tc.TABLE_NAME).toString(), false,
+					orderByField, orderAscDesc, null);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("setStatusOfConversation/{sessionId}/{objectId}/{additionalStatus}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response setStatusOfConversation(@PathParam("sessionId") String sessionId,
+			@PathParam("objectId") Long objectId, @PathParam("additionalStatus") Boolean additionalStatus) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		DbDataObject dboConversation = null;
+		try {
+			svr = new SvReader(sessionId);
+			dboConversation = new DbDataObject();
+			dboConversation = svr.getObjectById(objectId, svCONST.OBJECT_TYPE_CONVERSATION, null);
+			if (dboConversation != null) {
+				dboConversation.setVal(Tc.CONVERSATION_STATUS, Tc.SENT);
+				result = "naits.success.conversationStatusUpdatedToSent";
+				if (dboConversation.getVal(Tc.CATEGORY) != null
+						&& dboConversation.getVal(Tc.CATEGORY).equals(Tc.INFO)) {
+					if (dboConversation.getVal(Tc.IS_READ) != null && dboConversation.getVal(Tc.IS_READ).equals(true)) {
+						dboConversation.setVal(Tc.CONVERSATION_STATUS, Tc.READ);
+						result = "naits.success.conversationStatusUpdatedToRead";
+					}
+				}
+				if (dboConversation.getVal(Tc.CATEGORY) != null
+						&& dboConversation.getVal(Tc.CATEGORY).equals(Tc.TASK)) {
+					if (dboConversation.getVal(Tc.IS_READ) != null && dboConversation.getVal(Tc.IS_READ).equals(true)) {
+						dboConversation.setVal(Tc.CONVERSATION_STATUS, Tc.READ);
+						result = "naits.success.conversationStatusUpdatedToRead";
+						if (additionalStatus) {
+							dboConversation.setVal(Tc.CONVERSATION_STATUS, Tc.CLOSED);
+							result = "naits.success.conversationStatusUpdatedToClosed";
+						}
+					}
+				}
+			}
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	/**
+	 * Web service that return all responsible users per region
+	 * 
+	 * @param sessionId
+	 * @param objectId
+	 * @return
+	 */
+	@Path("getResponsibleUsersPerRegion/{sessionId}/{objectId}")
+	@GET
+	@Produces("application/json")
+	public Response getResponsibleUsersPerRegion(@PathParam("sessionId") String sessionId,
+			@PathParam("objectId") Long objectId) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		DbDataObject dboOrgUnit = null;
+		DbDataArray dbArrOrgUnits = null;
+		DbDataObject dboLinkType = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			dboOrgUnit = new DbDataObject();
+			dbArrOrgUnits = new DbDataArray();
+			dboLinkType = new DbDataObject();
+			rdr = new Reader();
+			dboOrgUnit = svr.getObjectById(objectId, svCONST.OBJECT_TYPE_ORG_UNITS, null);
+			if (dboOrgUnit != null) {
+				dboLinkType = SvReader.getLinkType(Tc.POA, svCONST.OBJECT_TYPE_USER, svCONST.OBJECT_TYPE_ORG_UNITS);
+				if (dboLinkType != null && dboOrgUnit.getVal(Tc.ORG_UNIT_TYPE).equals(Tc.REGIONAL_OFFICE)) {
+					dbArrOrgUnits = svr.getObjectsByLinkedId(dboOrgUnit.getObject_id(), dboOrgUnit.getObject_type(),
+							dboLinkType, svCONST.OBJECT_TYPE_USER, true, null, 0, 0);
+				}
+			}
+			result = rdr.convertDbDataArrayToGridJson(dbArrOrgUnits, "SVAROG_USERS", true, svr);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	/**
+	 * Web service that inactivate existing link between pet and owner
+	 * 
+	 * @param sessionId
+	 * @param ownerObjId
+	 * @param petObjId
+	 * @return
+	 */
+	@Path("inactivateLinkBetweenPetAndOwner/{sessionId}/{ownerObjId}/{petObjId}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response inactivateLinkBetweenPetAndOwner(@PathParam("sessionId") String sessionId,
+			@PathParam("ownerObjId") Long ownerObjId, @PathParam("petObjId") Long petObjId) {
+		String result = "naits.error.linkFailedToInactivate";
+		boolean output = false;
+		SvReader svr = null;
+		Writer wr = null;
+		DbDataObject dboPet = null;
+		DbDataObject dboOwner = null;
+		try {
+			svr = new SvReader(sessionId);
+			wr = new Writer();
+			dboOwner = svr.getObjectById(ownerObjId, SvReader.getTypeIdByName(Tc.HOLDING_RESPONSIBLE), null);
+			dboPet = svr.getObjectById(petObjId, SvReader.getTypeIdByName(Tc.PET), null);
+			output = wr.inactivateLinkBetweenExistingPetAndOwner(dboOwner, dboPet, svr);
+			if (output) {
+				result = "naits.success.linkSuccessfullyInactivated";
+			}
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("checkIfPetBelongsToAnimalShelter/{sessionId}/{petId}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response checkIfPetBelongsToAnimalShelter(@PathParam("sessionId") String sessionId,
+			@PathParam("petId") String petId) {
+		SvReader svr = null;
+		Reader rdr = null;
+		DbDataObject dboPet = null;
+		JsonObject jObj = new JsonObject();
+		String localeId = "";
+		try {
+			svr = new SvReader(sessionId);
+			localeId = svr.getUserLocaleId(svr.getInstanceUser());
+			rdr = new Reader();
+			dboPet = rdr.getPetByPetIdAndPetType(Tc.PET_ID, petId, null, true, svr);
+			if (dboPet != null) {
+				DbDataObject dboHolding = svr.getObjectById(dboPet.getParent_id(), SvReader.getTypeIdByName(Tc.HOLDING),
+						null);
+				if (dboHolding != null) {
+					if (dboPet.getParent_id().equals(dboHolding.getObject_id())) {
+						String labelCode = I18n.getText(localeId, "naits.info.petAlreadyExistsInHolding");
+						jObj.addProperty(Tc.LABEL_CODE, labelCode);
+						jObj.addProperty(Tc.PIC, dboHolding.getVal(Tc.PIC).toString());
+						if (dboHolding.getVal(Tc.NAME) != null) {
+							jObj.addProperty(Tc.NAME, dboHolding.getVal(Tc.NAME).toString());
+						}
+					}
+				}
+			}
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(jObj.toString()).build();
+	}
+
+	@Path("getTransferByRange/{sessionId}/{parentId}/{rangeFrom}/{rangeTo}/{transferType}/{shouldSkipStatus}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response getTransferByRange(@PathParam("sessionId") String sessionId, @PathParam("parentId") Long parentId,
+			@PathParam("rangeFrom") Long rangeFrom, @PathParam("rangeTo") Long rangeTo,
+			@PathParam("transferType") String transferType, @PathParam("shouldSkipStatus") Boolean shouldSkipStatus) {
+		SvReader svr = null;
+		Reader rdr = null;
+		String result = "";
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+
+			DbDataArray arrDboTransfers = rdr.getDbArrayOfDboTransfersByRangeAndParentId(parentId, rangeFrom, rangeTo,
+					transferType, shouldSkipStatus, svr);
+			result = rdr.convertDbDataArrayToGridJson(arrDboTransfers, Tc.TRANSFER, svr);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getCustomTableFormDataPerStrayPetLocation/{sessionId}/{parentId}/{locationReason}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response getCustomTableFormDataPerStrayPetLocation(@PathParam("sessionId") String sessionId,
+			@PathParam("parentId") Long parentId, @PathParam("locationReason") String locationReason) {
+		return getCustomTableFormDataPerStrayPetLocation(sessionId, parentId, locationReason, 0L);
+	}
+
+	@Path("getLastPetMovement/{sessionId}/{objectId}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response getLastPetMovement(@PathParam("sessionId") String sessionId, @PathParam("objectId") Long objectId) {
+		String result = "0";
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			ArrayList<String> inStatus = new ArrayList<>();
+			inStatus.add(Tc.ADOPTED);
+			inStatus.add(Tc.RELEASED);
+			inStatus.add(Tc.FINISHED);
+			DbDataObject dboPet = svr.getObjectById(objectId, SvReader.getTypeIdByName(Tc.PET), null);
+			DbDataObject dboPetMovement = rdr.getPetMovement(dboPet, inStatus, svr);
+			if (dboPetMovement != null)
+				result = dboPetMovement.getObject_id().toString();
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getCustomTableFormDataPerStrayPetLocation/{sessionId}/{parentId}/{locationReason}/{currentHoldingId}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response getCustomTableFormDataPerStrayPetLocation(@PathParam("sessionId") String sessionId,
+			@PathParam("parentId") Long parentId, @PathParam("locationReason") String locationReason,
+			@PathParam("currentHoldingId") Long currentHoldingId) {
+		SvReader svr = null;
+		Reader rdr = null;
+		String result = Tc.EMPTY_JSON_STRING;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+
+			result = rdr.getCustomTableFormDataPerStrayPetLocation(parentId, locationReason, currentHoldingId, svr)
+					.toString();
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	/**
+	 * Web service that return translated object type
+	 * 
+	 * @param sessionId
+	 * @param objType
+	 * @return
+	 */
+	@Path("/getTranslatedTableObjectType/{sessionId}/{objType}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response getTranslatedTableObjectType(@PathParam("sessionId") String sessionId,
+			@PathParam("objType") Long objType) {
+		String translatedValue = Tc.EMPTY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			translatedValue = rdr.getTableNameByType(objType, svr);
+		} catch (Exception e) {
+			log4j.error("General error in processing getTranslatedTableObjectType:", e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(translatedValue).build();
+	}
+
+	/**
+	 * Method that return list of keepers by holding object id
+	 * 
+	 * @param sessionId
+	 * @param holdingObjid
+	 * @return
+	 */
+	@Path("/getAllKeepersByHoldingByObjId/{sessionId}/{holdingObjid}")
+	@GET
+	@Produces("text/html;charset=utf-8")
+	public Response getAllKeepersByHoldingByObjId(@PathParam("sessionId") String sessionId,
+			@PathParam("holdingObjid") Long holdingObjid) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		DbDataArray res = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			res = new DbDataArray();
+			if (holdingObjid != null) {
+				res = rdr.getAllHoldingKeepersByHoldingObjid(holdingObjid, svr);
+				if (res != null && !res.getItems().isEmpty()) {
+					result = rdr.convertDbDataArrayToGridJson(res, Tc.HOLDING_RESPONSIBLE);
+				}
+			}
+		} catch (Exception e) {
+			log4j.error("General error in processing getAllKeepersByHoldingByObjId:", e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getDatesForStatisticalReports/{sessionId}/{reportType}/{sortOrder}")
+	@GET
+	@Produces("application/json")
+	public Response getDatesForStatisticalReports(@PathParam("sessionId") String sessionId,
+			@PathParam("reportType") String reportType, @PathParam("sortOrder") String sortOrder) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			ArrayList<String> datesForReport = rdr.getCorrespondingDatesForStatisticalReportsComponent(reportType, svr);
+			JSONArray jsonRsult = rdr.convertArrayListToJSONArray(datesForReport);
+			result = String.valueOf(jsonRsult);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getTerminatedAnimals/{sessionId}/{holdingObjId}/{dateFrom}/{dateTo}/{rowlimit}")
+	@GET
+	@Produces("application/json")
+	public Response getTerminatedAnimals(@PathParam("sessionId") String sessionId,
+			@PathParam("holdingObjId") Long holdingObjId, @PathParam("dateFrom") String dateFrom,
+			@PathParam("dateTo") String dateTo, @PathParam("rowLimit") int rowLimit) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			DbDataArray terminatedAnimals = rdr.getTerminatedAnimals(holdingObjId, dateFrom, dateTo, rowLimit, svr);
+			result = rdr.convertDbDataArrayToGridJsonWithoutSorting(terminatedAnimals, Tc.ANIMAL, false, svr);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getTerminatedPets/{sessionId}/{holdingObjId}/{dateFrom}/{dateTo}/{rowlimit}")
+	@GET
+	@Produces("application/json")
+	public Response getTerminatedPets(@PathParam("sessionId") String sessionId,
+			@PathParam("holdingObjId") Long holdingObjId, @PathParam("dateFrom") String dateFrom,
+			@PathParam("dateTo") String dateTo, @PathParam("rowLimit") int rowLimit) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			DbDataArray terminatedPets = rdr.getTerminatedPets(holdingObjId, dateFrom, dateTo, rowLimit, svr);
+			result = rdr.convertDbDataArrayToGridJsonWithoutSorting(terminatedPets, Tc.PET, false, svr);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getReleasedPets/{sessionId}/{holdingObjId}/{dateFrom}/{dateTo}/{rowlimit}")
+	@GET
+	@Produces("application/json")
+	public Response getReleasedPets(@PathParam("sessionId") String sessionId,
+			@PathParam("holdingObjId") Long holdingObjId, @PathParam("dateFrom") String dateFrom,
+			@PathParam("dateTo") String dateTo, @PathParam("rowLimit") int rowLimit) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			DbDataArray releasedPets = rdr.getReleasedPets(holdingObjId, dateFrom, dateTo, rowLimit, svr);
+			result = rdr.convertDbDataArrayToGridJsonWithoutSorting(releasedPets, Tc.PET, false, svr);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getFinishedMovementDocuments/{sessionId}/{destinationHoldingPic}/{dateFrom}/{dateTo}/{rowlimit}")
+	@GET
+	@Produces("application/json")
+	public Response getFinishedMovementDocuments(@PathParam("sessionId") String sessionId,
+			@PathParam("destinationHoldingPic") String destinationHoldingPic, @PathParam("dateFrom") String dateFrom,
+			@PathParam("dateTo") String dateTo, @PathParam("rowLimit") int rowLimit) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			DbDataArray finishedMovementDocs = rdr.getFinishedMovementDocuments(destinationHoldingPic, dateFrom, dateTo,
+					rowLimit, svr);
+			result = rdr.convertDbDataArrayToGridJsonWithoutSorting(finishedMovementDocs, Tc.MOVEMENT_DOC, false, svr);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getFinishedAnimalMovements/{sessionId}/{holdingObjId}/{dateFrom}/{dateTo}/{rowlimit}")
+	@GET
+	@Produces("application/json")
+	public Response getFinishedAnimalMovements(@PathParam("sessionId") String sessionId,
+			@PathParam("destinationHoldingPic") Long holdingObjId, @PathParam("dateFrom") String dateFrom,
+			@PathParam("dateTo") String dateTo, @PathParam("rowLimit") int rowLimit) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			DbDataArray finishedMovements = rdr.getFinishedMovements(holdingObjId, dateFrom, dateTo, rowLimit, svr);
+			log4j.trace(finishedMovements.size());
+			result = rdr.convertDbDataArrayToGridJsonWithoutSorting(finishedMovements, Tc.ANIMAL_MOVEMENT, false, svr);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getHoldingsByCriteria/{sessionId}/{type}/{name}/{pic}/{keeperId}/{geoCode}/{address}/{rowlimit}")
+	@GET
+	@Produces("application/json")
+	public Response getHoldingsByCriteria(@PathParam("sessionId") String sessionId, @PathParam("type") String type,
+			@PathParam("name") String name, @PathParam("pic") String pic, @PathParam("keeperId") String keeperId,
+			@PathParam("geoCode") String geoCode, @PathParam("address") String address,
+			@PathParam("rowLimit") int rowLimit) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			DbDataArray filteredHoldings = rdr.getFiltratedHoldings(type, name, pic, keeperId, geoCode, address,
+					rowLimit, svr);
+			result = rdr.convertDbDataArrayToGridJsonWithoutSorting(filteredHoldings, Tc.HOLDING, false, svr);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getPersonsByCriteria/{sessionId}/{idNo}/{firstName}/{lastName}/{fullName}/{geoCode}/{phoneNumber}/{rowlimit}")
+	@GET
+	@Produces("application/json")
+	public Response getPersonsByCriteria(@PathParam("sessionId") String sessionId, @PathParam("idNo") String idNo,
+			@PathParam("firstName") String firstName, @PathParam("lastName") String lastName,
+			@PathParam("fullName") String fullName, @PathParam("geoCode") String geoCode,
+			@PathParam("phoneNumber") String phoneNumber, @PathParam("rowLimit") int rowLimit) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			DbDataArray filteredPersons = rdr.getFiltratedPersons(idNo, firstName, lastName, fullName, geoCode,
+					phoneNumber, rowLimit, svr);
+			result = rdr.convertDbDataArrayToGridJsonWithoutSorting(filteredPersons, Tc.HOLDING_RESPONSIBLE, false,
+					svr);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getAnimalsByCriteria/{sessionId}/{animalId}/{status}/{animalClass}/{breed}/{color}/{country}/{rowlimit}")
+	@GET
+	@Produces("application/json")
+	public Response getAnimalsByCriteria(@PathParam("sessionId") String sessionId,
+			@PathParam("animalId") String animalId, @PathParam("status") String status,
+			@PathParam("animalClass") String animalClass, @PathParam("breed") String breed,
+			@PathParam("color") String color, @PathParam("country") String country,
+			@PathParam("rowLimit") int rowLimit) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			DbDataArray filtratedAnimals = rdr.getFiltratedAnimals(animalId, status, animalClass, breed, color, country,
+					rowLimit, svr);
+			result = rdr.convertDbDataArrayToGridJsonWithoutSorting(filtratedAnimals, Tc.ANIMAL, false, svr);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getOutgoingTransfersPerOrgUnit/{sessionId}/{parentId}/{tagType}/{startTagId}/{endTagId}/{dateFrom}/{dateTo}/{rowlimit}")
+	@GET
+	@Produces("application/json")
+	public Response getOutgoingTransfersPerOrgUnit(@PathParam("sessionId") String sessionId,
+			@PathParam("parentId") Long parentId, @PathParam("tagType") String tagType,
+			@PathParam("startTagId") String startTagId, @PathParam("endTagId") String endTagId,
+			@PathParam("dateFrom") String dateFrom, @PathParam("dateTo") String dateTo,
+			@PathParam("rowLimit") int rowLimit) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			DbDataArray filtratedAnimals = rdr.getOutgoingTransfersPerOrgUnit(parentId, tagType, startTagId, endTagId,
+					dateFrom, dateTo, rowLimit, svr);
+			result = rdr.convertDbDataArrayToGridJsonWithoutSorting(filtratedAnimals, Tc.TRANSFER, false, svr);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getIncomingTransfersPerOrgUnit/{sessionId}/{destinationOrgUnitObjId}/{tagType}/{startTagId}/{endTagId}/{dateFrom}/{dateTo}/{rowlimit}")
+	@GET
+	@Produces("application/json")
+	public Response getIncomingTransfersPerOrgUnit(@PathParam("sessionId") String sessionId,
+			@PathParam("destinationOrgUnitObjId") String destinationOrgUnitObjId, @PathParam("tagType") String tagType,
+			@PathParam("startTagId") String startTagId, @PathParam("endTagId") String endTagId,
+			@PathParam("dateFrom") String dateFrom, @PathParam("dateTo") String dateTo,
+			@PathParam("rowLimit") int rowLimit) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			DbDataArray filtratedAnimals = rdr.getIncomingTransfersPerOrgUnit(destinationOrgUnitObjId, tagType,
+					startTagId, endTagId, dateFrom, dateTo, rowLimit, svr);
+			result = rdr.convertDbDataArrayToGridJsonWithoutSorting(filtratedAnimals, Tc.TRANSFER, false, svr);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("getFlocksByCriteria/{sessionId}/{flockId}/{status}/{animalClass}/{color}/{rowlimit}")
+	@GET
+	@Produces("application/json")
+	public Response getFlocksByCriteria(@PathParam("sessionId") String sessionId, @PathParam("flockId") String flockId,
+			@PathParam("status") String status, @PathParam("animalClass") String animalClass,
+			@PathParam("color") String color, @PathParam("rowLimit") int rowLimit) {
+		String result = Tc.EMPTY_ARRAY_STRING;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			DbDataArray filtratedAnimals = rdr.getFiltratedFlocks(flockId, status, animalClass, color, rowLimit, svr);
+			result = rdr.convertDbDataArrayToGridJsonWithoutSorting(filtratedAnimals, Tc.FLOCK, false, svr);
+		} catch (SvException e) {
+			log4j.error(e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(result).build();
+	}
+
+	@Path("checkIfAnimalParticipatedInCampaign/{sessionId}/{animalObjId}/{campaignObjId}")
+	@GET
+	@Produces("application/json")
+	public Response checkIfAnimalParticipatedInCampaign(@PathParam("sessionId") String sessionId,
+			@PathParam("animalObjId") Long animalObjId, @PathParam("campaignObjId") Long campaignObjId) {
+		String resultMsgLbl = Tc.EMPTY_ARRAY_STRING;
+		Boolean ifAnimalParticipatedInCampaign = false;
+		SvReader svr = null;
+		Reader rdr = null;
+		try {
+			svr = new SvReader(sessionId);
+			rdr = new Reader();
+			ifAnimalParticipatedInCampaign = rdr.checkIfAnimalParticipatedInCampaign(animalObjId, campaignObjId, svr);
+			resultMsgLbl = ifAnimalParticipatedInCampaign.toString();
+		} catch (SvException e) {
+			resultMsgLbl = e.getLabelCode();
+			log4j.error("Error in checkIfAnimalParticipatedInCampaign: " + e.getFormattedMessage(), e);
+		} finally {
+			if (svr != null) {
+				svr.release();
+			}
+		}
+		return Response.status(200).entity(resultMsgLbl).build();
 	}
 }

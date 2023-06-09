@@ -56,7 +56,7 @@ import com.prtech.svarog_common.DbSearchExpression;
 @Path("/svarog")
 public class WSSvarog {
 
-	LinkedHashMap<String, LinkedHashMap<String, Object>> linkVals = new LinkedHashMap<String, LinkedHashMap<String, Object>>();
+	LinkedHashMap<String, LinkedHashMap<String, Object>> linkVals = new LinkedHashMap<>();
 	static final Logger log4j = LogManager.getLogger(WSSvarog.class.getName());
 
 	static boolean initPlugin() {
@@ -693,8 +693,7 @@ public class WSSvarog {
 			if (vfieldObject.getVal("GUI_METADATA") != null)
 				guiMetadata = gson.fromJson(vfieldObject.getVal("GUI_METADATA").toString(), JsonObject.class);
 		} catch (Exception e) {
-			// could be null, we don't care
-			log4j.debug(e);
+			log4j.error(e);
 		}
 
 		if (guiMetadata != null && guiMetadata.has("react")) {
@@ -806,13 +805,13 @@ public class WSSvarog {
 		// hardcode quarantine type to blacklist, regardless of user choice
 		qDbo.setVal(Tc.QUARANTINE_TYPE, "1");
 
-		//format date
-		DateTime start = new DateTime(qDbo.getVal(Tc.DATE_FROM).toString()) ;
-		DateTime end = new DateTime(qDbo.getVal(Tc.DATE_TO).toString()); 
+		// format date
+		DateTime start = new DateTime(qDbo.getVal(Tc.DATE_FROM).toString());
+		DateTime end = new DateTime(qDbo.getVal(Tc.DATE_TO).toString());
 		java.sql.Date dd = new java.sql.Date(start.getMillis());
 		java.sql.Date ed = new java.sql.Date(end.getMillis());
 
-		qDbo.setVal(Tc.DATE_FROM,dd);
+		qDbo.setVal(Tc.DATE_FROM, dd);
 		qDbo.setVal(Tc.DATE_TO, ed);
 
 		return qDbo;

@@ -144,32 +144,27 @@ public class SvSSO {
 	@Produces("text/html;charset=utf-8")
 	public Response updatePassword(@PathParam("token") String token, @PathParam("old_pass") String oldPass,
 			@PathParam("new_pass") String newPass, @Context HttpServletRequest httpRequest) {
+		String returnMsgLbl = "naits.error.updatePassword";
 		SvReader svr = null;
 		SvSecurity svs = null;
-		String returnMsgLbl = "updatePassword.error";
 		try {
 			svs = new SvSecurity();
 			svr = new SvReader(token);
 			DbDataObject dboUser = SvReader.getUserBySession(token);
-			if (dboUser != null && dboUser.getObject_id() != 0) {
+			if (dboUser != null && !dboUser.getObject_id().equals(0L)) {
 				svs.updatePassword(dboUser.getVal(Tc.USER_NAME).toString(), oldPass, newPass);
-				returnMsgLbl = "updatePassword.success";
+				returnMsgLbl = "naits.success.updatePassword";
 			}
-		} catch (Exception e) {
-			if (e instanceof SvException) {
-				returnMsgLbl = ((SvException) e).getFormattedMessage();
-				log4j.info("Error in SvSSO.updatePassword():" + ((SvException) e).getFormattedMessage(), e);
-			} else {
-				returnMsgLbl = e.toString();
-				log4j.info("Error in SvSSO.updatePassword():" + e.getMessage(), e);
-			}
+		} catch (SvException e) {
+			returnMsgLbl = e.getLabelCode();
+			log4j.info("Error in updatePassword. Message: ", e);
 		} finally {
 			if (svr != null)
 				svr.release();
 			if (svs != null)
 				svs.release();
 		}
-		return Response.status(200).entity(I18n.getText(returnMsgLbl)).build();
+		return Response.status(200).entity(returnMsgLbl).build();
 	}
 
 	@Path("/updatePasswordAfterRecovery/{token}/{username}/{pin}/{new_pass}")
@@ -242,17 +237,17 @@ public class SvSSO {
 								}
 							}
 							if (farmerFound)
-								dboUser.setVal(Tc.PASSWORD_HASH, (newPassword.toUpperCase()));
+								dboUser.setVal(Tc.PASS_HSH, (newPassword.toUpperCase()));
 							else {
 								error = I18n.getText("system.farmer_id_not_matched");
 							}
 						} else
-							dboUser.setVal(Tc.PASSWORD_HASH, (newPassword.toUpperCase()));
+							dboUser.setVal(Tc.PASS_HSH, (newPassword.toUpperCase()));
 						/*
 						 * with overwrite flag, couse need to update
 						 * password_hash f.r
 						 */
-						svs.createUser((String) dboUser.getVal(Tc.USER_NAME), (String) dboUser.getVal(Tc.PASSWORD_HASH),
+						svs.createUser((String) dboUser.getVal(Tc.USER_NAME), (String) dboUser.getVal(Tc.PASS_HSH),
 								(String) dboUser.getVal(Tc.FIRST_NAME), (String) dboUser.getVal(Tc.LAST_NAME),
 								(String) dboUser.getVal(Tc.E_MAIL), (String) dboUser.getVal(Tc.PIN),
 								(String) dboUser.getVal("TAX_ID"), (String) dboUser.getVal(Tc.USER_TYPE), null, true);
@@ -343,9 +338,9 @@ public class SvSSO {
 	private boolean sendActivationEmail(DbDataObject dboUser, HttpServletRequest httpRequest) throws SvException {
 		String mailBody = I18n.getLongText("mail.body_activation");
 		String feHost = "";
-		String printParam = SvConf.getParam("print.jrxml_path");
+		String printParam = SvConf.getParam(Tc.printJrxmlPath);
 		Properties rb = new Properties();
-		rb.put("print.jrxml_path", printParam);
+		rb.put(Tc.printJrxmlPath, printParam);
 		if (rb.getProperty("frontend.gui_host") != null && rb.getProperty("frontend.gui_host").trim().length() > 4) {
 			feHost = rb.getProperty("frontend.gui_host");
 		} else {
