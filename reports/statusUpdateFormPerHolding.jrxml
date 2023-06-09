@@ -194,7 +194,7 @@ vhold.object_id = $P{OBJ_ID}]]>
 				<textFieldExpression><![CDATA[$F{phone}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
-				<reportElement x="344" y="58" width="60" height="20" forecolor="#000000" uuid="2bca6513-3bca-4863-88cb-e0731f69648c"/>
+				<reportElement x="344" y="58" width="85" height="20" forecolor="#000000" uuid="2bca6513-3bca-4863-88cb-e0731f69648c"/>
 				<box>
 					<bottomPen lineWidth="1.0"/>
 				</box>
@@ -270,7 +270,7 @@ vhold.object_id = $P{OBJ_ID}]]>
 				<textElement textAlignment="Right" verticalAlignment="Bottom">
 					<font fontName="DejaVu Sans" size="6"/>
 				</textElement>
-				<text><![CDATA[v.14.0 H]]></text>
+				<text><![CDATA[v.14.1 H]]></text>
 			</staticText>
 			<textField>
 				<reportElement x="703" y="-2" width="49" height="25" uuid="318434f5-687b-4244-8bac-5e1d3a01194b">

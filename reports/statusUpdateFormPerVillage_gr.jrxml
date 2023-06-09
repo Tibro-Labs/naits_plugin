@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="statusUpdateFormPerVillage" language="groovy" pageWidth="792" pageHeight="612" orientation="Landscape" columnWidth="752" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" isSummaryWithPageHeaderAndFooter="true" uuid="242dcb76-a031-467a-a173-dad46531f42c">
-	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.zoom" value="1.2100000000000004"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<parameter name="path" class="java.lang.String">
@@ -121,7 +121,7 @@ vhold.status = 'VALID']]>
 				<textElement textAlignment="Right" verticalAlignment="Bottom">
 					<font fontName="DejaVu Sans" size="6"/>
 				</textElement>
-				<text><![CDATA[v.14V / 5GR]]></text>
+				<text><![CDATA[v.14V / 6GR]]></text>
 			</staticText>
 		</band>
 	</title>
@@ -288,7 +288,7 @@ vhold.status = 'VALID']]>
 				<text><![CDATA[გვარი]]></text>
 			</staticText>
 			<textField isBlankWhenNull="true">
-				<reportElement x="344" y="23" width="60" height="20" forecolor="#000000" uuid="80567ac1-b185-4cab-93a5-205bb99bb97d"/>
+				<reportElement x="344" y="23" width="85" height="20" forecolor="#000000" uuid="80567ac1-b185-4cab-93a5-205bb99bb97d"/>
 				<box>
 					<bottomPen lineWidth="1.0"/>
 				</box>

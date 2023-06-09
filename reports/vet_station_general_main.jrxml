@@ -34,7 +34,7 @@
 	naits.get_label_text_per_value(vp.status,
 	'OBJ_STATUS',
 	'en_US')as status,
-	vp.pet_id,
+	vp.PET_TAG_ID,
 	vp.pet_name,
 	vp.pet_breed,
 	vp.birth_date,
@@ -107,7 +107,7 @@ where
 	<field name="phone" class="java.lang.String"/>
 	<field name="keeper_id" class="java.lang.String"/>
 	<field name="status" class="java.lang.String"/>
-	<field name="pet_id" class="java.lang.String"/>
+	<field name="PET_TAG_ID" class="java.lang.String"/>
 	<field name="pet_name" class="java.lang.String"/>
 	<field name="pet_breed" class="java.lang.String"/>
 	<field name="birth_date" class="java.sql.Date"/>
@@ -552,7 +552,7 @@ where
 				<textElement verticalAlignment="Middle">
 					<font fontName="DejaVu Sans" size="8"/>
 				</textElement>
-				<textFieldExpression><![CDATA[$F{pet_id}]]></textFieldExpression>
+				<textFieldExpression><![CDATA[$F{PET_TAG_ID}]]></textFieldExpression>
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement uuid="c21db8e3-14fa-4c41-b2d2-b6ce5b2f82f6" stretchType="RelativeToTallestObject" x="60" y="0" width="58" height="20"/>

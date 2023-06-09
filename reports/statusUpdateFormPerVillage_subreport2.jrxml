@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="statusUpdateFormPerVillage_subreport2" language="groovy" pageWidth="802" pageHeight="555" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="61860756-6baa-40ec-bf17-4a9e0daf7847">
-	<property name="ireport.zoom" value="3.0"/>
-	<property name="ireport.x" value="149"/>
+	<property name="ireport.zoom" value="1.1566298682885947"/>
+	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
 	<parameter name="OBJ_ID" class="java.lang.Long">
 		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
@@ -21,10 +21,10 @@ total,
 adults,
 registration_date,
 note,
-CASE WHEN (animal_type != '11' and animal_type != '9' and animal_type != '10') /*pig, sheep, goat*/
+CASE WHEN (animal_type != '1' and animal_type != '2') /*sheep, goat*/
 THEN '99' ELSE animal_type END  as animal_type,
-CASE WHEN (animal_type != '11' and animal_type != '9' and animal_type != '10')
-THEN naits.translateCodeValue(animal_type, 'ANIMAL_CLASS', 'ka_GE')
+CASE WHEN (animal_type != '1' and animal_type != '2')
+THEN naits.translateCodeValue(animal_type, 'FLOCK_ANIMAL_TYPE', 'ka_GE')
 END  as comm,
 null as no_vaccinated,
 null as no_treated
@@ -465,7 +465,7 @@ null as no_treated
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement x="193" y="0" width="30" height="15" forecolor="#000000" uuid="af2a1131-e46c-4c5b-b14b-5e5e65507493">
-					<printWhenExpression><![CDATA[$F{animal_type}.contentEquals( "10" )]]></printWhenExpression>
+					<printWhenExpression><![CDATA[$F{animal_type}.contentEquals( "2" )]]></printWhenExpression>
 				</reportElement>
 				<box leftPadding="0">
 					<pen lineStyle="Dotted" lineColor="#000000"/>
@@ -481,7 +481,7 @@ null as no_treated
 			</textField>
 			<textField isBlankWhenNull="true">
 				<reportElement x="163" y="0" width="30" height="15" forecolor="#000000" uuid="7d081851-56c4-4842-aca6-e31b4a8be726">
-					<printWhenExpression><![CDATA[$F{animal_type}.contentEquals( "9" )]]></printWhenExpression>
+					<printWhenExpression><![CDATA[$F{animal_type}.contentEquals( "1" )]]></printWhenExpression>
 				</reportElement>
 				<box leftPadding="0">
 					<pen lineStyle="Dotted" lineColor="#000000"/>
